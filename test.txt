@@ -1,0 +1,109 @@
+{
+  "workoutPlan": {
+    "daysPerWeek": 4,
+    "workoutDuration": "1 hour",
+    "warmUp": "5-10 minutes of cardio and dynamic stretching",
+    "monday": {
+      "exercise1": "Bench Press",
+      "sets1": "4 sets of 8-12 reps",
+      "weight1": "70-80kg",
+      "exercise2": "Incline Dumbbell Press",
+      "sets2": "3 sets of 10-15 reps",
+      "weight2": "20-25kg",
+      "exercise3": "Lat Pulldown",
+      "sets3": "3 sets of 10-12 reps",
+      "weight3": "40-50kg",
+      "exercise4": "Bicep Curl",
+      "sets4": "3 sets of 12-15 reps",
+      "weight4": "15-20kg"
+    },
+    "tuesday": {
+      "exercise1": "Squats",
+      "sets1": "4 sets of 8-12 reps",
+      "weight1": "80-90kg",
+      "exercise2": "Leg Press",
+      "sets2": "3 sets of 10-12 reps",
+      "weight2": "100-120kg",
+      "exercise3": "Lunges",
+      "sets3": "3 sets of 10-12 reps (per leg)",
+      "weight3": "20-25kg",
+      "exercise4": "Leg Extensions",
+      "sets4": "3 sets of 12-15 reps",
+      "weight4": "20-25kg"
+    },
+    "thursday": {
+      "exercise1": "Deadlifts",
+      "sets1": "4 sets of 8-12 reps",
+      "weight1": "80-90kg",
+      "exercise2": "Bent-Over Barbell Rows",
+      "sets2": "3 sets of 8-12 reps",
+      "weight2": "40-50kg",
+      "exercise3": "Shoulder Press",
+      "sets3": "3 sets of 8-12 reps",
+      "weight3": "20-25kg",
+      "exercise4": "Lateral Raises",
+      "sets4": "3 sets of 10-12 reps",
+      "weight4": "10-15kg"
+    },
+    "friday": {
+      "exercise1": "Chest Press",
+      "sets1": "4 sets of 8-12 reps",
+      "weight1": "60-70kg",
+      "exercise2": "Shoulder Rotations",
+      "sets2": "3 sets of 10-12 reps",
+      "weight2": "5-10kg",
+      "exercise3": "Tricep Dips",
+      "sets3": "3 sets of 10-12 reps",
+      "weight3": "body weight",
+      "exercise4": "Calf Raises",
+      "sets4": "3 sets of 12-15 reps",
+      "weight4": "10-15kg"
+    },
+    "coolDown": "5-10 minutes of stretching"
+  },
+  "mealPlan": {
+    "dailyCaloricIntake": "2500-2800 calories",
+    "macronutrientBreakdown": {
+      "protein": "170-200g",
+      "carbohydrates": "250-300g",
+      "fat": "70-80g"
+    },
+    "meal1": {
+      "time": "7:00 AM",
+      "food": "Scrambled eggs with chicken sausage, brown rice, and avocado",
+      "calories": "500-600 calories",
+      "protein": "40-50g",
+      "carbohydrates": "60-70g",
+      "fat": "20-25g"
+    },
+    "meal2": {
+      "time": "12:00 PM",
+      "food": "Grilled chicken breast with sweet potato, broccoli, and quinoa",
+      "calories": "600-700 calories",
+      "protein": "50-60g",
+      "carbohydrates": "80-90g",
+      "fat": "15-20g"
+    },
+    "meal3": {
+      "time": "4:00 PM",
+      "food": "Beef and vegetable stir-fry with brown rice",
+      "calories": "500-600 calories",
+      "protein": "40-50g",
+      "carbohydrates": "60-70g",
+      "fat": "20-25g"
+    },
+    "meal4": {
+      "time": "8:00 PM",
+      "food": "Grilled chicken breast with roasted vegetables and quinoa",
+      "calories": "500-600 calories",
+      "protein": "50-60g",
+      "carbohydrates": "60-70g",
+      "fat": "15-20g"
+    },
+    "supplements": {
+      "proteinPowder": "1-2 scoops per day",
+      "massGainer": "1-2 scoops per day",
+      "creatine": "3-5g per day"
+    }
+  }
+}
