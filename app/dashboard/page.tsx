@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Calendar, Scale, Flame, CheckCircle2, TrendingUp, BarChart3, Pill, User as UserIcon, UtensilsCrossed, Check, Zap } from 'lucide-react';
 
 // Stat Card Component
 function StatCard({
@@ -16,9 +18,20 @@ function StatCard({
   sublabel?: string;
   highlight?: string;
 }) {
+  const getIcon = (iconName: string) => {
+    const iconProps = { size: 28, className: 'text-[#F4D03F]' };
+    switch(iconName) {
+      case 'calendar': return <Calendar {...iconProps} />;
+      case 'scale': return <Scale {...iconProps} />;
+      case 'flame': return <Flame {...iconProps} />;
+      case 'chart': return <BarChart3 {...iconProps} />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg p-6 shadow-sm">
-      <div className="text-2xl mb-2">{icon}</div>
+      <div className="mb-2">{getIcon(icon)}</div>
       <div className="text-4xl font-black text-[#1A1816] mb-1">{value}</div>
       <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
         {label}
@@ -26,8 +39,9 @@ function StatCard({
         {sublabel}
       </div>
       {highlight && (
-        <div className={`text-xs font-bold mt-2 ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-green-600" : "text-[#F4D03F]"}`}>
-          {highlight}
+        <div className={`text-xs font-bold mt-2 flex items-center gap-1 ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-green-600" : "text-[#F4D03F]"}`}>
+          {highlight.includes("✓") && <Check size={14} className="inline" />}
+          {highlight.replace('✓', '').trim()}
         </div>
       )}
     </div>
@@ -63,13 +77,23 @@ function WorkoutCard({
         <div className="font-bold text-[#1A1816]">{title}</div>
         <div className="text-xs text-gray-500">{exercises} · {duration}</div>
       </div>
-      <div className={`text-xs font-bold uppercase ${
+      <div className={`text-xs font-bold uppercase flex items-center gap-1 ${
         status === "done" ? "text-green-600" :
         status === "today" ? "text-[#F4D03F]" :
         "text-gray-400"
       }`}>
-        {status === "done" && "Done ✓"}
-        {status === "today" && "Today 🔥"}
+        {status === "done" && (
+          <>
+            <Check size={14} />
+            Done
+          </>
+        )}
+        {status === "today" && (
+          <>
+            <Flame size={14} />
+            Today
+          </>
+        )}
         {status === "upcoming" && "Upcoming"}
       </div>
     </div>
@@ -77,11 +101,38 @@ function WorkoutCard({
 }
 
 // Quick Action Button
-function QuickAction({ icon, label }: { icon: string; label: string }) {
+function QuickAction({ icon, label, href }: { icon: string; label: string; href?: string }) {
+  const getIcon = (iconName: string) => {
+    const iconProps = { size: 24, className: 'text-[#F4D03F]' };
+    switch(iconName) {
+      case 'chart': return <BarChart3 {...iconProps} />;
+      case 'pill': return <Pill {...iconProps} />;
+      case 'user': return <UserIcon {...iconProps} />;
+      case 'food': return <UtensilsCrossed {...iconProps} />;
+      default: return null;
+    }
+  };
+
+  const content = (
+    <>
+      <div className="mb-2">{getIcon(icon)}</div>
+      <span className="text-xs font-bold text-[#1A1816] uppercase tracking-wider">{label}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href}>
+        <div className="flex flex-col items-center justify-center p-4 bg-[#F9F9F9] rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
+          {content}
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <button className="flex flex-col items-center justify-center p-4 bg-[#F9F9F9] rounded-lg hover:bg-gray-200 transition-colors">
-      <span className="text-2xl mb-2">{icon}</span>
-      <span className="text-xs font-bold text-[#1A1816] uppercase tracking-wider">{label}</span>
+      {content}
     </button>
   );
 }
@@ -109,10 +160,10 @@ export default function DashboardPage() {
   const [currentDate] = useState(new Date(2026, 1, 28)); // February 28, 2026
   
   const stats = [
-    { icon: "📅", value: "24", label: "Workouts", sublabel: "This Month", highlight: "↑ 4 from last month" },
-    { icon: "⚖️", value: "22.4", label: "Current BMI", sublabel: "", highlight: "Normal Range ✓" },
-    { icon: "🔥", value: "2,450", label: "Daily Calories", sublabel: "Target", highlight: "↑ Muscle Gain Plan" },
-    { icon: "📆", value: "18", label: "Days Left in", sublabel: "Plan", highlight: "60% Complete" },
+    { icon: "calendar", value: "24", label: "Workouts", sublabel: "This Month", highlight: "↑ 4 from last month" },
+    { icon: "scale", value: "22.4", label: "Current BMI", sublabel: "", highlight: "Normal Range ✓" },
+    { icon: "flame", value: "2,450", label: "Daily Calories", sublabel: "Target", highlight: "↑ Muscle Gain Plan" },
+    { icon: "chart", value: "18", label: "Days Left in", sublabel: "Plan", highlight: "60% Complete" },
   ];
 
   const workouts = [
@@ -138,7 +189,7 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-black text-[#1A1816] uppercase mb-1">
-          Welcome Back, Thushen 👋
+          Welcome Back, Thushen
         </h1>
         <p className="text-gray-500">
           Tuesday, February 28, 2026 — Leg Day Today!
@@ -216,10 +267,10 @@ export default function DashboardPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-lg font-black text-[#1A1816] uppercase mb-4">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-3">
-              <QuickAction icon="📊" label="Check BMI" />
-              <QuickAction icon="💊" label="Buy Supps" />
-              <QuickAction icon="👤" label="Book Trainer" />
-              <QuickAction icon="🍽️" label="Meal Plan" />
+              <QuickAction icon="chart" label="Check BMI" href="/bmi-calculator" />
+              <QuickAction icon="pill" label="Buy Supps" />
+              <QuickAction icon="user" label="Book Trainer" />
+              <QuickAction icon="food" label="Meal Plan" />
             </div>
           </div>
         </div>

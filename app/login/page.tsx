@@ -2,13 +2,94 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log("📝 Email changed:", value);
+    setEmail(value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log("🔐 Password changed, length:", value.length);
+    setPassword(value);
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    console.log("🔐 Sign in button clicked");
     e.preventDefault();
-    router.push("/dashboard");
+    
+    if (!email || !password) {
+      setError("Please enter email and password");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      console.log("📤 Sending login request...");
+      console.log("📧 Email:", email);
+      console.log("🔑 Password length:", password.length);
+
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log("📥 Response status:", response.status);
+      console.log("📥 Response ok:", response.ok);
+
+      const data = await response.json();
+      console.log("📥 Response data:", data);
+
+      if (!response.ok) {
+        console.error("❌ Login failed:", data.error);
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      console.log("✅ Login successful!");
+      console.log("👤 User:", data.user);
+      console.log("👤 User role:", data.user?.role);
+      console.log("🎟️ Token:", data.token?.substring(0, 20) + "...");
+
+      // Store token in localStorage
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        console.log("✅ Token stored in localStorage");
+      }
+
+      const redirectPath = data.user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
+      console.log("🔄 Will redirect to:", redirectPath);
+      console.log("🔄 Current location:", window.location.href);
+      console.log("🔄 About to execute window.location.href = '" + redirectPath + "'");
+
+      // Hard redirect
+      setTimeout(() => {
+        console.log("⏱️ Executing redirect now...");
+        window.location.href = redirectPath;
+      }, 100);
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      console.error("❌ Error message:", err.message);
+      console.error("❌ Error stack:", err.stack);
+      setError(err.message || "An error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -31,6 +112,13 @@ export default function LoginPage() {
           Sign in to your SBG account
         </p>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSignIn} className="space-y-6">
           {/* Email */}
@@ -41,6 +129,9 @@ export default function LoginPage() {
             <input
               type="email"
               placeholder="your@email.com"
+              value={email}
+              onChange={handleEmailChange}
+              required
               className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
             />
           </div>
@@ -53,6 +144,9 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="••••••••"
+              value={password}
+              onChange={handlePasswordChange}
+              required
               className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
             />
             <div className="text-right mt-2">
@@ -65,9 +159,10 @@ export default function LoginPage() {
           {/* Sign In Button */}
           <button
             type="submit"
-            className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] transition-colors flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
             <span>→</span>
           </button>
 

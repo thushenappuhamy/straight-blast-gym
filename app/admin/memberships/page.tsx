@@ -1,0 +1,493 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+
+interface Membership {
+  _id: string;
+  name: string;
+  description: string;
+  tagline: string;
+  price: number;
+  duration: string;
+  features: string[];
+  icon?: string;
+  color?: string;
+  badge?: string;
+  isFeatured: boolean;
+  isActive: boolean;
+  activeMembersCount: number;
+  monthlyRevenue: number;
+  createdAt: string;
+}
+
+export default function AdminMembershipsPage() {
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMembership, setEditingMembership] = useState<Membership | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    tagline: '',
+    price: '',
+    duration: 'monthly',
+    features: '',
+    isFeatured: false,
+    isActive: true,
+  });
+
+  // Fetch memberships
+  const fetchMemberships = async () => {
+    try {
+      console.log('📊 [ADMIN MEMBERSHIPS] Fetching...');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/memberships', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch memberships');
+      }
+
+      console.log('✅ [ADMIN MEMBERSHIPS] Loaded:', data.data);
+      setMemberships(data.data || []);
+      setError('');
+    } catch (err: any) {
+      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMemberships();
+  }, []);
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      tagline: '',
+      price: '',
+      duration: 'monthly',
+      features: '',
+      isFeatured: false,
+      isActive: true,
+    });
+    setEditingMembership(null);
+  };
+
+  const handleAddClick = () => {
+    resetForm();
+    setShowAddModal(true);
+  };
+
+  const handleEditClick = (membership: Membership) => {
+    setEditingMembership(membership);
+    setFormData({
+      name: membership.name,
+      description: membership.description,
+      tagline: membership.tagline,
+      price: membership.price.toString(),
+      duration: membership.duration,
+      features: membership.features.join('\n'),
+      isFeatured: membership.isFeatured,
+      isActive: membership.isActive,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleAddMembership = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem('token');
+      const features = formData.features
+        .split('\n')
+        .map((f) => f.trim())
+        .filter((f) => f);
+
+      const response = await fetch('/api/admin/memberships', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          tagline: formData.tagline,
+          price: parseFloat(formData.price),
+          duration: formData.duration,
+          features,
+          isFeatured: formData.isFeatured,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create membership');
+      }
+
+      console.log('✅ [ADMIN MEMBERSHIPS] Created:', data.data);
+      setShowAddModal(false);
+      resetForm();
+      // Refetch from server to ensure sync with user pages
+      await fetchMemberships();
+    } catch (err: any) {
+      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleUpdateMembership = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingMembership) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const features = formData.features
+        .split('\n')
+        .map((f) => f.trim())
+        .filter((f) => f);
+
+      const response = await fetch(`/api/admin/memberships/${editingMembership._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          description: formData.description,
+          tagline: formData.tagline,
+          price: parseFloat(formData.price),
+          duration: formData.duration,
+          features,
+          isFeatured: formData.isFeatured,
+          isActive: formData.isActive,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ [UPDATE MEMBERSHIP] Response error:', { status: response.status, data });
+        throw new Error(data.error || 'Failed to update membership');
+      }
+
+      console.log('✅ [ADMIN MEMBERSHIPS] Updated:', data.data);
+      setShowEditModal(false);
+      resetForm();
+      // Refetch from server to ensure sync with user pages
+      await fetchMemberships();
+    } catch (err: any) {
+      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleDeleteMembership = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this membership plan?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/admin/memberships/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete membership');
+      }
+
+      console.log('✅ [ADMIN MEMBERSHIPS] Deleted');
+      // Refetch from server to ensure sync with user pages
+      await fetchMemberships();
+    } catch (err: any) {
+      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-white border-b-2 border-[#F4D03F] p-6 mb-8">
+        <div className="max-w-7xl mx-auto flex-1">
+          <div className="text-[#F4D03F] text-xs font-bold uppercase tracking-wider mb-2">
+            Manage Memberships
+          </div>
+          <h1 className="text-4xl font-black text-gray-900 uppercase">Membership Plans</h1>
+        </div>
+        <button
+          onClick={handleAddClick}
+          className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-3 transition-all shadow-lg"
+        >
+          + NEW PLAN
+        </button>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 pb-12">
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 font-bold">
+            ❌ {error}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg font-bold">📊 Loading membership plans...</p>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && memberships.length === 0 && (
+          <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+            <p className="text-gray-600 text-lg font-bold mb-4">No membership plans created yet</p>
+            <button
+              onClick={handleAddClick}
+              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-3 transition-all"
+            >
+              + CREATE FIRST PLAN
+            </button>
+          </div>
+        )}
+
+        {/* Memberships Grid */}
+        {!loading && memberships.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {memberships.map((membership) => (
+              <div key={membership._id} className="border-2 border-gray-200 overflow-hidden hover:border-[#F4D03F] transition-all">
+                {/* Header */}
+                <div className={`p-4 ${membership.isFeatured ? 'bg-[#F4D03F]/10 border-b-2 border-[#F4D03F]' : 'bg-gray-50 border-b border-gray-200'}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="text-xs text-[#F4D03F] font-black uppercase mb-1">{membership.tagline}</div>
+                      <h3 className="text-xl font-black text-gray-900 uppercase">{membership.name}</h3>
+                    </div>
+                    {membership.isFeatured && <span className="text-sm bg-[#F4D03F] text-black font-black px-2 py-1">⭐ Featured</span>}
+                  </div>
+                  {!membership.isActive && <span className="text-xs bg-gray-600 text-white font-bold px-2 py-1">⊘ Inactive</span>}
+                </div>
+
+                {/* Content */}
+                <div className="p-4 border-b border-gray-200">
+                  <p className="text-sm text-gray-700 mb-3">{membership.description}</p>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-[#2B2621] text-white p-3 rounded">
+                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Price</p>
+                      <p className="text-lg font-black">LKR {membership.price.toLocaleString()}</p>
+                    </div>
+                    <div className="bg-[#2B2621] text-white p-3 rounded">
+                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Duration</p>
+                      <p className="text-lg font-black capitalize">{membership.duration}</p>
+                    </div>
+                  </div>
+
+                  {/* Revenue Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                      <p className="text-xs text-gray-600 uppercase font-bold">Members</p>
+                      <p className="text-xl font-black text-blue-600">{membership.activeMembersCount}</p>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded border border-green-200">
+                      <p className="text-xs text-gray-600 uppercase font-bold">Revenue</p>
+                      <p className="text-lg font-black text-green-600">LKR {Math.round(membership.monthlyRevenue).toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                  <p className="text-xs font-bold text-gray-600 uppercase mb-2">Features ({membership.features.length})</p>
+                  <ul className="space-y-1 text-sm text-gray-700">
+                    {membership.features.slice(0, 3).map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-[#F4D03F] font-bold">✓</span>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                    {membership.features.length > 3 && <li className="text-xs font-bold text-gray-500">+ {membership.features.length - 3} more</li>}
+                  </ul>
+                </div>
+
+                {/* Actions */}
+                <div className="p-4 flex gap-2">
+                  <button
+                    onClick={() => handleEditClick(membership)}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm uppercase py-2 transition-all"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMembership(membership._id)}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-sm uppercase py-2 transition-all"
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add/Edit Modal */}
+      {(showAddModal || showEditModal) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-b from-[#F4D03F]/5 via-white to-blue-50 border-2 border-[#F4D03F] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-[#F4D03F]/10 to-blue-100 border-b-2 border-[#F4D03F] p-6">
+              <h2 className="text-2xl font-black text-slate-700 uppercase">{showAddModal ? 'Add New Membership Plan' : 'Edit Membership Plan'}</h2>
+              <p className="text-sm text-gray-600 mt-1">{showAddModal ? 'Create a new membership plan' : 'Update membership plan details'}</p>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={showAddModal ? handleAddMembership : handleUpdateMembership} className="p-6 space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Plan Name *</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Premium Plus"
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                />
+              </div>
+
+              {/* Tagline */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Tagline *</label>
+                <input
+                  type="text"
+                  value={formData.tagline}
+                  onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                  placeholder="e.g. Best Value"
+                  required
+                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Description *</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe this membership plan"
+                  required
+                  rows={3}
+                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                />
+              </div>
+
+              {/* Price & Duration */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase mb-2">Price (LKR) *</label>
+                  <input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0"
+                    required
+                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase mb-2">Duration *</label>
+                  <select
+                    value={formData.duration}
+                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Features */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Features (one per line) *</label>
+                <textarea
+                  value={formData.features}
+                  onChange={(e) => setFormData({ ...formData, features: e.target.value })}
+                  placeholder="Unlimited gym access&#10;Personal trainer&#10;Nutrition plan"
+                  required
+                  rows={4}
+                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold text-sm"
+                />
+              </div>
+
+              {/* Toggles */}
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isFeatured}
+                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-bold text-slate-700">⭐ Featured Plan</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-bold text-slate-700">Active</span>
+                </label>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-6 border-t-2 border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setShowEditModal(false);
+                    resetForm();
+                  }}
+                  className="flex-1 border-2 border-gray-400 text-gray-700 font-black uppercase py-3 hover:bg-gray-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-3 transition-all"
+                >
+                  {showAddModal ? '✓ Create Plan' : '✓ Update Plan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
