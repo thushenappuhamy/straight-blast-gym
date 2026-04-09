@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from '@/lib/db';
 import { Questionnaire } from '@/models/Questionnaire';
 import { WorkoutPlan } from '@/models/WorkoutPlan';

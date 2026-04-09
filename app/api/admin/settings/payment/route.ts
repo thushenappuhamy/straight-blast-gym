@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from '@/lib/db';
 import { Settings } from '@/models/Settings';
 import jwt from 'jsonwebtoken';

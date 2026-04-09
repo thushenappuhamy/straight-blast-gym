@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from '@/lib/db';
 import { Trainer } from '@/models/Trainer';
 import { User } from '@/models/User';

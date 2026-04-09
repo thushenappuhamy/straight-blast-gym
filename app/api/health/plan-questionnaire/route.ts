@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from '@/lib/db';
 import { PlanQuestionnaire } from '@/models/PlanQuestionnaire';
 import jwt from 'jsonwebtoken';
