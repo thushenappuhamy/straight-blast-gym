@@ -2,24 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BarChart3, Scale, Dumbbell, UtensilsCrossed, Pill, User, Medal, Package } from 'lucide-react';
 
 const mainNavItems = [
-  { icon: "📊", label: "Dashboard", href: "/dashboard" },
-  { icon: "📏", label: "BMI Calculator", href: "/dashboard/bmi" },
-  { icon: "💪", label: "My Workouts", href: "/dashboard/workouts" },
-  { icon: "🍽️", label: "Meal Plans", href: "/dashboard/meals" },
+  { icon: "chart", label: "Dashboard", href: "/dashboard" },
+  { icon: "scale", label: "BMI Calculator", href: "/bmi-calculator" },
+  { icon: "dumbbell", label: "My Workouts", href: "/dashboard/workouts" },
+  { icon: "utensils", label: "Meal Plans", href: "/dashboard/meals" },
 ];
 
 const serviceNavItems = [
-  { icon: "💊", label: "Supplement Shop", href: "/shop" },
-  { icon: "👤", label: "Book a Trainer", href: "/dashboard/trainers" },
-  { icon: "🏅", label: "Membership", href: "/dashboard/membership" },
+  { icon: "pill", label: "Supplement Shop", href: "/shop" },
+  { icon: "user", label: "Book a Trainer", href: "/dashboard/trainers" },
+  { icon: "medal", label: "Membership", href: "/dashboard/membership" },
 ];
 
 const accountNavItems = [
-  { icon: "👤", label: "My Profile", href: "/dashboard/profile" },
-  { icon: "📦", label: "My Orders", href: "/dashboard/orders" },
+  { icon: "user", label: "My Profile", href: "/dashboard/profile" },
+  { icon: "package", label: "My Orders", href: "/dashboard/orders" },
 ];
+
+function getIcon(iconName: string) {
+  const iconProps = { size: 20, className: 'text-current' };
+  switch(iconName) {
+    case 'chart': return <BarChart3 {...iconProps} />;
+    case 'scale': return <Scale {...iconProps} />;
+    case 'dumbbell': return <Dumbbell {...iconProps} />;
+    case 'utensils': return <UtensilsCrossed {...iconProps} />;
+    case 'pill': return <Pill {...iconProps} />;
+    case 'user': return <User {...iconProps} />;
+    case 'medal': return <Medal {...iconProps} />;
+    case 'package': return <Package {...iconProps} />;
+    default: return null;
+  }
+}
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -53,7 +69,7 @@ export function DashboardSidebar() {
                       : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
                 </Link>
               </li>
@@ -75,7 +91,7 @@ export function DashboardSidebar() {
                       : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
                 </Link>
               </li>
@@ -97,7 +113,7 @@ export function DashboardSidebar() {
                       : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
                   }`}
                 >
-                  <span>{item.icon}</span>
+                  <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
                 </Link>
               </li>

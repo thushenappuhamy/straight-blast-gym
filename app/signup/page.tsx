@@ -2,9 +2,23 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fitnessGoal, setFitnessGoal] = useState("muscle-gain");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gender: "Male",
+    dateOfBirth: "",
+    fitnessGoal: ["muscle-gain"],
+  });
 
   const benefits = [
     "Free BMI analysis & personalized plan",
@@ -19,6 +33,71 @@ export default function SignupPage() {
     { id: "endurance", label: "Endurance" },
     { id: "general-fitness", label: "General Fitness" },
   ];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleFitnessGoalChange = (goalId: string) => {
+    setFitnessGoal(goalId);
+    setFormData((prev) => ({
+      ...prev,
+      fitnessGoal: [goalId],
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    // Validation
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Signup failed");
+        setLoading(false);
+        return;
+      }
+
+      // Redirect to login on success
+      router.push("/login?message=Account created successfully. Please sign in.");
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -81,8 +160,15 @@ export default function SignupPage() {
             </Link>
           </p>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded">
+              {error}
+            </div>
+          )}
+
           {/* Form */}
-          <form className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -91,7 +177,11 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="text"
+                  name="firstName"
                   placeholder="John"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
                 />
               </div>
@@ -101,7 +191,11 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="text"
+                  name="lastName"
                   placeholder="Silva"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
                 />
               </div>
@@ -114,7 +208,11 @@ export default function SignupPage() {
               </label>
               <input
                 type="email"
+                name="email"
                 placeholder="john@example.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
                 className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
               />
             </div>
@@ -127,7 +225,11 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="password"
+                  name="password"
                   placeholder="Min. 8 characters"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
                 />
               </div>
@@ -137,7 +239,11 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="password"
+                  name="confirmPassword"
                   placeholder="Repeat password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
                   className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
                 />
               </div>
@@ -149,10 +255,15 @@ export default function SignupPage() {
                 <label className="block text-xs font-bold text-[#1A1816] uppercase tracking-wider mb-2">
                   Gender
                 </label>
-                <select className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] focus:outline-none focus:border-[#F4D03F] transition-colors appearance-none cursor-pointer">
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] focus:outline-none focus:border-[#F4D03F] transition-colors appearance-none cursor-pointer"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div>
@@ -161,6 +272,9 @@ export default function SignupPage() {
                 </label>
                 <input
                   type="date"
+                  name="dateOfBirth"
+                  value={formData.dateOfBirth}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
                 />
               </div>
@@ -176,7 +290,7 @@ export default function SignupPage() {
                   <button
                     key={goal.id}
                     type="button"
-                    onClick={() => setFitnessGoal(goal.id)}
+                    onClick={() => handleFitnessGoalChange(goal.id)}
                     className={`px-4 py-2 text-sm font-bold uppercase tracking-wider rounded-full border-2 transition-colors ${
                       fitnessGoal === goal.id
                         ? "bg-[#F4D03F] border-[#F4D03F] text-[#1A1816]"
@@ -192,9 +306,10 @@ export default function SignupPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] transition-colors flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
             >
-              Create Account
+              {loading ? "Creating Account..." : "Create Account"}
               <span>→</span>
             </button>
           </form>
