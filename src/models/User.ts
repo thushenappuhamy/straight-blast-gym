@@ -16,6 +16,8 @@ export interface IUser extends Document {
   weight?: number;
   fingerprintId?: string;
   hasMemberProfile?: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,6 +88,12 @@ const UserSchema = new Schema<IUser>(
     hasMemberProfile: {
       type: Boolean,
       default: false,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpire: {
+      type: Date,
     },
   },
   {
