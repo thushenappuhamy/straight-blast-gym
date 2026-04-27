@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   gender: string;
   dateOfBirth: Date;
+  age?: number;
   fitnessGoal: string[];
   role: 'user' | 'admin';
   plan?: 'basic' | 'gold' | 'elite';
@@ -18,6 +19,13 @@ export interface IUser extends Document {
   hasMemberProfile?: boolean;
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
+  phone?: string;
+  country?: string;
+  city?: string;
+  zipcode?: string;
+  address?: string;
+  membershipStartDate?: Date;
+  trainerId?: mongoose.Schema.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -94,6 +102,31 @@ const UserSchema = new Schema<IUser>(
     },
     resetPasswordExpire: {
       type: Date,
+    },
+    phone: {
+      type: String,
+    },
+    country: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    zipcode: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    membershipStartDate: {
+      type: Date,
+    },
+    trainerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Trainer',
+    },
+    age: {
+      type: Number,
     },
   },
   {

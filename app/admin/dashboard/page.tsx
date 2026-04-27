@@ -1,12 +1,16 @@
 'use client';
 
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Users, DollarSign, Package, Calendar, Loader } from 'lucide-react';
 import DashboardCharts from '@/components/admin/DashboardCharts';
+import AddMemberWizard from '@/components/admin/AddMemberWizard';
 
 export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [supplements, setSupplements] = useState<any[]>([]);
@@ -23,80 +27,83 @@ export default function AdminDashboard() {
     supplementSales: 0,
   });
 
+  const fetchAllData = async () => {
+    try {
+      const [membersRes, bookingsRes, supplementsRes, trainersRes] = await Promise.all([
+        fetch('/api/admin/members'),
+        fetch('/api/admin/bookings'),
+        fetch('/api/supplements'),
+        fetch('/api/trainers'),
+      ]);
+
+      const membersData = await membersRes.json();
+      const bookingsData = await bookingsRes.json();
+      const supplementsData = await supplementsRes.json();
+      const trainersData = await trainersRes.json();
+
+      // Process members data
+      if (membersData.data) {
+        setMembers(membersData.data.slice(0, 5)); // Last 5 members
+        const goldCount = membersData.data.filter((m: any) => m.plan === 'GOLD').length;
+        const totalCount = membersData.data.length;
+        setStats(prev => ({
+          ...prev,
+          totalMembers: totalCount,
+          goldMembers: goldCount,
+        }));
+      }
+
+      // Process bookings data
+      if (bookingsData.data) {
+        setBookings(bookingsData.data.slice(0, 5));
+        const todayBookings = bookingsData.data.filter((b: any) => {
+          const bookingDate = new Date(b.date).toDateString();
+          return bookingDate === new Date().toDateString();
+        }).length;
+        setStats(prev => ({ ...prev, trainerBookingsToday: todayBookings }));
+      }
+
+      // Process trainers data
+      if (trainersData.data) {
+        setTrainers(trainersData.data);
+        setStats(prev => ({ ...prev, activeTrainers: trainersData.data.length }));
+      }
+
+      // Process supplements data
+      if (supplementsData.data) {
+        setSupplements(supplementsData.data.slice(0, 5));
+        setStats(prev => ({
+          ...prev,
+          productCount: supplementsData.data.length,
+        }));
+      }
+
+      // Calculate revenue (from members data - based on plans)
+      if (membersData.data) {
+        const revenue = membersData.data.reduce((total: number, m: any) => {
+          const planPrice: Record<string, number> = {
+            GOLD: 5000,
+            ELITE: 8000,
+            BASIC: 2500,
+          };
+          return total + (planPrice[m.plan] || 0);
+        }, 0);
+        setStats(prev => ({ ...prev, monthlyRevenue: revenue }));
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
   // Fetch all data
   useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        setLoading(true);
-        const [membersRes, bookingsRes, supplementsRes, trainersRes] = await Promise.all([
-          fetch('/api/admin/members'),
-          fetch('/api/admin/bookings'),
-          fetch('/api/supplements'),
-          fetch('/api/trainers'),
-        ]);
-
-        const membersData = await membersRes.json();
-        const bookingsData = await bookingsRes.json();
-        const supplementsData = await supplementsRes.json();
-        const trainersData = await trainersRes.json();
-
-        // Process members data
-        if (membersData.data) {
-          setMembers(membersData.data.slice(0, 5)); // Last 5 members
-          const goldCount = membersData.data.filter((m: any) => m.plan === 'GOLD').length;
-          const totalCount = membersData.data.length;
-          setStats(prev => ({
-            ...prev,
-            totalMembers: totalCount,
-            goldMembers: goldCount,
-          }));
-        }
-
-        // Process bookings data
-        if (bookingsData.data) {
-          setBookings(bookingsData.data.slice(0, 5));
-          const todayBookings = bookingsData.data.filter((b: any) => {
-            const bookingDate = new Date(b.date).toDateString();
-            return bookingDate === new Date().toDateString();
-          }).length;
-          setStats(prev => ({ ...prev, trainerBookingsToday: todayBookings }));
-        }
-
-        // Process trainers data
-        if (trainersData.data) {
-          setTrainers(trainersData.data);
-          setStats(prev => ({ ...prev, activeTrainers: trainersData.data.length }));
-        }
-
-        // Process supplements data
-        if (supplementsData.data) {
-          setSupplements(supplementsData.data.slice(0, 5));
-          setStats(prev => ({
-            ...prev,
-            productCount: supplementsData.data.length,
-          }));
-        }
-
-        // Calculate revenue (from members data - based on plans)
-        if (membersData.data) {
-          const revenue = membersData.data.reduce((total: number, m: any) => {
-            const planPrice: Record<string, number> = {
-              GOLD: 5000,
-              ELITE: 8000,
-              BASIC: 2500,
-            };
-            return total + (planPrice[m.plan] || 0);
-          }, 0);
-          setStats(prev => ({ ...prev, monthlyRevenue: revenue }));
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
+    const loadInitialData = async () => {
+      setLoading(true);
+      await fetchAllData();
+      setLoading(false);
     };
 
-    fetchAllData();
+    loadInitialData();
 
     // Set up auto-refresh every 30 seconds
     const interval = setInterval(fetchAllData, 30000);
@@ -175,7 +182,10 @@ export default function AdminDashboard() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="px-4 py-2 border border-gray-300 text-gray-900 w-80 focus:outline-none focus:border-[#F4D03F]"
             />
-            <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all">
+            <button 
+              onClick={() => setIsAddMemberModalOpen(true)}
+              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+            >
               + Add Member
             </button>
           </div>
@@ -403,6 +413,11 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      <AddMemberWizard 
+        isOpen={isAddMemberModalOpen} 
+        onClose={() => setIsAddMemberModalOpen(false)} 
+        onSuccess={fetchAllData} 
+      />
     </div>
   );
 }

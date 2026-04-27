@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Scale, Flame, CheckCircle2, TrendingUp, BarChart3, Pill, User as UserIcon, UtensilsCrossed, Check, Zap } from 'lucide-react';
+import PlanGenerationModal from "@/src/components/PlanGenerationModal";
+import WorkoutPlanDisplay from "@/src/components/WorkoutPlanDisplay";
+import MealPlanDisplay from "@/src/components/MealPlanDisplay";
 
 // Stat Card Component
 function StatCard({
@@ -158,6 +161,41 @@ function ProgressBar({ label, value, max, displayText }: { label: string; value:
 
 export default function DashboardPage() {
   const [currentDate] = useState(new Date(2026, 1, 28)); // February 28, 2026
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState({ name: "Thushen", height: 180, weight: 68, age: 28 });
+  const [generatedPlans, setGeneratedPlans] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo({
+            name: data.name || "Member",
+            height: data.profile?.height || 180,
+            weight: data.profile?.weight || 68,
+            age: data.profile?.age || 28,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    };
+    
+    fetchUserInfo();
+  }, []);
+
+  const handlePlanSuccess = (plans: any) => {
+    setGeneratedPlans(plans);
+    setActiveTab("workout-plan");
+  };
   
   const stats = [
     { icon: "calendar", value: "24", label: "Workouts", sublabel: "This Month", highlight: "↑ 4 from last month" },
@@ -186,25 +224,83 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8">
+      <PlanGenerationModal
+        isOpen={isPlanModalOpen}
+        onClose={() => setIsPlanModalOpen(false)}
+        height={userInfo.height}
+        weight={userInfo.weight}
+        age={userInfo.age}
+        userName={userInfo.name}
+        onSuccess={handlePlanSuccess}
+      />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-black text-[#1A1816] uppercase mb-1">
-          Welcome Back, Thushen
+          Welcome Back, {userInfo.name}
         </h1>
         <p className="text-gray-500">
           Tuesday, February 28, 2026 — Leg Day Today!
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
-        ))}
+      {/* Tab Navigation */}
+      <div className="mb-8 flex gap-2 overflow-x-auto pb-2 border-b-2 border-gray-200">
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
+            activeTab === "dashboard"
+              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
+              : "text-gray-600 hover:text-[#1A1816]"
+          }`}
+        >
+          Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab("generate-plan")}
+          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
+            activeTab === "generate-plan"
+              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
+              : "text-gray-600 hover:text-[#1A1816]"
+          }`}
+        >
+          Generate Plan
+        </button>
+        <button
+          onClick={() => setActiveTab("workout-plan")}
+          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
+            activeTab === "workout-plan"
+              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
+              : "text-gray-600 hover:text-[#1A1816]"
+          }`}
+          disabled={!generatedPlans}
+        >
+          Workout Plan
+        </button>
+        <button
+          onClick={() => setActiveTab("meal-plan")}
+          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
+            activeTab === "meal-plan"
+              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
+              : "text-gray-600 hover:text-[#1A1816]"
+          }`}
+          disabled={!generatedPlans}
+        >
+          Meal Plan
+        </button>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Dashboard Tab */}
+      {activeTab === "dashboard" && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {stats.map((stat, index) => (
+              <StatCard key={index} {...stat} />
+            ))}
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Workouts */}
         <div className="lg:col-span-2 space-y-6">
           {/* This Week's Workouts */}
@@ -275,6 +371,43 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+        </>
+      )}
+
+      {/* Generate Plan Tab */}
+      {activeTab === "generate-plan" && (
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg p-8 text-center mb-6">
+            <h2 className="text-3xl font-black text-[#1A1816] uppercase mb-3">Create Your Personal Plan</h2>
+            <p className="text-gray-600 mb-6">
+              Our AI will generate a personalized workout and meal plan based on your metrics and fitness goals.
+              Answer a few questions to get started.
+            </p>
+            <button
+              onClick={() => setIsPlanModalOpen(true)}
+              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-4 px-8 rounded-lg transition-all text-lg"
+            >
+              Start Plan Generation →
+            </button>
+          </div>
+
+          {generatedPlans && (
+            <div className="bg-green-50 border-2 border-green-500 p-4 rounded-lg">
+              <p className="text-green-800 font-bold">✓ Plans generated successfully! Switch to the Workout Plan or Meal Plan tabs to view your plans.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Workout Plan Tab */}
+      {activeTab === "workout-plan" && generatedPlans && (
+        <WorkoutPlanDisplay plan={generatedPlans.workoutPlan} />
+      )}
+
+      {/* Meal Plan Tab */}
+      {activeTab === "meal-plan" && generatedPlans && (
+        <MealPlanDisplay plan={generatedPlans.mealPlan} />
+      )}
     </div>
   );
 }

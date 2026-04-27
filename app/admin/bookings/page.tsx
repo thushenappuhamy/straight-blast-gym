@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import AddBookingModal from '@/components/admin/AddBookingModal';
 
 interface Booking {
   _id: string;
@@ -166,8 +167,16 @@ export default function AdminBookingsPage() {
   };
 
   const handleAddClick = () => {
-    resetForm();
     setShowAddModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+  };
+
+  const handleAddBookingSuccess = () => {
+    setShowAddModal(false);
+    fetchBookings();
   };
 
   const handleEditClick = (booking: Booking) => {
@@ -475,74 +484,83 @@ export default function AdminBookingsPage() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
-      {(showAddModal || showEditModal) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-[#F4D03F]/5 via-white to-blue-50 border-2 border-[#F4D03F] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-[#F4D03F]/10 to-blue-100 border-b-2 border-[#F4D03F] p-6">
-              <h2 className="text-2xl font-black text-slate-700 uppercase">{showAddModal ? 'Add New Booking' : 'Edit Booking'}</h2>
-              <p className="text-sm text-gray-600 mt-1">{showAddModal ? 'Create a new booking' : 'Update booking details'}</p>
+      {/* Add Booking Modal - Professional 3-Step Form */}
+      {showAddModal && (
+        <AddBookingModal
+          members={members}
+          trainers={trainers}
+          onClose={handleCloseModal}
+          onSuccess={handleAddBookingSuccess}
+        />
+      )}
+
+      {/* Edit Booking Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-300 max-w-2xl w-full p-8 shadow-2xl">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8 pb-6 border-b-2 border-gray-300">
+              <div>
+                <p className="text-[#F4D03F] text-xs font-black uppercase tracking-widest mb-2">Management</p>
+                <h2 className="text-3xl font-black text-slate-700 uppercase tracking-tight">Edit Booking</h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  resetForm();
+                }}
+                className="text-3xl font-black text-slate-700 hover:text-[#F4D03F] transition-colors"
+              >
+                ×
+              </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={showAddModal ? handleAddBooking : handleUpdateBooking} className="p-6 space-y-4">
-              {/* Member & Trainer */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase mb-2">Member *</label>
-                  <select
-                    value={formData.memberId}
-                    onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
-                  >
-                    <option value="">Select member...</option>
-                    {members.map((m) => (
-                      <option key={m._id} value={m._id}>
-                        {m.firstName} {m.lastName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase mb-2">Trainer *</label>
-                  <select
-                    value={formData.trainerId}
-                    onChange={(e) => setFormData({ ...formData, trainerId: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
-                  >
-                    <option value="">Select trainer...</option>
-                    {trainers.map((t) => (
-                      <option key={t._id} value={t._id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Date & Time */}
+            <form onSubmit={handleUpdateBooking} className="space-y-6">
+              {/* Member Selection */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Date & Time *</label>
-                <input
-                  type="datetime-local"
-                  value={formData.dateTime}
-                  onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
-                  required
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Member *</label>
+                <select
+                  value={formData.memberId}
+                  onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
-                />
+                  required
+                >
+                  <option value="">Select a member...</option>
+                  {members.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.firstName} {m.lastName}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Type & Fee */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Trainer Selection */}
+              <div>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Trainer *</label>
+                <select
+                  value={formData.trainerId}
+                  onChange={(e) => setFormData({ ...formData, trainerId: e.target.value })}
+                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  required
+                >
+                  <option value="">Select a trainer...</option>
+                  {trainers.map((t) => (
+                    <option key={t._id} value={t._id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Session Type */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase mb-2">Type *</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                     className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                    required
                   >
                     <option value="STRENGTH">Strength</option>
                     <option value="CARDIO">Cardio</option>
@@ -550,22 +568,36 @@ export default function AdminBookingsPage() {
                     <option value="HYPERTROPHY">Hypertrophy</option>
                   </select>
                 </div>
+
+                {/* Date & Time */}
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase mb-2">Date & Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.dateTime}
+                    onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                    required
+                  />
+                </div>
+
+                {/* Fee */}
                 <div>
                   <label className="block text-xs font-black text-slate-700 uppercase mb-2">Fee (LKR) *</label>
                   <input
                     type="number"
                     value={formData.fee}
                     onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
-                    placeholder="0"
-                    required
+                    placeholder="5000"
                     className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                    required
                   />
                 </div>
               </div>
 
               {/* Status */}
               <div>
-                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Status</label>
+                <label className="block text-xs font-black text-slate-700 uppercase mb-2">Status *</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -595,7 +627,6 @@ export default function AdminBookingsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowAddModal(false);
                     setShowEditModal(false);
                     resetForm();
                   }}
@@ -607,7 +638,7 @@ export default function AdminBookingsPage() {
                   type="submit"
                   className="flex-1 bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-3 transition-all"
                 >
-                  {showAddModal ? '✓ Create Booking' : '✓ Update Booking'}
+                  ✓ Update Booking
                 </button>
               </div>
             </form>

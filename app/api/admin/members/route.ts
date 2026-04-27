@@ -5,6 +5,7 @@ import { User } from '@/models/User';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
@@ -152,18 +153,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new member
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new member with all fields from wizard
     const newMember = new User({
       firstName,
       lastName,
       email,
-      password,
+      password: hashedPassword,
       role: 'user',
-      plan: plan || 'basic',
-      membershipStatus: membershipStatus || 'pending',
+      plan: (plan || 'basic').toLowerCase(),
+      membershipStatus: membershipStatus || 'active',
       gender: body.gender || 'Other',
-      dateOfBirth: body.dateOfBirth || null,
+      dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
+      age: body.age || 0,
+      phone: body.phone || '',
+      country: body.country || '',
+      city: body.city || '',
+      zipcode: body.zipcode || '',
+      address: body.address || '',
       fitnessGoal: body.fitnessGoal || [],
+      membershipStartDate: body.membershipStartDate ? new Date(body.membershipStartDate) : new Date(),
+      trainerId: body.trainerId || null,
       bmi: body.bmi || 0,
       height: body.height || 0,
       weight: body.weight || 0,

@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import AddTrainerModal from '@/components/admin/AddTrainerModal';
+import { Clock, Users } from 'lucide-react';
 
 const specialtyOptions = [
   'Strength & Conditioning',
@@ -31,24 +33,28 @@ export default function AdminTrainersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
-
+  const [editingTrainer, setEditingTrainer] = useState<any>(null);
+  const [showSchedule, setShowSchedule] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
     specialty: '',
-    qualifications: [] as string[],
+    qualifications: [],
     certifications: '',
     experience: 0,
     bio: '',
     costPerSession: 0,
     status: 'active',
     isFeatured: false,
-    specializations: [] as string[],
+    specializations: [],
     tags: '',
+    shiftStartTime: '06:00',
+    shiftEndTime: '22:00',
+    shiftDays: [],
   });
+  const [formLoading, setFormLoading] = useState(false);
 
   // Fetch trainers from API
   useEffect(() => {
@@ -73,87 +79,100 @@ export default function AdminTrainersPage() {
     };
 
     fetchTrainers();
+    
+    // Refresh every 30 seconds to update active status
+    const interval = setInterval(fetchTrainers, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Calculate stats dynamically
-  const activeTrainers = trainers.filter((t) => t.status === 'active').length;
-  const totalSessions = trainers.reduce((sum, t) => sum + (t.sessionsThisMonth || 0), 0);
-  const avgRating = trainers.length > 0
-    ? (trainers.reduce((sum, t) => sum + parseFloat(t.rating), 0) / trainers.length).toFixed(1)
-    : '0';
-  const totalRevenue = trainers.reduce((sum, t) => sum + (parseInt(t.perSession.replace(/[^\d]/g, '')) || 0) * (t.sessionsThisMonth || 0), 0);
+  const handleRefreshTrainers = async () => {
+    try {
+      const response = await fetch('/api/admin/trainers');
+      const data = await response.json();
+      if (data.data) {
+        setTrainers(data.data);
+      }
+    } catch (err) {
+      console.error('Error refreshing trainers:', err);
+    }
+  };
 
-  const statCards = [
-    { icon: '🏋️', value: activeTrainers.toString(), label: 'Active Trainers', subtext: null, subtextColor: '' },
-    { icon: '📅', value: totalSessions.toString(), label: 'Sessions This Month', subtext: null, subtextColor: '' },
-    { icon: '⭐', value: avgRating, label: 'Avg Rating', subtext: null, subtextColor: '' },
-    { icon: '💰', value: `LKR ${(totalRevenue / 1000).toFixed(0)}K`, label: 'Sessions Revenue', subtext: 'This month', subtextColor: 'text-[#F4D03F]' },
-  ];
+  const handleEditTrainer = (trainer: any) => {
+    setEditingTrainer(trainer);
+    setShowAddModal(true);
+  };
 
-  const handleAddTrainer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormLoading(true);
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+    setEditingTrainer(null);
+  };
+
+  const handleToggleStatus = async (trainer: any) => {
+    const newStatus = trainer.status === 'active' ? 'inactive' : 'active';
+    const confirmMsg = `Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} ${trainer.firstName} ${trainer.lastName}?`;
+    
+    if (!confirm(confirmMsg)) return;
 
     try {
-      const submitData = {
-        ...formData,
-        experience: parseInt(formData.experience.toString()),
-        costPerSession: parseInt(formData.costPerSession.toString()),
-        tags: formData.tags.split(',').map((t) => t.trim()).filter(Boolean),
-      };
-
-      const response = await fetch('/api/admin/trainers', {
-        method: 'POST',
+      console.log(`👨‍🏫 [ADMIN TRAINERS] ${newStatus === 'active' ? 'Activating' : 'Deactivating'} trainer:`, trainer._id);
+      
+      const response = await fetch(`/api/admin/trainers/${trainer._id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submitData),
+        body: JSON.stringify({ ...trainer, status: newStatus }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add trainer');
+        throw new Error(data.error || 'Failed to update trainer status');
       }
 
-      console.log('✅ [ADMIN TRAINERS] Trainer added:', data.data);
-      alert('✅ Trainer added successfully!');
-
-      // Reset form and refetch trainers
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        specialty: '',
-        qualifications: [],
-        certifications: '',
-        experience: 0,
-        bio: '',
-        costPerSession: 0,
-        status: 'active',
-        isFeatured: false,
-        specializations: [],
-        tags: '',
-      });
-      setShowAddModal(false);
-
-      // Refetch trainers
-      const trainersResponse = await fetch('/api/admin/trainers');
-      const trainersData = await trainersResponse.json();
-      setTrainers(trainersData.data || []);
+      console.log(`✅ [ADMIN TRAINERS] Trainer ${newStatus === 'active' ? 'activated' : 'deactivated'}:`, data.data);
+      alert(`✅ Trainer ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+      handleRefreshTrainers();
     } catch (err: any) {
       console.error('❌ [ADMIN TRAINERS] Error:', err);
       alert(`❌ Error: ${err.message}`);
-    } finally {
-      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteTrainer = async (trainer: any) => {
+    const confirmMsg = `⚠️ Are you sure you want to DELETE ${trainer.firstName} ${trainer.lastName}? This action cannot be undone and will remove them from all dashboards.`;
+    
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      console.log('👨‍🏫 [ADMIN TRAINERS] Deleting trainer:', trainer._id);
+      
+      const response = await fetch(`/api/admin/trainers/${trainer._id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete trainer');
+      }
+
+      console.log('✅ [ADMIN TRAINERS] Trainer deleted:', trainer._id);
+      alert(`✅ Trainer ${trainer.firstName} ${trainer.lastName} deleted successfully!`);
+      
+      // Remove trainer from local state
+      setTrainers(trainers.filter(t => t._id !== trainer._id));
+    } catch (err: any) {
+      console.error('❌ [ADMIN TRAINERS] Error:', err);
+      alert(`❌ Error: ${err.message}`);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#2B2621] to-[#1A1816]">
         <div className="text-center">
-          <p className="text-2xl font-bold mb-4">Loading trainers...</p>
-          <div className="animate-spin">⚙️</div>
+          <p className="text-2xl font-bold text-[#F4D03F] mb-4">Loading trainers...</p>
+          <div className="animate-spin text-4xl">⚙️</div>
         </div>
       </div>
     );
@@ -161,344 +180,168 @@ export default function AdminTrainersPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen p-8">
+      <div className="min-h-screen p-8 bg-gradient-to-b from-[#2B2621] to-[#1A1816]">
         <div className="bg-red-100 border-2 border-red-500 text-red-800 p-6 rounded">
           <h2 className="font-bold text-lg mb-2">Error</h2>
           <p>{error}</p>
+          <button
+            onClick={handleRefreshTrainers}
+            className="mt-4 bg-red-500 hover:bg-red-600 text-white font-bold px-4 py-2 rounded transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gradient-to-b from-[#2B2621] to-[#1A1816]">
       {/* Header */}
-      <div className="bg-white border-b-4 border-[#F4D03F] px-8 py-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black uppercase tracking-tight">Trainers</h1>
+      <div className="bg-slate-900 border-b-4 border-[#F4D03F] px-8 py-6 sticky top-0 z-40">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white">🏋️ Trainers</h1>
           <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap"
+            onClick={() => {
+              setEditingTrainer(null);
+              setShowAddModal(true);
+            }}
+            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap shadow-lg hover:shadow-xl"
           >
             + Add Trainer
           </button>
         </div>
       </div>
 
-      <div className="p-8">
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCards.map((card, index) => (
-            <div key={index} className="bg-[#2B2621] p-6 relative overflow-hidden">
-              <div className="text-3xl mb-3 opacity-40">{card.icon}</div>
-              <div className="text-5xl font-black text-[#F4D03F] mb-2">{card.value}</div>
-              <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">{card.label}</div>
-              {card.subtext && <div className={`text-sm font-bold ${card.subtextColor}`}>{card.subtext}</div>}
-            </div>
-          ))}
-        </div>
-
+      <div className="p-8 max-w-7xl mx-auto">
         {/* Trainers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {trainers.map((trainer) => (
-            <div key={trainer._id} className="bg-[#2B2621] rounded-lg overflow-hidden border-2 border-[#F4D03F]/30">
-              {/* Trainer Header */}
-              <div className="relative h-32 bg-gradient-to-r from-[#1A1816] to-[#2B2621] p-4">
-                {trainer.badge && <div className="absolute top-3 right-3 bg-white text-black px-2 py-1 text-xs font-black uppercase">{trainer.badge}</div>}
-                <div className="text-6xl text-center mt-2">{trainer.avatar}</div>
-              </div>
-
-              {/* Trainer Info */}
-              <div className="p-6">
-                <h3 className="text-lg font-black uppercase tracking-tight text-white mb-2">{trainer.name}</h3>
-                <div className="mb-4">
-                  <div className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-wider ${trainer.specialtyColor} mb-2`}>
-                    {trainer.specialty}
+        {trainers && trainers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trainers.map((trainer) => (
+              <div key={trainer._id} className="bg-[#2B2621] rounded-lg overflow-hidden border-2 border-[#F4D03F]/30 hover:border-[#F4D03F] transition-all hover:shadow-[0_0_25px_rgba(244,208,63,0.2)]">
+                {/* Trainer Header */}
+                <div className="relative h-32 bg-gradient-to-r from-[#1A1816] to-[#2B2621] p-4 border-b-2 border-[#F4D03F]/20">
+                  <div className="absolute top-3 right-3">
+                    {trainer.currentlyActive ? (
+                      <span className="inline-block bg-green-500 text-white px-2 py-1 text-xs font-black uppercase animate-pulse flex items-center gap-1">
+                        <span>●</span> Active Now
+                      </span>
+                    ) : (
+                      <span className="inline-block bg-gray-600 text-white px-2 py-1 text-xs font-black uppercase">
+                        Inactive
+                      </span>
+                    )}
                   </div>
+                  <div className="text-5xl text-center mt-3">👨‍💼</div>
                 </div>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {trainer.tags.map((tag: string, idx: number) => (
-                    <span key={idx} className="text-xs bg-gray-700 text-gray-300 px-2 py-1 uppercase font-bold">
-                      {tag}
+                {/* Trainer Info */}
+                <div className="p-6">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-white mb-2">
+                    {trainer.firstName} {trainer.lastName}
+                  </h3>
+                  <div className="mb-4">
+                    <div className="inline-block bg-[#F4D03F]/20 text-[#F4D03F] px-3 py-1 text-xs font-black uppercase tracking-wider">
+                      {trainer.specialty || 'General'}
+                    </div>
+                  </div>
+
+                  {/* Shift Info */}
+                  <div className="bg-slate-800/50 p-3 rounded mb-4 border-l-4 border-[#F4D03F]">
+                    <div className="flex items-center gap-2 text-[#F4D03F] text-sm font-bold mb-1">
+                      <Clock size={16} />
+                      Shift Hours
+                    </div>
+                    <div className="text-xs text-gray-300">
+                      {trainer.shiftStartTime || '06:00'} - {trainer.shiftEndTime || '22:00'}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {trainer.shiftDays && trainer.shiftDays.length > 0
+                        ? trainer.shiftDays.join(', ')
+                        : 'No days set'}
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs mb-4 pb-4 border-b border-gray-700">
+                    <div>
+                      <div className="text-[#F4D03F] font-black text-lg">{trainer.experience || 0}</div>
+                      <div className="text-gray-400 uppercase text-xs">Years Exp.</div>
+                    </div>
+                    <div>
+                      <div className="text-[#F4D03F] font-black text-lg">{trainer.assignedClients?.length || 0}</div>
+                      <div className="text-gray-400 uppercase text-xs">Clients</div>
+                    </div>
+                  </div>
+
+                  {/* Cost Per Session */}
+                  <div className="mb-4 pb-4 border-b border-gray-700">
+                    <div className="text-gray-400 text-xs uppercase font-bold mb-1">Cost Per Session</div>
+                    <div className="text-[#F4D03F] font-black text-xl">LKR {trainer.costPerSession?.toLocaleString() || '0'}</div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="mb-4">
+                    <span
+                      className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-wider ${
+                        trainer.status === 'active'
+                          ? 'bg-green-600/20 text-green-400'
+                          : trainer.status === 'inactive'
+                            ? 'bg-red-600/20 text-red-400'
+                            : 'bg-yellow-600/20 text-yellow-400'
+                      }`}
+                    >
+                      {trainer.status}
                     </span>
-                  ))}
-                </div>
+                  </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-4 gap-2 text-center text-xs mb-4 pb-4 border-b border-gray-700">
-                  <div>
-                    <div className="text-[#F4D03F] font-black">{trainer.experience}</div>
-                    <div className="text-gray-400 uppercase text-xs">Experience</div>
+                  {/* Actions */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handleEditTrainer(trainer)}
+                      className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-xs uppercase tracking-wider py-2 transition-all"
+                      title="Edit trainer information"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(trainer)}
+                      className={`font-black text-xs uppercase tracking-wider py-2 transition-all ${
+                        trainer.status === 'active'
+                          ? 'bg-orange-600 hover:bg-orange-700 text-white'
+                          : 'bg-green-600 hover:bg-green-700 text-white'
+                      }`}
+                      title={trainer.status === 'active' ? 'Deactivate trainer' : 'Activate trainer'}
+                    >
+                      {trainer.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTrainer(trainer)}
+                      className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-black text-xs uppercase tracking-wider py-2 transition-all"
+                      title="Permanently delete this trainer"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <div>
-                    <div className="text-[#F4D03F] font-black">{trainer.clients}</div>
-                    <div className="text-gray-400 uppercase text-xs">Clients</div>
-                  </div>
-                  <div>
-                    <div className="text-[#F4D03F] font-black">{trainer.rating}</div>
-                    <div className="text-gray-400 uppercase text-xs">Rating</div>
-                  </div>
-                  <div>
-                    <div className="text-[#F4D03F] font-black">{trainer.perSession}</div>
-                    <div className="text-gray-400 uppercase text-xs">Per Session</div>
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="mb-4">
-                  <span className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-wider ${
-                    trainer.status === 'active' ? 'bg-green-600 text-white' : 
-                    trainer.status === 'inactive' ? 'bg-red-600 text-white' : 
-                    'bg-yellow-600 text-white'
-                  }`}>
-                    {trainer.status}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-xs uppercase tracking-wider py-2 transition-all">
-                    View Schedule
-                  </button>
-                  <button className="flex-1 border-2 border-[#F4D03F] text-[#F4D03F] hover:bg-[#F4D03F] hover:text-black font-black text-xs uppercase tracking-wider py-2 transition-all">
-                    Edit
-                  </button>
-                  <button className="flex-1 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-black text-xs uppercase tracking-wider py-2 transition-all">
-                    Deactivate
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {trainers.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">No trainers found. Click "+ Add Trainer" to add one.</p>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-[#2B2621] rounded-lg border-2 border-dashed border-[#F4D03F]/30">
+            <p className="text-gray-400 text-lg font-bold mb-4">No trainers found</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black px-8 py-3 uppercase tracking-wider transition-all"
+            >
+              + Add Your First Trainer
+            </button>
           </div>
         )}
       </div>
 
-      {/* Add Trainer Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full my-8 p-8 shadow-[0_0_40px_rgba(244,208,63,0.15)]">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8 pb-6 border-b-2 border-[#F4D03F]">
-              <div>
-                <p className="text-[#F4D03F] text-xs font-black uppercase tracking-widest mb-2">Management</p>
-                <h2 className="text-4xl font-black uppercase text-slate-700 tracking-tight">Add New Trainer</h2>
-              </div>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-4xl font-black text-slate-700 hover:text-[#F4D03F] transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddTrainer} className="space-y-6">
-              {/* Name Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">First Name *</label>
-                  <input
-                    type="text"
-                    placeholder="Kasun"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Last Name *</label>
-                  <input
-                    type="text"
-                    placeholder="Perera"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Email & Phone */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Email *</label>
-                  <input
-                    type="email"
-                    placeholder="kasun@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Phone *</label>
-                  <input
-                    type="tel"
-                    placeholder="+94 71 234 5678"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Specialty */}
-              <div>
-                <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Specialty *</label>
-                <select
-                  value={formData.specialty}
-                  onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                  className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                  required
-                >
-                  <option value="">Select Specialty</option>
-                  {specialtyOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Experience & Cost Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Experience (Years)</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.experience}
-                    onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Cost Per Session (LKR) *</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.costPerSession}
-                    onChange={(e) => setFormData({ ...formData, costPerSession: parseInt(e.target.value) || 0 })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Qualifications */}
-              <div>
-                <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Select Qualifications (Ctrl+Click for multiple)</label>
-                <select
-                  multiple
-                  value={formData.qualifications}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value);
-                    setFormData({ ...formData, qualifications: selected });
-                  }}
-                  className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                >
-                  {qualificationOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Bio (Max 500 Characters)</label>
-                <textarea
-                  placeholder="Write about the trainer's background and expertise..."
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  maxLength={500}
-                  className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all resize-none"
-                  rows={3}
-                />
-              </div>
-
-              {/* Specializations */}
-              <div>
-                <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Specializations</label>
-                <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 border-2 border-gray-300 rounded">
-                  {specializationOptions.map((spec) => (
-                    <label key={spec} className="flex items-center gap-2 text-gray-900 cursor-pointer hover:text-[#F4D03F] transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={formData.specializations.includes(spec)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({ ...formData, specializations: [...formData.specializations, spec] });
-                          } else {
-                            setFormData({ ...formData, specializations: formData.specializations.filter((s) => s !== spec) });
-                          }
-                        }}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm font-bold">{spec}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Status & Featured */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-black text-[#F4D03F] uppercase tracking-widest block mb-2">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full bg-white text-gray-900 px-4 py-3 border-2 border-gray-300 focus:border-[#F4D03F] outline-none focus:bg-[#F4D03F]/5 transition-all"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="on-leave">On Leave</option>
-                  </select>
-                </div>
-
-                <label className="flex items-center gap-2 text-gray-900 bg-white px-4 py-3 border-2 border-gray-300 cursor-pointer rounded hover:border-[#F4D03F] transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    className="w-5 h-5"
-                  />
-                  <span className="font-black text-sm">Feature Trainer (Head Coach)</span>
-                </label>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex gap-4 pt-6">
-                <button
-                  type="submit"
-                  disabled={formLoading}
-                  className="flex-1 bg-gradient-to-r from-[#F4D03F] to-yellow-400 hover:from-[#E5C730] hover:to-yellow-300 disabled:opacity-50 text-black font-black text-lg uppercase tracking-wider py-4 transition-all shadow-[0_4px_20px_rgba(244,208,63,0.3)] hover:shadow-[0_6px_30px_rgba(244,208,63,0.5)]"
-                >
-                  {formLoading ? '🔄 Adding...' : '✓ Add Trainer'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 border-2 border-gray-400 text-gray-700 hover:bg-gray-100 font-black text-lg uppercase tracking-wider py-4 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Add/Edit Trainer Modal */}
+      {showAddModal && <AddTrainerModal trainer={editingTrainer} onClose={handleCloseModal} onSuccess={handleRefreshTrainers} />}
     </div>
   );
 }

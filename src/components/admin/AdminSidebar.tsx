@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Users, Dumbbell, Pill, Medal, Calendar, CreditCard, TrendingUp, Settings } from 'lucide-react';
+import { BarChart3, Users, Dumbbell, Pill, Medal, Calendar, CreditCard, TrendingUp, Settings, Lock } from 'lucide-react';
 
 const managementItems = [
   { icon: 'chart', label: 'Dashboard', href: '/admin/dashboard', badge: null },
@@ -11,6 +11,7 @@ const managementItems = [
   { icon: 'pill', label: 'Supplements', href: '/admin/supplements', badge: null },
   { icon: 'medal', label: 'Memberships', href: '/admin/memberships', badge: null },
   { icon: 'calendar', label: 'Bookings', href: '/admin/bookings', badge: 4 },
+  { icon: 'lock', label: 'Staff Management', href: '/admin/staff', badge: null },
 ];
 
 const financeItems = [
@@ -34,6 +35,7 @@ function getIcon(iconName: string) {
     case 'card': return <CreditCard {...iconProps} />;
     case 'trending': return <TrendingUp {...iconProps} />;
     case 'settings': return <Settings {...iconProps} />;
+    case 'lock': return <Lock {...iconProps} />;
     default: return null;
   }
 }

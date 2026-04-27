@@ -1,129 +1,243 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
-import { Users, UserCheck, Clock, Plus, Filter, RotateCw } from 'lucide-react';
-import { AdvancedMembersTable } from '@/components/admin/AdvancedMembersTable';
-import { MemberDetailsSheet } from '@/components/admin/MemberDetailsSheet';
-
-// Mock data
-const MOCK_MEMBERS = [
-  { id: '1', name: 'John Doe', email: 'john@example.com', plan: 'Premium', status: 'Active', joinDate: '2023-01-15', lastVisit: 'Today', attendance: 12, belt: 'Blue' },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com', plan: 'Basic', status: 'Active', joinDate: '2023-03-22', lastVisit: 'Yesterday', attendance: 8, belt: 'White' },
-  { id: '3', name: 'Mike Johnson', email: 'mike@example.com', plan: 'Elite', status: 'Inactive', joinDate: '2022-11-05', lastVisit: '2 weeks ago', attendance: 45, belt: 'Purple' },
-  { id: '4', name: 'Sarah Williams', email: 'sarah@example.com', plan: 'Premium', status: 'Active', joinDate: '2023-06-10', lastVisit: 'Today', attendance: 24, belt: 'Blue' },
-  { id: '5', name: 'David Brown', email: 'david@example.com', plan: 'Basic', status: 'Pending', joinDate: '2023-10-01', lastVisit: 'Never', attendance: 0, belt: 'White' },
-];
+import React, { useState, useEffect } from 'react';
+import { Users, DollarSign, Package, Calendar, Loader } from 'lucide-react';
+import AddMemberWizard from '@/components/admin/AddMemberWizard';
 
 export default function MembersPage() {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedMemberInfo, setSelectedMemberInfo] = useState<any>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalMembers: 0,
+    goldMembers: 0,
+    activeMembers: 0,
+    pendingMembers: 0,
+  });
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch('/api/admin/members');
+      const data = await res.json();
+      
+      if (data.data) {
+        setMembers(data.data);
+        
+        const gold = data.data.filter((m: any) => m.plan === 'GOLD').length;
+        const active = data.data.filter((m: any) => m.status === 'ACTIVE').length;
+        const pending = data.data.filter((m: any) => m.status === 'PENDING').length;
+        
+        setStats({
+          totalMembers: data.data.length,
+          goldMembers: gold,
+          activeMembers: active,
+          pendingMembers: pending,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleViewDetails = (member: any) => {
-    setSelectedMemberInfo(member);
-    setIsDrawerOpen(true);
+  useEffect(() => {
+    fetchMembers();
+    
+    // Live update every 15 seconds
+    const interval = setInterval(fetchMembers, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getInitials = (name: string) => {
+    return name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || '?';
   };
+
+  const getAvatarColor = (name: string) => {
+    const colors = ['bg-[#F4D03F]', 'bg-blue-400', 'bg-orange-400', 'bg-green-400', 'bg-pink-400'];
+    return colors[name.charCodeAt(0) % colors.length];
+  };
+
+  const statCards = [
+    {
+      icon: Users,
+      value: stats.totalMembers.toString(),
+      label: 'Total Members',
+      subtext: `↑ ${stats.goldMembers} Gold`,
+      subtextColor: 'text-[#F4D03F]',
+    },
+    {
+      icon: DollarSign,
+      value: stats.activeMembers.toString(),
+      label: 'Active Members',
+      subtext: `↓ ${stats.pendingMembers} Pending`,
+      subtextColor: 'text-orange-500',
+    },
+    {
+      icon: Package,
+      value: stats.goldMembers.toString(),
+      label: 'Gold Members',
+      subtext: 'Premium plan',
+      subtextColor: 'text-green-500',
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader size={48} className="animate-spin mx-auto mb-4 text-[#F4D03F]" />
+          <p className="text-xl font-bold">Loading members...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b-4 border-[#F4D03F] px-8 py-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-black uppercase tracking-tight">
             Members Management
           </h1>
-          <p className="text-gray-400 mt-1">Directory of all SBG athletes and members</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
           <button 
-            onClick={handleRefresh}
-            className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700 text-gray-400 transition-colors border border-gray-700/50"
-            title="Refresh Data"
+            onClick={() => setIsAddMemberModalOpen(true)}
+            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
           >
-            <RotateCw className={`h-5 w-5 ${refreshing ? 'animate-spin text-orange-500' : ''}`} />
-          </button>
-          
-          <button className="flex items-center space-x-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-4 py-2 rounded-lg transition-all shadow-lg hover:shadow-orange-500/20 font-medium">
-            <Plus className="h-5 w-5" />
-            <span>Add Member</span>
+            + Add Member
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-gray-400 font-medium">Total Members</h3>
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Users className="h-5 w-5 text-blue-400" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-white relative z-10">1,248</p>
-          <div className="mt-4 flex items-center text-sm font-medium relative z-10">
-            <span className="text-emerald-400 flex items-center bg-emerald-400/10 px-2 py-0.5 rounded">
-              +12%
-            </span>
-            <span className="text-gray-500 ml-2">from last month</span>
-          </div>
+      {/* Main Content */}
+      <div className="p-8">
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {statCards.map((card, index) => {
+            const IconComponent = card.icon;
+            return (
+              <div
+                key={index}
+                className="bg-[#2B2621] p-6 relative overflow-hidden"
+              >
+                <IconComponent size={32} className="text-[#F4D03F] opacity-40 mb-3" />
+                <div className="text-5xl font-black text-[#F4D03F] mb-2">
+                  {card.value}
+                </div>
+                <div className="text-gray-400 text-xs uppercase tracking-wider mb-2">
+                  {card.label}
+                </div>
+                <div className={`text-sm font-bold ${card.subtextColor}`}>
+                  {card.subtext}
+                </div>
+              </div>
+            );
+          })}
         </div>
-        
-        <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-gray-400 font-medium">Active Now</h3>
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
-              <UserCheck className="h-5 w-5 text-emerald-400" />
-            </div>
+
+        {/* Members Table */}
+        <div className="bg-white shadow-lg">
+          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+            <h2 className="text-xl font-black uppercase tracking-tight">
+              All Members ({members.length})
+            </h2>
+            <span className="text-xs text-gray-500">Live Updates • Refreshing every 15s</span>
           </div>
-          <p className="text-3xl font-bold text-white relative z-10">42</p>
-          <div className="mt-4 flex items-center text-sm font-medium relative z-10">
-            <span className="text-emerald-400 flex items-center bg-emerald-400/10 px-2 py-0.5 rounded">
-              +5
-            </span>
-            <span className="text-gray-500 ml-2">since last hour</span>
-          </div>
-        </div>
-        
-        <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-          <div className="flex items-center justify-between mb-4 relative z-10">
-            <h3 className="text-gray-400 font-medium">Recent Check-ins</h3>
-            <div className="p-2 bg-orange-500/10 rounded-lg">
-              <Clock className="h-5 w-5 text-orange-400" />
-            </div>
-          </div>
-          <p className="text-3xl font-bold text-white relative z-10">156</p>
-          <div className="mt-4 flex items-center text-sm font-medium relative z-10">
-            <span className="text-gray-400">
-              Today's attendance
-            </span>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-[#2B2621]">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    Member
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    Plan
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    Joined
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {members.length > 0 ? (
+                  members.map((member) => (
+                    <tr key={member._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-full ${getAvatarColor(member.name || 'User')} flex items-center justify-center`}
+                          >
+                            <span className="text-black font-black text-sm">
+                              {getInitials(member.name || 'U')}
+                            </span>
+                          </div>
+                          <span className="font-bold text-gray-900">{member.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {member.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-wider ${
+                            member.plan === 'GOLD'
+                              ? 'bg-[#F4D03F] text-black'
+                              : member.plan === 'ELITE'
+                              ? 'bg-black text-white'
+                              : 'bg-gray-200 text-gray-800'
+                          }`}
+                        >
+                          {member.plan}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                            member.status === 'ACTIVE'
+                              ? 'text-green-600 bg-green-100'
+                              : member.status === 'PENDING'
+                              ? 'text-orange-600 bg-orange-100'
+                              : 'text-red-600 bg-red-100'
+                          }`}
+                        >
+                          {member.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {member.joined}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      No members found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      {/* Main Members Dashboard */}
-      <div className="bg-gray-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl shadow-xl overflow-hidden">
-        <div className="p-1">
-          <AdvancedMembersTable 
-            data={MOCK_MEMBERS}
-            onViewDetails={handleViewDetails}
-          />
-        </div>
-      </div>
-
-      {/* Member Details Slide-out Drawer */}
-      <MemberDetailsSheet 
-        isOpen={isDrawerOpen} 
-        onOpenChange={setIsDrawerOpen}
-        member={selectedMemberInfo}
+      <AddMemberWizard 
+        isOpen={isAddMemberModalOpen} 
+        onClose={() => setIsAddMemberModalOpen(false)} 
+        onSuccess={fetchMembers} 
       />
     </div>
   );

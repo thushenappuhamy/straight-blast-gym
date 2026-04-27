@@ -18,6 +18,13 @@ export interface ITrainer extends Document {
   isFeatured: boolean;
   specializations: string[];
   tags: string[];
+  // Shift/Schedule information
+  shiftStartTime: string; // HH:mm format (e.g., "06:00")
+  shiftEndTime: string; // HH:mm format (e.g., "22:00")
+  shiftDays: string[]; // ["Monday", "Tuesday", "Wednesday", ...]
+  assignedClients: mongoose.Schema.Types.ObjectId[]; // Member IDs assigned to this trainer
+  currentlyActive: boolean; // Auto-calculated based on shift
+  lastStatusUpdate: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -127,6 +134,33 @@ const TrainerSchema = new mongoose.Schema<ITrainer>(
         type: String,
       },
     ],
+    shiftStartTime: {
+      type: String,
+      default: '06:00', // 6 AM
+    },
+    shiftEndTime: {
+      type: String,
+      default: '22:00', // 10 PM
+    },
+    shiftDays: {
+      type: [String],
+      default: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    },
+    assignedClients: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    currentlyActive: {
+      type: Boolean,
+      default: false,
+    },
+    lastStatusUpdate: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );

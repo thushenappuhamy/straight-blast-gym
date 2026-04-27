@@ -8,6 +8,7 @@ export default function AdminTransactionsPage() {
   const [dateFilter, setDateFilter] = useState('This Month');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [stats, setStats] = useState({
     monthlyRevenue: 0,
@@ -211,6 +212,66 @@ export default function AdminTransactionsPage() {
     return colors[name.charCodeAt(0) % colors.length];
   };
 
+  // Export to CSV
+  const handleExportCSV = async () => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('/api/admin/export/transactions-csv', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to export: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transactions_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(`Export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Generate Report
+  const handleGenerateReport = async () => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('/api/admin/export/transactions-report', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to generate report: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transaction-report_${new Date().toISOString().slice(0, 10)}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(`Report generation failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const filtered = transactions.filter((t) => {
     const matchType = typeFilter === 'All Types' || t.type.includes(typeFilter.split(' ')[0]);
     const matchStatus = statusFilter === 'All Status' || t.status === statusFilter;
@@ -235,11 +296,19 @@ export default function AdminTransactionsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-black uppercase tracking-tight">Transactions</h1>
           <div className="flex items-center gap-3">
-            <button className="border-2 border-gray-300 text-gray-800 font-black text-xs uppercase tracking-wider px-5 py-3 hover:bg-gray-100 transition-all">
-              Export CSV
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting}
+              className="border-2 border-gray-300 text-gray-800 font-black text-xs uppercase tracking-wider px-5 py-3 hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? '📥 Exporting...' : '📥 Export CSV'}
             </button>
-            <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap">
-              Generate Report
+            <button
+              onClick={handleGenerateReport}
+              disabled={exporting}
+              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exporting ? '📄 Generating...' : '📄 Generate Report'}
             </button>
           </div>
         </div>

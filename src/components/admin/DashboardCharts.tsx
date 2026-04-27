@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   AreaChart,
   Area,
@@ -15,14 +15,13 @@ import {
 } from 'recharts';
 import { format, subDays } from 'date-fns';
 
-// Dummy data generator for a premium SaaS feel
+// Dummy data fallback
 const generateMRRData = () => {
   const data = [];
   let currentMRR = 1200000; // 1.2M LKR baseline
   
   for (let i = 30; i >= 0; i--) {
     const activeDate = subDays(new Date(), i);
-    // Add realistic variance + overall growth trend
     currentMRR += (Math.random() - 0.3) * 50000;
     data.push({
       date: format(activeDate, 'MMM dd'),
@@ -44,8 +43,35 @@ const generateAttendanceData = () => {
 };
 
 export default function DashboardCharts() {
-  const mrrData = useMemo(() => generateMRRData(), []);
-  const attendanceData = useMemo(() => generateAttendanceData(), []);
+  const [mrrData, setMrrData] = useState<any[]>([]);
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLiveChartData = async () => {
+      try {
+        const res = await fetch('/api/admin/dashboard-charts');
+        const json = await res.json();
+        if (json.success) {
+          setMrrData(json.mrrData);
+          setAttendanceData(json.attendanceData);
+        } else {
+          setMrrData(generateMRRData());
+          setAttendanceData(generateAttendanceData());
+        }
+      } catch (err) {
+        setMrrData(generateMRRData());
+        setAttendanceData(generateAttendanceData());
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLiveChartData();
+  }, []);
+
+  if (loading) {
+    return <div className="h-[350px] flex items-center justify-center text-white">Loading live charts...</div>;
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">

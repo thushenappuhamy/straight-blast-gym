@@ -2,6 +2,8 @@ export const dynamic = "force-dynamic";
 
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { LoginHistory } from '@/models/LoginHistory';
+import { parseUserAgent, getClientIp, getUserAgent } from '@/lib/device-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
@@ -31,6 +33,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract device and IP information for login history
+    const userAgent = getUserAgent(request);
+    const { device, browser, os } = parseUserAgent(userAgent);
+    const ipAddress = getClientIp(request);
+
     // Find user with password (select: false is set on password, so we need to explicitly select it)
     const user = await User.findOne({ email }).select('+password');
     
@@ -40,6 +47,30 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       console.error("❌ [LOGIN] User not found");
+      
+      // Record failed login attempt (user not found)
+      try {
+        const failedRecord = new LoginHistory({
+          userId: null,
+          email: email,
+          firstName: 'Unknown',
+          lastName: 'User',
+          role: 'user',
+          loginTime: new Date(),
+          ipAddress,
+          userAgent,
+          device,
+          browser,
+          os,
+          status: 'failed',
+          failureReason: 'User not found',
+        });
+        await failedRecord.save();
+        console.log("📝 [LOGIN] Failed login attempt recorded (user not found)");
+      } catch (historyError: any) {
+        console.warn("⚠️ [LOGIN] Failed to record failed login history:", historyError.message);
+      }
+      
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -53,6 +84,30 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       console.error("❌ [LOGIN] Invalid password");
+      
+      // Record failed login attempt (invalid password)
+      try {
+        const failedRecord = new LoginHistory({
+          userId: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          loginTime: new Date(),
+          ipAddress,
+          userAgent,
+          device,
+          browser,
+          os,
+          status: 'failed',
+          failureReason: 'Invalid password',
+        });
+        await failedRecord.save();
+        console.log("📝 [LOGIN] Failed login attempt recorded (invalid password)");
+      } catch (historyError: any) {
+        console.warn("⚠️ [LOGIN] Failed to record failed login history:", historyError.message);
+      }
+      
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -71,6 +126,30 @@ export async function POST(request: NextRequest) {
     );
     
     console.log("🎟️ [LOGIN] Token created");
+
+    // Record login history (using device info extracted earlier)
+    try {
+      const loginRecord = new LoginHistory({
+        userId: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        loginTime: new Date(),
+        ipAddress,
+        userAgent,
+        device,
+        browser,
+        os,
+        status: 'success',
+      });
+
+      await loginRecord.save();
+      console.log("📝 [LOGIN] Login history recorded");
+    } catch (historyError: any) {
+      console.warn("⚠️ [LOGIN] Failed to record login history:", historyError.message);
+      // Don't fail the login if history recording fails
+    }
 
     // Prepare user response
     const userResponse = user.toObject();

@@ -79,16 +79,19 @@ export async function GET(request: NextRequest) {
       return {
         _id: trainer._id.toString(),
         name: fullName,
+        firstName: trainer.firstName,
+        lastName: trainer.lastName,
         email: trainer.email,
         phone: trainer.phone,
         specialty: trainer.specialty,
         specialtyColor: specialtyColors[trainer.specialty] || 'bg-gray-600 text-white',
         badge: trainer.isFeatured ? 'HEAD COACH' : null,
         tags: trainer.tags || [],
-        experience: `${trainer.experience}YR`,
+        experience: trainer.experience,
         clients: trainer.totalClients,
-        rating: `${trainer.ratingAverage.toFixed(1)}★`,
-        perSession: `LKR ${trainer.costPerSession.toLocaleString()}`,
+        assignedClients: trainer.assignedClients || [],
+        rating: trainer.ratingAverage || 0,
+        perSession: trainer.costPerSession,
         featured: trainer.isFeatured,
         avatar: avatarEmoji,
         status: trainer.status,
@@ -97,6 +100,12 @@ export async function GET(request: NextRequest) {
         specializations: trainer.specializations || [],
         sessionsThisMonth: trainer.sessionsThisMonth,
         bio: trainer.bio,
+        // Shift info
+        shiftStartTime: trainer.shiftStartTime,
+        shiftEndTime: trainer.shiftEndTime,
+        shiftDays: trainer.shiftDays || [],
+        currentlyActive: trainer.currentlyActive || false,
+        costPerSession: trainer.costPerSession,
       };
     });
 
@@ -192,6 +201,12 @@ export async function POST(request: NextRequest) {
       isFeatured: body.isFeatured || false,
       specializations: body.specializations || [],
       tags: body.tags || [],
+      // Shift & Schedule
+      shiftStartTime: body.shiftStartTime || '06:00',
+      shiftEndTime: body.shiftEndTime || '22:00',
+      shiftDays: body.shiftDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      assignedClients: body.assignedClients || [],
+      currentlyActive: false,
     });
 
     await newTrainer.save();

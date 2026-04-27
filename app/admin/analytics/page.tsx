@@ -24,6 +24,7 @@ interface AnalyticsData {
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [dateRange, setDateRange] = useState('Last 30 Days');
 
@@ -79,6 +80,36 @@ export default function AnalyticsPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Export analytics report
+  const handleExportReport = async () => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('/api/admin/export/analytics-report', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to export: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analytics-report_${new Date().toISOString().slice(0, 10)}.html`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
+      alert(`Export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -128,8 +159,12 @@ export default function AnalyticsPage() {
             <option>Last 90 Days</option>
             <option>This Year</option>
           </select>
-          <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-2 transition-all">
-            📥 EXPORT REPORT
+          <button
+            onClick={handleExportReport}
+            disabled={exporting}
+            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? '📥 Exporting...' : '📥 EXPORT REPORT'}
           </button>
         </div>
       </div>

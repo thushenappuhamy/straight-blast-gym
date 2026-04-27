@@ -8,12 +8,13 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
-    // Fetch trainers, sort by featured first, then by rating
-    const trainers = await Trainer.find({ status: 'active' })
+    // Fetch all trainers (active and inactive), excluding deleted
+    // Sort by featured first, then by rating
+    const trainers = await Trainer.find({ status: { $ne: 'deleted' } })
       .sort({ isFeatured: -1, ratingAverage: -1 })
       .lean();
 
-    console.log('✅ [API TRAINERS] Fetched:', trainers.length, 'trainers');
+    console.log('✅ [API TRAINERS] Fetched:', trainers.length, 'trainers (active and inactive)');
 
     // Return with no-cache headers to ensure fresh data
     const response = NextResponse.json({

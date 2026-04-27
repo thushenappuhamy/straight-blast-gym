@@ -21,19 +21,23 @@ export default function TrainersPage() {
         const result = await response.json();
         
         if (result.success) {
-          // Transform API data to match component structure
-          const transformedTrainers = result.data.map((trainer: any) => ({
-            id: trainer._id,
-            name: `${trainer.firstName} ${trainer.lastName}`.toUpperCase(),
-            specialty: trainer.specialty.toUpperCase(),
-            badge: trainer.isFeatured ? 'HEAD COACH' : null,
-            tags: trainer.specializations || [],
-            experience: trainer.experience || 0,
-            clients: trainer.totalClients || 0,
-            rating: trainer.ratingAverage || 0,
-            price: trainer.costPerSession || 0,
-            featured: trainer.isFeatured || false,
-          }));
+          // Transform API data and filter out deleted trainers
+          const transformedTrainers = result.data
+            .filter((trainer: any) => trainer.status !== 'deleted') // Don't show deleted trainers
+            .map((trainer: any) => ({
+              id: trainer._id,
+              name: `${trainer.firstName} ${trainer.lastName}`.toUpperCase(),
+              specialty: trainer.specialty.toUpperCase(),
+              badge: trainer.isFeatured ? 'HEAD COACH' : null,
+              tags: trainer.specializations || [],
+              experience: trainer.experience || 0,
+              clients: trainer.totalClients || 0,
+              rating: trainer.ratingAverage || 0,
+              price: trainer.costPerSession || 0,
+              featured: trainer.isFeatured || false,
+              status: trainer.status || 'active',
+              isInactive: trainer.status === 'inactive',
+            }));
           console.log('✅ [USER TRAINERS] Loaded:', transformedTrainers.length);
           setTrainers(transformedTrainers);
           setError(null);
@@ -88,7 +92,9 @@ export default function TrainersPage() {
           {trainers.map((trainer) => (
             <div
               key={trainer.id}
-              className={`overflow-hidden relative ${
+              className={`overflow-hidden relative transition-all opacity-100 ${
+                trainer.isInactive ? 'opacity-50 pointer-events-none' : ''
+              } ${
                 trainer.featured ? 'border-2 border-[#F4D03F]' : 'border border-[#424242]'
               }`}
             >
@@ -97,8 +103,18 @@ export default function TrainersPage() {
                 {/* Placeholder for profile image */}
                 <div className="text-white text-8xl font-black opacity-20">?</div>
                 
+                {/* Inactive Badge */}
+                {trainer.isInactive && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="text-white text-center">
+                      <div className="text-2xl font-black uppercase tracking-wider mb-2">INACTIVE</div>
+                      <p className="text-xs text-gray-300">This trainer is currently unavailable</p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Badge */}
-                {trainer.badge && (
+                {trainer.badge && !trainer.isInactive && (
                   <div className="absolute top-4 right-4 bg-[#F4D03F] text-black font-bold text-[10px] uppercase tracking-wider px-3 py-1">
                     {trainer.badge}
                   </div>
@@ -151,8 +167,16 @@ export default function TrainersPage() {
                     <div className="text-white text-2xl font-black">LKR {trainer.price.toLocaleString()}</div>
                     <div className="text-gray-500 text-xs">per session</div>
                   </div>
-                  <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all">
-                    Select
+                  <button
+                    disabled={trainer.isInactive}
+                    className={`font-black text-sm uppercase tracking-wider px-6 py-3 transition-all ${
+                      trainer.isInactive
+                        ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                        : 'bg-[#F4D03F] hover:bg-[#E5C730] text-black'
+                    }`}
+                    title={trainer.isInactive ? 'This trainer is currently unavailable' : 'Select this trainer'}
+                  >
+                    {trainer.isInactive ? 'Unavailable' : 'Select'}
                   </button>
                 </div>
               </div>
