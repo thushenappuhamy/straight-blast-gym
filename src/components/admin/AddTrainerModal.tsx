@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Users, Loader } from 'lucide-react';
+import Toast from '@/src/components/ui/Toast';
 
 interface AddTrainerModalProps {
   onClose: () => void;
@@ -54,6 +55,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -82,6 +84,10 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
     endMinute: '00',
     endPeriod: 'PM',
   });
+
+  const labelClass = 'block text-[11px] font-bold text-white/45 uppercase mb-2 tracking-wider';
+  const inputClass = 'w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#E63C2F] transition-colors';
+  const selectClass = 'w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#E63C2F] transition-colors';
 
   useEffect(() => {
     if (trainer) {
@@ -204,14 +210,14 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
       }
 
       console.log('✅ [TRAINER SAVED]', data.data);
-      alert(`✅ Trainer ${method === 'POST' ? 'added' : 'updated'} successfully!`);
+      setToast({ message: `Trainer ${method === 'POST' ? 'added' : 'updated'} successfully!`, type: 'success' });
       onSuccess();
       onClose();
       setStep(1);
     } catch (err: any) {
       console.error('❌ [TRAINER ERROR]', err);
       setError(err.message);
-      alert(`❌ Error: ${err.message}`);
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -220,62 +226,62 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
   // STEP 1: Basic Information
   const renderStep1 = () => (
     <div className="space-y-5">
-      <h3 className="text-lg font-bold text-[#1A1816] mb-5">Basic Information</h3>
+      <h3 className="text-lg font-bold text-white mb-5">Basic Information</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-2">First Name *</label>
+          <label className={labelClass}>First Name *</label>
           <input
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
-            className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
             placeholder="John"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Last Name *</label>
+          <label className={labelClass}>Last Name *</label>
           <input
             name="lastName"
             value={formData.lastName}
             onChange={handleInputChange}
-            className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
             placeholder="Doe"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Email *</label>
+        <label className={labelClass}>Email *</label>
         <input
           name="email"
           type="email"
           value={formData.email}
           onChange={handleInputChange}
-          className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
           placeholder="john@example.com"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Phone *</label>
+        <label className={labelClass}>Phone *</label>
         <input
           name="phone"
           type="tel"
           value={formData.phone}
           onChange={handleInputChange}
-          className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
           placeholder="+94 123 456 7890"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Specialty *</label>
+        <label className={labelClass}>Specialty *</label>
         <select
           name="specialty"
           value={formData.specialty}
           onChange={handleInputChange}
-          className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={selectClass}
         >
           <option value="">Select Specialty</option>
           {specialtyOptions.map(opt => (
@@ -286,38 +292,38 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Experience (Years) *</label>
+          <label className={labelClass}>Experience (Years) *</label>
           <input
             name="experience"
             type="number"
             min="0"
             value={formData.experience}
             onChange={handleInputChange}
-            className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
             placeholder="5"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Cost Per Session (LKR) *</label>
+          <label className={labelClass}>Cost Per Session (LKR) *</label>
           <input
             name="costPerSession"
             type="number"
             min="0"
             value={formData.costPerSession}
             onChange={handleInputChange}
-            className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
             placeholder="5000"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Bio</label>
+        <label className={labelClass}>Bio</label>
         <textarea
           name="bio"
           value={formData.bio}
           onChange={handleInputChange}
-          className="w-full border-2 border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
           placeholder="Tell us about your experience..."
           rows={3}
         />
@@ -328,13 +334,13 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
   // STEP 2: Shift & Availability
   const renderStep2 = () => (
     <div className="space-y-5">
-      <h3 className="text-lg font-bold text-[#1A1816] mb-5 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
         <Clock size={20} /> Shift & Availability
       </h3>
 
       {/* Start Time with AM/PM */}
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Shift Start Time</label>
+        <label className={labelClass}>Shift Start Time</label>
         <div className="grid grid-cols-4 gap-2">
           <input
             type="number"
@@ -343,9 +349,9 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
             value={timeDisplay.startHour}
             onChange={(e) => handleTimeChange('startHour', e.target.value)}
             placeholder="Hour"
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           />
-          <span className="flex items-center justify-center font-bold">:</span>
+          <span className="flex items-center justify-center font-bold text-white/70">:</span>
           <input
             type="number"
             min="0"
@@ -354,12 +360,12 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
             value={timeDisplay.startMinute}
             onChange={(e) => handleTimeChange('startMinute', e.target.value.padStart(2, '0'))}
             placeholder="Min"
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           />
           <select
             value={timeDisplay.startPeriod}
             onChange={(e) => handleTimeChange('startPeriod', e.target.value)}
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           >
             <option value="AM">AM</option>
             <option value="PM">PM</option>
@@ -369,7 +375,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
 
       {/* End Time with AM/PM */}
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Shift End Time</label>
+        <label className={labelClass}>Shift End Time</label>
         <div className="grid grid-cols-4 gap-2">
           <input
             type="number"
@@ -378,9 +384,9 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
             value={timeDisplay.endHour}
             onChange={(e) => handleTimeChange('endHour', e.target.value)}
             placeholder="Hour"
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           />
-          <span className="flex items-center justify-center font-bold">:</span>
+          <span className="flex items-center justify-center font-bold text-white/70">:</span>
           <input
             type="number"
             min="0"
@@ -389,12 +395,12 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
             value={timeDisplay.endMinute}
             onChange={(e) => handleTimeChange('endMinute', e.target.value.padStart(2, '0'))}
             placeholder="Min"
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           />
           <select
             value={timeDisplay.endPeriod}
             onChange={(e) => handleTimeChange('endPeriod', e.target.value)}
-            className="border-2 border-gray-300 rounded px-2 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className="bg-white/5 border border-white/15 rounded-lg px-2 py-2 text-sm text-white focus:outline-none focus:border-[#E63C2F]"
           >
             <option value="AM">AM</option>
             <option value="PM">PM</option>
@@ -403,7 +409,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-3">Working Days</label>
+        <label className={labelClass}>Working Days</label>
         <div className="grid grid-cols-2 gap-3">
           {daysOfWeek.map(day => (
             <label key={day} className="flex items-center gap-2 cursor-pointer">
@@ -411,16 +417,16 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
                 type="checkbox"
                 checked={formData.shiftDays.includes(day)}
                 onChange={() => handleCheckboxChange('shiftDays', day)}
-                className="w-4 h-4 accent-[#F4D03F]"
+                className="w-4 h-4 accent-[#E63C2F]"
               />
-              <span className="text-sm text-gray-700">{day}</span>
+              <span className="text-sm text-white/80">{day}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4">
-        <p className="text-xs text-gray-600">
+      <div className="bg-[#E63C2F]/10 border-l-4 border-[#E63C2F] p-4 rounded-r-lg">
+        <p className="text-xs text-white/75">
           <strong>Schedule Setup:</strong> The trainer will be automatically marked as ACTIVE or INACTIVE based on their shift times and the current time. If the current time falls within their shift timing on a working day, they'll be shown as active.
         </p>
       </div>
@@ -430,12 +436,12 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
   // STEP 3: Specializations & Other Info
   const renderStep3 = () => (
     <div className="space-y-5">
-      <h3 className="text-lg font-bold text-[#1A1816] mb-5 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
         <Users size={20} /> Specializations & Settings
       </h3>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-3">Specializations</label>
+        <label className={labelClass}>Specializations</label>
         <div className="grid grid-cols-2 gap-3">
           {specializationOptions.map(spec => (
             <label key={spec} className="flex items-center gap-2 cursor-pointer">
@@ -443,16 +449,16 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
                 type="checkbox"
                 checked={formData.specializations.includes(spec)}
                 onChange={() => handleCheckboxChange('specializations', spec)}
-                className="w-4 h-4 accent-[#F4D03F]"
+                className="w-4 h-4 accent-[#E63C2F]"
               />
-              <span className="text-sm text-gray-700">{spec}</span>
+              <span className="text-sm text-white/80">{spec}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-700 uppercase mb-3">Qualifications</label>
+        <label className={labelClass}>Qualifications</label>
         <div className="space-y-2">
           {qualificationOptions.map(qual => (
             <label key={qual} className="flex items-center gap-2 cursor-pointer">
@@ -460,9 +466,9 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
                 type="checkbox"
                 checked={formData.qualifications.includes(qual)}
                 onChange={() => handleCheckboxChange('qualifications', qual)}
-                className="w-4 h-4 accent-[#F4D03F]"
+                className="w-4 h-4 accent-[#E63C2F]"
               />
-              <span className="text-xs text-gray-700">{qual}</span>
+              <span className="text-xs text-white/75">{qual}</span>
             </label>
           ))}
         </div>
@@ -473,29 +479,31 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
           type="checkbox"
           checked={formData.isFeatured}
           onChange={(e) => setFormData(prev => ({ ...prev, isFeatured: e.target.checked }))}
-          className="w-4 h-4 accent-[#F4D03F]"
+          className="w-4 h-4 accent-[#E63C2F]"
         />
-        <label className="text-sm font-bold text-gray-700">Featured Trainer</label>
+        <label className="text-sm font-bold text-white/80">Featured Trainer</label>
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full p-8 shadow-2xl">
+    <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="bg-[#161616] rounded-2xl border border-white/15 max-w-2xl w-full p-8 shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-[#F4D03F]">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
           <div>
-            <p className="text-[#F4D03F] text-xs font-black uppercase tracking-widest mb-1">
+            <p className="text-[#E63C2F] text-xs font-black uppercase tracking-widest mb-1">
               {trainer ? 'Edit Trainer' : 'Add New Trainer'}
             </p>
-            <h2 className="text-3xl font-black uppercase text-slate-700">Step {step} of 3</h2>
+            <h2 className="text-3xl font-black uppercase text-white">Step {step} of 3</h2>
           </div>
           <button
             onClick={onClose}
-            className="text-3xl font-black text-slate-700 hover:text-[#F4D03F] transition-colors"
+            type="button"
+            className="text-white/60 hover:text-white transition-colors"
           >
-            ✕
+            <X size={28} />
           </button>
         </div>
 
@@ -505,7 +513,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
             <div
               key={s}
               className={`flex-1 h-2 rounded-full transition-colors ${
-                s <= step ? 'bg-[#F4D03F]' : 'bg-gray-300'
+                s <= step ? 'bg-[#E63C2F]' : 'bg-white/15'
               }`}
             />
           ))}
@@ -513,7 +521,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 text-sm rounded">
+          <div className="mb-4 p-3 bg-[#E63C2F]/15 border border-[#E63C2F]/40 text-[#ffb4ae] text-sm rounded-lg">
             ⚠️ {error}
           </div>
         )}
@@ -525,12 +533,12 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
           {step === 3 && renderStep3()}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t-2 border-gray-200">
+          <div className="flex justify-between pt-6 border-t border-white/10">
             <button
               type="button"
               onClick={() => setStep(Math.max(1, step - 1))}
               disabled={step === 1}
-              className="px-4 py-2 text-gray-700 font-bold uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-white/60 hover:text-white font-bold uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Back
             </button>
@@ -539,7 +547,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
               <button
                 type="button"
                 onClick={() => setStep(step + 1)}
-                className="px-6 py-2 bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase text-xs rounded transition-all"
+                className="px-6 py-2 bg-[#E63C2F] hover:bg-[#cf3529] text-white font-black uppercase text-xs rounded-lg transition-all"
               >
                 Next →
               </button>
@@ -547,7 +555,7 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-black uppercase text-xs rounded transition-all flex items-center gap-2 disabled:opacity-50"
+                className="px-6 py-2 bg-[#E63C2F] hover:bg-[#cf3529] text-white font-black uppercase text-xs rounded-lg transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 {loading && <Loader size={14} className="animate-spin" />}
                 {loading ? (trainer ? 'Updating...' : 'Adding...') : (trainer ? '✓ Update Trainer' : '✓ Add Trainer')}

@@ -55,6 +55,11 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
     trainerId: '',
   });
 
+  const labelClass = 'block text-[11px] font-bold text-white/45 uppercase mb-2 tracking-wider';
+  const inputClass = 'w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E63C2F] transition-colors';
+  const selectClass = 'w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#E63C2F] transition-colors';
+  const readOnlyClass = 'w-full bg-white/5 border border-white/15 rounded-lg px-3 py-2.5 text-sm text-white/60';
+
   React.useEffect(() => {
     if (isOpen && step === 3) {
       fetchTrainers();
@@ -230,54 +235,54 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">First Name *</label>
+          <label className={labelClass}>First Name *</label>
           <input
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
             placeholder="John"
-            className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Last Name *</label>
+          <label className={labelClass}>Last Name *</label>
           <input
             name="lastName"
             value={formData.lastName}
             onChange={handleInputChange}
             placeholder="Doe"
-            className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Email Address *</label>
+        <label className={labelClass}>Email Address *</label>
         <input
           name="email"
           type="email"
           value={formData.email}
           onChange={handleInputChange}
           placeholder="john@example.com"
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Phone Number *</label>
+        <label className={labelClass}>Phone Number *</label>
         <input
           name="phoneNumber"
           type="tel"
           value={formData.phoneNumber}
           onChange={handleInputChange}
           placeholder="+94 123 456 7890"
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase mb-2 flex items-center gap-1">
+          <label className={`${labelClass} flex items-center gap-1`}>
             <CalendarIcon size={14} /> Date of Birth *
           </label>
           <input
@@ -285,24 +290,24 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
             type="date"
             value={formData.dateOfBirth}
             onChange={handleDateChange}
-            className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Age</label>
-          <div className="w-full bg-[#1A1A1A] border border-gray-700 rounded px-3 py-2 text-sm text-gray-300">
+          <label className={labelClass}>Age</label>
+          <div className={readOnlyClass}>
             {formData.age > 0 ? formData.age : '-'} years
           </div>
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Gender *</label>
+        <label className={labelClass}>Gender *</label>
         <select
           name="gender"
           value={formData.gender}
           onChange={handleInputChange}
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={selectClass}
         >
           <option value="">Select Gender</option>
           <option value="Male">Male</option>
@@ -319,48 +324,48 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
       <h3 className="text-lg font-bold text-white mb-5">Location Information</h3>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Country *</label>
+        <label className={labelClass}>Country *</label>
         <input
           name="country"
           value={formData.country}
           onChange={handleInputChange}
           placeholder="Sri Lanka"
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">City *</label>
+        <label className={labelClass}>City *</label>
         <input
           name="city"
           value={formData.city}
           onChange={handleInputChange}
           placeholder="Negombo"
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Zipcode *</label>
+          <label className={labelClass}>Zipcode *</label>
           <input
             name="zipcode"
             value={formData.zipcode}
             onChange={handleInputChange}
             placeholder="11500"
-            className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+            className={inputClass}
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Address *</label>
+        <label className={labelClass}>Address *</label>
         <input
           name="address"
           value={formData.address}
           onChange={handleInputChange}
           placeholder="123 Main Street, Apartment 4B"
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
     </div>
@@ -372,29 +377,29 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
       <h3 className="text-lg font-bold text-white mb-5">Membership & Fitness Details</h3>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-3">Fitness Goals *</label>
+        <label className={labelClass}>Fitness Goals *</label>
         <div className="space-y-2">
           {['Weight Loss', 'Muscle Gain', 'Strength', 'Flexibility', 'Overall Health', 'Endurance'].map(goal => (
-            <label key={goal} className="flex items-center gap-3 cursor-pointer">
+            <label key={goal} className="flex items-center gap-3 cursor-pointer text-white/80 hover:text-white transition-colors">
               <input
                 type="checkbox"
                 checked={formData.fitnessGoal.includes(goal)}
                 onChange={() => handleCheckboxChange(goal)}
-                className="w-4 h-4 bg-[#1A1A1A] border border-gray-700 rounded accent-[#F4D03F] cursor-pointer"
+                className="w-4 h-4 bg-white/5 border border-white/20 rounded accent-[#E63C2F] cursor-pointer"
               />
-              <span className="text-sm text-gray-300">{goal}</span>
+              <span className="text-sm">{goal}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Membership Package *</label>
+        <label className={labelClass}>Membership Package *</label>
         <select
           name="plan"
           value={formData.plan}
           onChange={handleInputChange}
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={selectClass}
         >
           <option value="basic">Basic (LKR 2,500/month)</option>
           <option value="gold">Gold (LKR 5,000/month)</option>
@@ -403,23 +408,23 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Membership Start Date *</label>
+        <label className={labelClass}>Membership Start Date *</label>
         <input
           name="membershipStartDate"
           type="date"
           value={formData.membershipStartDate}
           onChange={handleInputChange}
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={inputClass}
         />
       </div>
 
       <div>
-        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Assign Trainer (Optional)</label>
+        <label className={labelClass}>Assign Trainer (Optional)</label>
         <select
           name="trainerId"
           value={formData.trainerId}
           onChange={handleInputChange}
-          className="w-full bg-[#1A1A1A] border border-gray-700 text-white rounded px-3 py-2 text-sm focus:outline-none focus:border-[#F4D03F]"
+          className={selectClass}
         >
           <option value="">-- Select a Trainer --</option>
           {trainers.map(trainer => (
@@ -433,15 +438,15 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#2B2621] w-full max-w-2xl rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-[#161616] w-full max-w-2xl rounded-xl shadow-2xl border border-white/15 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800 bg-[#1A1A1A]">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-linear-to-r from-[#E63C2F]/15 to-transparent">
           <div>
-            <h2 className="text-[#F4D03F] text-xl font-black uppercase tracking-widest">Add New Member</h2>
-            <p className="text-gray-400 text-xs mt-1">Step {step} of 3</p>
+            <h2 className="text-white text-xl font-black uppercase tracking-widest">Add New Member</h2>
+            <p className="text-white/50 text-xs mt-1">Step {step} of 3</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button onClick={onClose} type="button" className="text-white/45 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -453,7 +458,7 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
               <div
                 key={s}
                 className={`flex-1 h-2 rounded-full transition-colors ${
-                  s <= step ? 'bg-[#F4D03F]' : 'bg-gray-700'
+                  s <= step ? 'bg-[#E63C2F]' : 'bg-white/10'
                 }`}
               />
             ))}
@@ -463,7 +468,7 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
         {/* Content */}
         <form className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
           {error && (
-            <div className="p-3 bg-red-900/30 border border-red-500/50 text-red-400 text-sm rounded">
+            <div className="p-3 bg-[#E63C2F]/15 border border-[#E63C2F]/40 text-[#ffb4ae] text-sm rounded-lg">
               ⚠️ {error}
             </div>
           )}
@@ -474,35 +479,39 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-800 bg-[#1A1A1A] flex justify-between">
+        <div className="px-6 py-4 border-t border-white/10 bg-[#111111] flex justify-between">
           <button
+            type="button"
             onClick={() => setStep(Math.max(1, step - 1))}
             disabled={step === 1}
-            className="px-4 py-2 text-gray-300 hover:text-white uppercase text-xs font-bold tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-white/60 hover:text-white uppercase text-xs font-bold tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
           >
             ← Back
           </button>
 
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-300 hover:text-white uppercase text-xs font-bold tracking-wider"
+              className="px-4 py-2 text-white/60 hover:text-white uppercase text-xs font-bold tracking-wider"
             >
               Cancel
             </button>
 
             {step < 3 ? (
               <button
+                type="button"
                 onClick={handleNext}
-                className="bg-[#F4D03F] hover:bg-[#E5C730] text-black px-6 py-2 rounded text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                className="bg-[#E63C2F] hover:bg-[#cf3529] text-white px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2"
               >
                 Next <ChevronRight size={16} />
               </button>
             ) : (
               <button
+                type="button"
                 onClick={handleFinish}
                 disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-xs font-black uppercase tracking-wider flex items-center gap-2 disabled:opacity-50"
+                className="bg-[#E63C2F] hover:bg-[#cf3529] text-white px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 disabled:opacity-50"
               >
                 {loading && <Loader size={14} className="animate-spin" />}
                 {loading ? 'Finishing...' : 'Finish'}

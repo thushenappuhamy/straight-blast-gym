@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Loader } from 'lucide-react';
+import Toast from '@/src/components/ui/Toast';
 
 interface QuestionnaireData {
   name: string;
@@ -51,6 +52,7 @@ export default function PlanGenerationModal({
 }: PlanGenerationModalProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [formData, setFormData] = useState<QuestionnaireData>({
     name: userName,
     age,
@@ -118,7 +120,7 @@ export default function PlanGenerationModal({
       }
       onClose();
     } catch (error: any) {
-      alert('Error: ' + error.message);
+      setToast({ message: `Error: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -126,9 +128,10 @@ export default function PlanGenerationModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-[#F4D03F]/20 to-blue-50 border-b p-6 flex justify-between items-center">
+        <div className="sticky top-0 bg-linear-to-r from-[#F4D03F]/20 to-blue-50 border-b p-6 flex justify-between items-center">
           <h2 className="text-2xl font-black text-slate-700 uppercase">Generate Your Plan</h2>
           <button
             onClick={onClose}
