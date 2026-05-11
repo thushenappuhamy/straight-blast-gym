@@ -78,43 +78,43 @@ export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps
 
   const shellClasses = isDark
     ? "bg-[#0b0b0b] border-white/10 text-white"
-    : "bg-[#FAFAF7] border-[#E6E3DA] text-[#1A1816]";
+    : "bg-[#FFFFFF] border-[#E5E5E5] text-[#1A1A1A]";
 
   const backdropClasses = isDark
     ? "bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.12),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_36px)] opacity-80"
-    : "bg-[radial-gradient(circle_at_top,rgba(244,208,63,0.18),transparent_38%),linear-gradient(135deg,rgba(26,24,22,0.05)_0,rgba(26,24,22,0.05)_1px,transparent_1px,transparent_36px)] opacity-70";
+    : "bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.05),transparent_38%),linear-gradient(135deg,rgba(0,0,0,0.03)_0,rgba(0,0,0,0.03)_1px,transparent_1px,transparent_36px)] opacity-70";
 
   const sectionLabelClasses = isDark
     ? "text-white/35"
-    : "text-[#6B625A]";
+    : "text-[#888888]";
 
   const itemBaseClasses = isDark
     ? "text-white/70 hover:bg-white/5 hover:text-white"
-    : "text-[#5F574F] hover:bg-black/5 hover:text-[#1A1816]";
+    : "text-[#666666] hover:bg-black/5 hover:text-[#1A1A1A]";
 
   const itemActiveClasses = isDark
     ? "bg-[#E63C2F] text-white shadow-[0_10px_30px_rgba(230,60,47,0.22)]"
-    : "bg-[#F4D03F] text-[#1A1816] shadow-[0_10px_30px_rgba(244,208,63,0.22)]";
+    : "bg-[#F0F0F0] text-[#1A1A1A] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-[#E5E5E5]";
 
-  const mutedText = isDark ? "text-white/45" : "text-[#6B625A]";
+  const mutedText = isDark ? "text-white/45" : "text-[#888888]";
 
   const toggleButtonClasses = isDark
     ? "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white"
-    : "border-[#E6E3DA] bg-white text-[#1A1816] hover:bg-[#F4D03F]/15 hover:text-[#1A1816]";
+    : "border-[#E5E5E5] bg-white text-[#1A1A1A] hover:bg-black/5 hover:text-[#1A1A1A]";
 
   return (
     <aside className={`relative flex min-h-screen w-72 flex-col overflow-hidden border-r ${shellClasses}`}>
       <div className={`pointer-events-none absolute inset-0 ${backdropClasses}`} />
 
-      <div className={`relative z-10 border-b p-6 ${isDark ? "border-white/10" : "border-[#E6E3DA]"}`}>
+      <div className={`relative z-10 border-b p-6 ${isDark ? "border-white/10" : "border-[#E5E5E5]"}`}>
         <div className="flex items-center gap-3">
           <img
-            src="/logo.jpeg"
+            src="/logo_new.jpeg"
             alt="SBG Logo"
-            className={`h-12 w-12 rounded-full border ${isDark ? "border-[#E63C2F]/40" : "border-[#F4D03F]/40"}`}
+            className={`h-12 w-12 rounded-full border ${isDark ? "border-[#E63C2F]/40" : "border-[#E5E5E5]"}`}
           />
           <div className="flex flex-col leading-none">
-            <span className={`font-black text-lg tracking-[0.3em] uppercase ${isDark ? "text-[#F5F5F5]" : "text-[#1A1816]"}`}>SBG</span>
+            <span className={`font-black text-lg tracking-[0.3em] uppercase ${isDark ? "text-[#F5F5F5]" : "text-[#1A1A1A]"}`}>SBG</span>
             <span className={`text-[10px] uppercase tracking-[0.35em] ${mutedText}`}>Member Portal</span>
           </div>
         </div>
@@ -183,7 +183,7 @@ export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps
 
           <button
             onClick={handleLogout}
-            className={`flex w-full items-center gap-3 rounded px-3 py-3 text-sm font-black uppercase tracking-[0.28em] transition-colors ${isDark ? "text-white/70 hover:bg-[#E63C2F]/15 hover:text-white" : "text-[#5F574F] hover:bg-black/5 hover:text-[#1A1816]"}`}
+            className={`flex w-full items-center gap-3 rounded px-3 py-3 text-sm font-black uppercase tracking-[0.28em] transition-colors ${isDark ? "text-white/70 hover:bg-[#E63C2F]/15 hover:text-white" : "text-[#666666] hover:bg-black/5 hover:text-[#1A1A1A]"}`}
           >
             <span><LogOut size={18} className="text-current" /></span>
             <span>Log Out</span>
