@@ -69,7 +69,7 @@ export default function LoginPage() {
             </Link>
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#E63C2F]/40 bg-black/40">
-                <Image src="/logo.jpeg" alt="SBG Logo" width={48} height={48} className="h-full w-full object-cover" />
+                <Image src="/logo_new.jpeg" alt="SBG Logo" width={48} height={48} className="h-full w-full object-cover" />
               </div>
               <div className="leading-none">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.45em] text-white/55">Straight</div>
@@ -108,14 +108,14 @@ export default function LoginPage() {
                 Home
               </Link>
               <div className="flex items-center gap-3">
-                <Image src="/logo.jpeg" alt="SBG Logo" width={40} height={40} className="rounded-full border border-white/10" />
+                <Image src="/logo_new.jpeg" alt="SBG Logo" width={40} height={40} className="rounded-full border border-white/10" />
                 <span className="text-xs font-black uppercase tracking-[0.35em] text-white/70">SBG</span>
               </div>
             </div>
 
             <div className="text-center">
               <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[#E63C2F]/35 bg-black/45 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
-                <Image src="/logo.jpeg" alt="SBG Logo" width={80} height={80} className="h-full w-full object-cover" />
+                <Image src="/logo_new.jpeg" alt="SBG Logo" width={80} height={80} className="h-full w-full object-cover" />
               </div>
               <h2 className="mt-6 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
                 Welcome Back

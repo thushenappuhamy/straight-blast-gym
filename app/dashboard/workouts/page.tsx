@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
 
 export default function WorkoutsPage() {
   const [workoutPlan, setWorkoutPlan] = useState<any>(null);
@@ -12,13 +13,12 @@ export default function WorkoutsPage() {
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
   const [activeVersion, setActiveVersion] = useState(0);
 
-
   useEffect(() => {
     const fetchPlan = async () => {
       try {
         console.log('📊 [WORKOUTS] Fetching workout plan...');
         const response = await fetch('/api/health/generate-plan');
-        
+
         let data;
         try {
           data = await response.json();
@@ -60,7 +60,7 @@ export default function WorkoutsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#0D0D0D] text-white p-8 flex items-center justify-center">
+      <div className="min-h-screen dark:bg-linear-to-br dark:from-[#0D0D0D] dark:via-[#1A1A1A] dark:to-[#0D0D0D] bg-linear-to-br from-[#F5F5F5] via-[#FFFFFF] to-[#F5F5F5] dark:text-white text-[#1A1A1A] p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin text-4xl mb-4">⚙️</div>
           <p className="text-xl font-bold">Loading your personalized plan...</p>
@@ -71,11 +71,17 @@ export default function WorkoutsPage() {
 
   if (error || !workoutPlan) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#0D0D0D] text-white p-8">
+      <div className="min-h-screen dark:bg-linear-to-br dark:from-[#0D0D0D] dark:via-[#1A1A1A] dark:to-[#0D0D0D] bg-linear-to-br from-[#F5F5F5] via-[#FFFFFF] to-[#F5F5F5] dark:text-white text-[#1A1A1A] p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-[#E63C2F]/10 border-2 border-[#E63C2F] p-8 rounded-2xl text-center">
             <p className="text-lg font-bold mb-2">⚠️ {error || 'No plan available'}</p>
-            <p className="text-gray-300">Go back to <a href="/bmi-calculator" className="text-[#F5F5F5] underline hover:text-[#E63C2F] transition-colors">BMI Calculator</a> to create your personalized plan.</p>
+            <p className="text-gray-300">
+              Go back to{' '}
+              <a href="/bmi-calculator" className="text-[#F5F5F5] underline hover:text-[#E63C2F] transition-colors">
+                BMI Calculator
+              </a>{' '}
+              to create your personalized plan.
+            </p>
           </div>
         </div>
       </div>
@@ -86,97 +92,179 @@ export default function WorkoutsPage() {
   const currentDay = currentWeek.days?.[activeDay];
 
   const generatePDF = () => {
-    const element = document.getElementById('workout-plan-pdf');
-    if (!element) return;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    let cursorY = 16;
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const setText = (size: number, bold = false) => {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      doc.setTextColor(0, 0, 0);
+    };
 
-    // Generate simple PDF-like content
-    const pdfContent = generatePDFContent();
-    const link = document.createElement('a');
-    link.href = `data:text/plain;charset=utf-8,${encodeURIComponent(pdfContent)}`;
-    link.download = `${workoutPlan.goal}_${workoutPlan.duration.replace(/\s+/g, '_')}_Plan.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+    const ensureSpace = (requiredHeight: number) => {
+      if (cursorY + requiredHeight > pageHeight - margin) {
+        doc.addPage();
+        cursorY = margin;
+      }
+    };
 
-  const generatePDFContent = () => {
-    let content = `STRAIGHT BLAST GYM - PERSONALIZED WORKOUT PLAN\n`;
-    content += `${'='.repeat(60)}\n\n`;
-    content += `GOAL: ${workoutPlan.goal}\n`;
-    content += `DURATION: ${workoutPlan.duration}\n`;
-    content += `LEVEL: ${workoutPlan.level}\n`;
-    content += `FREQUENCY: ${workoutPlan.frequency}\n\n`;
+    const writeLine = (text: string, size: number, bold = false, gapAfter = 0) => {
+      setText(size, bold);
+      const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
+      const lineHeight = size * 0.5 + 2;
+      ensureSpace(lines.length * lineHeight + gapAfter);
+      doc.text(lines, margin, cursorY);
+      cursorY += lines.length * lineHeight + gapAfter;
+    };
+
+    const drawCell = (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      text: string,
+      options: { bold?: boolean; align?: 'left' | 'center' | 'right'; fill?: boolean; fillColor?: [number, number, number] } = {}
+    ) => {
+      if (options.fill) {
+        doc.setFillColor(...(options.fillColor ?? [236, 236, 236]));
+        doc.rect(x, y, width, height, 'F');
+      }
+
+      doc.setDrawColor(0, 0, 0);
+      doc.rect(x, y, width, height);
+      setText(8, options.bold ?? false);
+
+      const lines = doc.splitTextToSize(text || '-', width - 5);
+      const lineHeight = 4;
+      let textY = y + 5;
+
+      lines.forEach((line: string) => {
+        if (options.align === 'center') {
+          doc.text(line, x + width / 2, textY, { align: 'center' });
+        } else if (options.align === 'right') {
+          doc.text(line, x + width - 2.5, textY, { align: 'right' });
+        } else {
+          doc.text(line, x + 2.5, textY);
+        }
+        textY += lineHeight;
+      });
+    };
+
+    const drawTableRow = (
+      cells: Array<{ text: string; width: number; align?: 'left' | 'center' | 'right'; bold?: boolean }>,
+      options: { fill?: boolean; fillColor?: [number, number, number] } = {}
+    ) => {
+      const wrapped = cells.map((cell) => {
+        setText(8, cell.bold ?? false);
+        return doc.splitTextToSize(cell.text || '-', cell.width - 5);
+      });
+
+      const rowHeight = Math.max(...wrapped.map((lines) => lines.length * 4 + 5), 10);
+      ensureSpace(rowHeight + 2);
+
+      let x = margin;
+      cells.forEach((cell, index) => {
+        drawCell(x, cursorY, cell.width, rowHeight, wrapped[index].join('\n'), {
+          bold: cell.bold,
+          align: cell.align,
+          fill: options.fill,
+          fillColor: options.fillColor,
+        });
+        x += cell.width;
+      });
+
+      cursorY += rowHeight;
+    };
+
+    writeLine('STRAIGHT BLAST GYM', 18, true, 4);
+    writeLine('PERSONALIZED WORKOUT PLAN', 13, true, 6);
+    writeLine(`Goal: ${workoutPlan.goal}`, 10.5, true, 1);
+    writeLine(`Duration: ${workoutPlan.duration}`, 10.5, false, 1);
+    writeLine(`Level: ${workoutPlan.level}`, 10.5, false, 1);
+    writeLine(`Frequency: ${workoutPlan.frequency}`, 10.5, false, 6);
+
+    const columnWidths = [18, 58, 14, 16, 24, 22, 29];
+    const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+    const availableWidth = pageWidth - margin * 2;
+    const scale = availableWidth / totalWidth;
+    const widths = columnWidths.map((width) => width * scale);
 
     (workoutPlan.weeks || []).forEach((week: any, weekIdx: number) => {
-      content += `\n${'─'.repeat(60)}\n`;
-      content += `WEEK ${week.weekNumber || weekIdx + 1}\n`;
-      content += `${'─'.repeat(60)}\n\n`;
+      writeLine(`Week ${week.weekNumber || weekIdx + 1}`, 12, true, 4);
+
+      drawTableRow([
+        { text: 'Day', width: widths[0], align: 'center', bold: true },
+        { text: 'Exercise', width: widths[1], bold: true },
+        { text: 'Sets', width: widths[2], align: 'center', bold: true },
+        { text: 'Reps', width: widths[3], align: 'center', bold: true },
+        { text: 'Rest', width: widths[4], align: 'center', bold: true },
+        { text: 'Target', width: widths[5], align: 'center', bold: true },
+        { text: 'Notes', width: widths[6], bold: true },
+      ], { fill: true, fillColor: [236, 236, 236] });
 
       (week.days || []).forEach((day: any) => {
-        content += `\n${day.day.toUpperCase()}\n`;
-        content += `${day.title}\n`;
-        content += `Duration: ${day.duration || 'N/A'}\n`;
-        if (day.focus?.length > 0) {
-          content += `Focus: ${day.focus.join(', ')}\n`;
-        }
-        content += `\n`;
-
         if (day.exercises && day.exercises.length > 0) {
-          day.exercises.forEach((ex: any, exIdx: number) => {
-            content += `  ${exIdx + 1}. ${ex.exercise}\n`;
-            content += `     Sets: ${ex.sets} | Reps: ${ex.reps} | Rest: ${ex.rest}\n`;
-            content += `     Target: ${ex.target}\n`;
-            if (ex.notes) {
-              content += `     Notes: ${ex.notes}\n`;
-            }
-            content += `\n`;
+          day.exercises.forEach((exercise: any, exerciseIdx: number) => {
+            drawTableRow([
+              { text: exerciseIdx === 0 ? `${day.day} - ${day.title}` : '', width: widths[0], align: 'center', bold: true },
+              { text: exercise.exercise || '-', width: widths[1], bold: true },
+              { text: String(exercise.sets ?? '-'), width: widths[2], align: 'center' },
+              { text: String(exercise.reps ?? '-'), width: widths[3], align: 'center' },
+              { text: String(exercise.rest ?? '-'), width: widths[4], align: 'center' },
+              { text: String(exercise.target ?? '-'), width: widths[5], align: 'center' },
+              { text: String(exercise.notes || ''), width: widths[6] },
+            ]);
           });
         } else {
-          content += `  ✓ REST DAY\n\n`;
+          drawTableRow([
+            { text: `${day.day} - ${day.title}`, width: widths[0], align: 'center', bold: true },
+            { text: 'REST DAY', width: widths[1], bold: true },
+            { text: '-', width: widths[2], align: 'center' },
+            { text: '-', width: widths[3], align: 'center' },
+            { text: '-', width: widths[4], align: 'center' },
+            { text: '-', width: widths[5], align: 'center' },
+            { text: day.notes || 'Recovery day', width: widths[6] },
+          ]);
         }
       });
     });
 
     if (workoutPlan.notes) {
-      content += `\n${'='.repeat(60)}\n`;
-      content += `IMPORTANT NOTES\n`;
-      content += `${'='.repeat(60)}\n`;
-      content += `${workoutPlan.notes}\n`;
+      cursorY += 4;
+      writeLine('Important Notes', 12, true, 3);
+      writeLine(workoutPlan.notes, 9.5, false, 2);
     }
 
-    content += `\n\nGenerated on: ${new Date().toLocaleDateString()}\n`;
-    return content;
+    writeLine(`Generated on: ${new Date().toLocaleDateString()}`, 9, false, 0);
+    doc.save(`${workoutPlan.goal}_${workoutPlan.duration.replace(/\s+/g, '_')}_Workout_Plan.pdf`);
   };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#0D0D0D] text-white p-8">
+    <div className="min-h-screen dark:bg-linear-to-br dark:from-[#0D0D0D] dark:via-[#1A1A1A] dark:to-[#0D0D0D] bg-linear-to-br from-[#F5F5F5] via-[#FFFFFF] to-[#F5F5F5] dark:text-white text-[#1A1A1A] p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
         <div className="mb-12">
           <div className="flex items-start justify-between mb-8 flex-col lg:flex-row gap-6">
             <div className="flex-1">
-              <div className="text-xs font-black text-[#E63C2F] uppercase tracking-widest mb-3">
-                ✦ AI-Generated Plan
-              </div>
+              <div className="text-xs font-black text-[#E63C2F] uppercase tracking-widest mb-3">✦ AI-Generated Plan</div>
               <h1 className="text-5xl lg:text-6xl font-black uppercase tracking-tight mb-6 leading-tight">
-                <span className="text-[#F5F5F5]">{workoutPlan.goal || 'Fitness'}</span>
+                <span className="dark:text-[#F5F5F5] text-[#1A1A1A]">{workoutPlan.goal || 'Fitness'}</span>
                 <br />
-                <span className="text-[#F5F5F5]">{workoutPlan.duration || 'Program'}</span>
+                <span className="dark:text-[#F5F5F5] text-[#1A1A1A]">{workoutPlan.duration || 'Program'}</span>
               </h1>
               <div className="flex items-center gap-8 flex-wrap text-sm">
                 <div className="flex flex-col gap-1">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Level</span>
                   <span className="text-[#F5F5F5] font-bold text-lg">{workoutPlan.level || 'Intermediate'}</span>
                 </div>
-                <div className="w-px h-8 bg-[#888888]"></div>
+                <div className="w-px h-8 dark:bg-[#888888] bg-[#E5E5E5]"></div>
                 <div className="flex flex-col gap-1">
-                  <span className="text-gray-400 text-xs uppercase tracking-wider">Duration</span>
-                  <span className="text-[#F5F5F5] font-bold text-lg">{workoutPlan.duration}</span>
+                  <span className="dark:text-gray-400 text-gray-500 text-xs uppercase tracking-wider">Duration</span>
+                  <span className="dark:text-[#F5F5F5] text-[#1A1A1A] font-bold text-lg">{workoutPlan.duration}</span>
                 </div>
-                <div className="w-px h-8 bg-[#888888]"></div>
+                <div className="w-px h-8 dark:bg-[#888888] bg-[#E5E5E5]"></div>
                 <div className="flex flex-col gap-1">
                   <span className="text-gray-400 text-xs uppercase tracking-wider">Frequency</span>
                   <span className="text-[#F5F5F5] font-bold text-lg">{workoutPlan.frequency}</span>
@@ -184,12 +272,16 @@ export default function WorkoutsPage() {
               </div>
             </div>
             <div className="flex gap-3 w-full lg:w-auto">
-              <button className="flex-1 lg:flex-none bg-[#F5F5F5] hover:bg-[#E0E0E0] text-[#0D0D0D] font-black text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all shadow-lg hover:shadow-xl">
+              <button
+                onClick={generatePDF}
+                className="flex-1 lg:flex-none bg-[#F5F5F5] hover:bg-[#E0E0E0] text-[#0D0D0D] font-black text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all shadow-lg hover:shadow-xl"
+              >
                 📥 Download PDF
               </button>
-              <button 
+              <button
                 onClick={() => setShowRegenerateModal(true)}
-                className="flex-1 lg:flex-none border-2 border-[#E63C2F] text-[#F5F5F5] hover:bg-[#E63C2F] hover:text-[#0D0D0D] font-black text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all">
+                className="flex-1 lg:flex-none border-2 border-[#E63C2F] text-[#F5F5F5] hover:bg-[#E63C2F] hover:text-[#0D0D0D] font-black text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all"
+              >
                 🔄 Regenerate
               </button>
             </div>
@@ -230,23 +322,20 @@ export default function WorkoutsPage() {
           </div>
         )}
 
-        {/* Weekly Calendar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 mb-12">
           {(currentWeek.days || []).map((dayPlan: any, idx: number) => (
             <button
               key={idx}
               onClick={() => setActiveDay(idx)}
               className={`p-5 rounded-xl border-2 transition-all transform hover:scale-105 ${
-                dayPlan.isRest || (dayPlan.exercises?.length === 0)
+                dayPlan.isRest || dayPlan.exercises?.length === 0
                   ? 'bg-[#1A1A1A]/50 border-[#888888]/20 cursor-default'
                   : activeDay === idx
                   ? 'bg-[#F5F5F5] text-[#0D0D0D] border-[#F5F5F5] shadow-lg shadow-[#F5F5F5]/20'
                   : 'bg-[#1A1A1A]/50 border-[#888888]/20 hover:border-[#E63C2F] hover:bg-[#1A1A1A]'
               }`}
             >
-              <div className="font-black text-xs uppercase tracking-widest mb-2">
-                {dayPlan.day}
-              </div>
+              <div className="font-black text-xs uppercase tracking-widest mb-2">{dayPlan.day}</div>
               <div className={`text-sm font-bold uppercase mb-3 ${(dayPlan.isRest || dayPlan.exercises?.length === 0) ? 'text-gray-500' : activeDay === idx ? 'text-[#0D0D0D]' : 'text-[#F5F5F5]'}`}>
                 {dayPlan.title}
               </div>
@@ -264,9 +353,8 @@ export default function WorkoutsPage() {
           ))}
         </div>
 
-        {/* Workout Detail Card */}
         {currentDay && (
-          <div className="bg-linear-to-br from-[#1A1A1A] to-[#0D0D0D] rounded-2xl border border-[#888888]/20 p-8 lg:p-10 shadow-2xl">
+          <div className="dark:bg-linear-to-br dark:from-[#1A1A1A] dark:to-[#0D0D0D] bg-white rounded-2xl border dark:border-[#888888]/20 border-[#E5E5E5] p-8 lg:p-10 shadow-2xl">
             <div className="flex items-start justify-between mb-10 flex-col lg:flex-row gap-6">
               <div className="flex-1">
                 <h2 className="text-4xl font-black uppercase tracking-tight mb-4">
@@ -293,49 +381,72 @@ export default function WorkoutsPage() {
               </div>
             </div>
 
-            {/* Exercise Cards */}
             {currentDay.exercises && currentDay.exercises.length > 0 ? (
-              <div className="grid gap-4">
-                {currentDay.exercises.map((exercise: any, idx: number) => (
-                  <div key={idx} className="bg-[#0D0D0D]/50 border border-[#888888]/30 rounded-xl p-6 hover:border-[#E63C2F] transition-all group">
-                    <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="bg-[#E63C2F] text-white font-black text-xs w-8 h-8 rounded flex items-center justify-center">
-                            {String(idx + 1).padStart(2, '0')}
-                          </div>
-                          <h3 className="text-lg font-black uppercase tracking-tight text-[#F5F5F5]">{exercise.exercise}</h3>
-                        </div>
-                        {exercise.notes && (
-                          <p className="text-sm text-gray-400 mt-2 italic">{exercise.notes}</p>
-                        )}
-                      </div>
-                      <input 
-                        type="checkbox" 
-                        className="w-6 h-6 cursor-pointer accent-[#E63C2F] rounded" 
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                      <div className="bg-[#1A1A1A] p-3 rounded-lg text-center">
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Sets</p>
-                        <p className="text-[#F5F5F5] font-black text-xl">{exercise.sets}</p>
-                      </div>
-                      <div className="bg-[#1A1A1A] p-3 rounded-lg text-center">
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Reps</p>
-                        <p className="text-[#F5F5F5] font-black text-xl">{exercise.reps}</p>
-                      </div>
-                      <div className="bg-[#1A1A1A] p-3 rounded-lg text-center">
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Rest</p>
-                        <p className="text-[#F5F5F5] font-black text-xl">{exercise.rest}</p>
-                      </div>
-                      <div className="bg-[#E63C2F]/10 border border-[#E63C2F]/40 p-3 rounded-lg text-center col-span-2 sm:col-span-2">
-                        <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Target</p>
-                        <p className="text-[#E63C2F] font-black text-sm">{exercise.target}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto rounded-2xl border border-[#888888]/20 bg-[#0D0D0D]/50">
+                <table className="min-w-245 w-full border-separate border-spacing-0">
+                  <thead>
+                    <tr className="bg-[#1A1A1A] text-left">
+                      <th className="w-16 px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400">#</th>
+                      <th className="px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400">Exercise</th>
+                      <th className="w-28 px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400 text-center">Sets</th>
+                      <th className="w-28 px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400 text-center">Reps</th>
+                      <th className="w-36 px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400 text-center">Rest</th>
+                      <th className="w-40 px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400 text-center">Target</th>
+                      <th className="px-4 py-4 text-xs font-black uppercase tracking-wider text-gray-400">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentDay.exercises.map((exercise: any, idx: number) => {
+                      const isLastRow = idx === currentDay.exercises.length - 1;
+
+                      return (
+                        <tr
+                          key={idx}
+                          className={`transition-colors ${idx % 2 === 0 ? 'bg-[#111111]' : 'bg-[#0D0D0D]'} hover:bg-[#1A1A1A] ${!isLastRow ? 'border-b border-[#888888]/15' : ''}`}
+                        >
+                          <td className="px-4 py-5 align-top">
+                            <div className="inline-flex h-8 w-8 items-center justify-center rounded bg-[#E63C2F] text-xs font-black text-white">
+                              {String(idx + 1).padStart(2, '0')}
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top">
+                            <div className="space-y-1">
+                              <h3 className="text-base font-black uppercase tracking-tight text-[#F5F5F5]">{exercise.exercise}</h3>
+                              {exercise.notes && <p className="text-sm italic text-gray-400">{exercise.notes}</p>}
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top text-center">
+                            <div className="rounded-xl bg-[#1A1A1A] px-3 py-3">
+                              <p className="text-xs uppercase tracking-wider text-gray-500">Sets</p>
+                              <p className="mt-1 text-xl font-black text-[#F5F5F5]">{exercise.sets}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top text-center">
+                            <div className="rounded-xl bg-[#1A1A1A] px-3 py-3">
+                              <p className="text-xs uppercase tracking-wider text-gray-500">Reps</p>
+                              <p className="mt-1 text-xl font-black text-[#F5F5F5]">{exercise.reps}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top text-center">
+                            <div className="rounded-xl bg-[#1A1A1A] px-3 py-3">
+                              <p className="text-xs uppercase tracking-wider text-gray-500">Rest</p>
+                              <p className="mt-1 text-lg font-black text-[#F5F5F5]">{exercise.rest}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top text-center">
+                            <div className="rounded-xl border border-[#E63C2F]/35 bg-[#E63C2F]/10 px-3 py-3">
+                              <p className="text-xs uppercase tracking-wider text-gray-500">Target</p>
+                              <p className="mt-1 text-sm font-black text-[#E63C2F]">{exercise.target}</p>
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 align-top">
+                            <p className="max-w-65 text-sm leading-relaxed text-gray-300">{exercise.notes || 'No extra notes'}</p>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="text-center py-16 bg-[#0D0D0D]/50 border border-[#888888]/20 rounded-xl">
@@ -347,11 +458,10 @@ export default function WorkoutsPage() {
           </div>
         )}
 
-        {/* Plan Notes */}
         {workoutPlan.notes && (
-          <div className="mt-12 bg-linear-to-br from-[#1A1A1A] to-[#0D0D0D] border border-[#888888]/20 rounded-2xl p-8 shadow-lg">
-            <h3 className="text-xl font-black uppercase tracking-tight mb-4 text-[#F5F5F5]">💡 Important Notes</h3>
-            <p className="text-gray-300 text-base leading-relaxed">{workoutPlan.notes}</p>
+          <div className="mt-12 dark:bg-linear-to-br dark:from-[#1A1A1A] dark:to-[#0D0D0D] bg-white border dark:border-[#888888]/20 border-[#E5E5E5] rounded-2xl p-8 shadow-lg">
+            <h3 className="text-xl font-black uppercase tracking-tight mb-4 dark:text-[#F5F5F5] text-[#1A1A1A]">💡 Important Notes</h3>
+            <p className="dark:text-gray-300 text-gray-600 text-base leading-relaxed">{workoutPlan.notes}</p>
           </div>
         )}
 
@@ -363,21 +473,22 @@ export default function WorkoutsPage() {
                 Regenerating your plan will replace your current workout schedule with a fresh AI-generated plan.
               </p>
               <div className="flex gap-4 justify-center flex-col sm:flex-row">
-                <button 
-                  onClick={() => setShowRegenerateModal(false)} 
-                  className="px-8 py-3 bg-[#1A1A1A] border border-[#888888]/40 text-[#F5F5F5] font-bold hover:border-[#F5F5F5] transition-all uppercase tracking-wider rounded-lg">
+                <button
+                  onClick={() => setShowRegenerateModal(false)}
+                  className="px-8 py-3 bg-[#1A1A1A] border border-[#888888]/40 text-[#F5F5F5] font-bold hover:border-[#F5F5F5] transition-all uppercase tracking-wider rounded-lg"
+                >
                   Cancel
                 </button>
-                <button 
-                  onClick={() => window.location.href = '/bmi-calculator?regenerate=true'} 
-                  className="px-8 py-3 bg-[#E63C2F] text-white font-black hover:bg-[#E63C2F]/90 transition-all uppercase tracking-wider rounded-lg shadow-lg hover:shadow-xl">
+                <button
+                  onClick={() => window.location.href = '/bmi-calculator?regenerate=true'}
+                  className="px-8 py-3 bg-[#E63C2F] text-white font-black hover:bg-[#E63C2F]/90 transition-all uppercase tracking-wider rounded-lg shadow-lg hover:shadow-xl"
+                >
                   Yes, Regenerate
                 </button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

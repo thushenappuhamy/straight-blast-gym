@@ -3,12 +3,36 @@
 import Link from "next/link";
 import { useState } from "react";
 
+function Toast({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "error";
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className={`fixed top-6 right-6 z-50 rounded-lg border px-5 py-3 text-sm font-bold text-white shadow-lg ${
+        type === "success" ? "border-green-500 bg-green-500/95" : "border-red-500 bg-red-500/95"
+      }`}
+    >
+      <div className="flex items-start gap-4">
+        <span>{message}</span>
+        <button type="button" onClick={onClose} className="text-white/80 transition-colors hover:text-white">
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [resetUrl, setResetUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -18,12 +42,10 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     
     if (!email) {
-      setError("Please enter your email address");
+      setToast({ message: "Please enter your email address", type: "error" });
       return;
     }
 
-    setError("");
-    setSuccess("");
     setResetUrl("");
     setLoading(true);
 
@@ -39,99 +61,89 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "An error occurred");
+        setToast({ message: data.error || "An error occurred", type: "error" });
         setLoading(false);
         return;
       }
 
-      // Success branch
-      setSuccess(data.message || "Check your email for a reset link!");
+      setToast({ message: data.message || "Check your email for a reset link!", type: "success" });
       if (data.resetUrl) {
         setResetUrl(data.resetUrl);
       }
       setLoading(false);
     } catch (err: any) {
-      setError("An error occurred. Please try again later.");
+      setToast({ message: "An error occurred. Please try again later.", type: "error" });
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="w-full max-w-md">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src="/logo.jpeg" 
+            src="/logo_new.jpeg" 
             alt="SBG Logo" 
             className="w-24 h-24 rounded-full"
           />
         </div>
 
         {/* Heading */}
-        <h1 className="text-3xl lg:text-4xl font-black text-[#1A1816] text-center mb-2 uppercase">
+        <h1 className="text-3xl lg:text-4xl font-black text-center mb-2 uppercase" style={{ color: 'var(--foreground)' }}>
           Forgot Password
         </h1>
-        <p className="text-gray-500 text-center mb-10">
+        <p className="text-center mb-10" style={{ color: 'var(--muted-foreground)' }}>
           Enter your email to receive a password reset link
         </p>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded">
-            {error}
-          </div>
-        )}
-
-        {/* Success Message */}
-        {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
-            {success}
-            {resetUrl && (
-              <div className="mt-3">
-                <a
-                  href={resetUrl}
-                  className="underline font-bold"
-                >
-                  Open password reset link
-                </a>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Form */}
-        {!success && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div>
-              <label className="block text-xs font-bold text-[#1A1816] uppercase tracking-wider mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={handleEmailChange}
-                required
-                className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--foreground)' }}>
+              Email Address
+            </label>
+            <input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={handleEmailChange}
+              required
+              className="w-full px-4 py-4 focus:outline-none transition-colors"
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+            />
+          </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] disabled:opacity-70 transition-colors flex items-center justify-center gap-2"
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
-          </form>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-4 text-black font-black text-sm uppercase tracking-wider disabled:opacity-70 transition-colors flex items-center justify-center gap-2"
+            style={{ background: 'var(--primary)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
+        </form>
+
+        {resetUrl && (
+          <div className="mt-6 rounded border p-4 text-sm" style={{ background: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.25)', color: '#bbf7d0' }}>
+            <div className="font-bold">Reset link generated</div>
+            <a href={resetUrl} className="mt-2 inline-block font-bold" style={{ color: 'var(--primary)' }}>
+              Open password reset link
+            </a>
+          </div>
         )}
 
         {/* Back to Login Link */}
         <div className="mt-8 text-center">
-          <Link href="/login" className="text-sm font-bold text-[#1A1816] hover:underline uppercase tracking-wider">
+          <Link href="/login" className="text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--foreground)' }}>
             ← Back to Login
           </Link>
         </div>
