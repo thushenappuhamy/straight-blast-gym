@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
+import { MealPlanContainer } from '@/src/components/meal';
+import { transformMealPlan } from '@/src/lib/mealTransformer';
 
 export default function MealPlansPage() {
   const [mealPlan, setMealPlan] = useState<any>(null);
   const [mealHistory, setMealHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeDay, setActiveDay] = useState(0);
-  const [showRegenerateModal, setShowRegenerateModal] = useState(false);
-  const [activeVersion, setActiveVersion] = useState(0);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -29,13 +30,12 @@ export default function MealPlansPage() {
         if (response.ok && data.data?.mealPlan) {
           console.log('✅ [MEALS] Plan loaded:', data.data.mealPlan);
           const history = Array.isArray(data.data.mealHistory) && data.data.mealHistory.length > 0
-            ? data.data.mealHistory
-            : [data.data.mealPlan];
+            ? data.data.mealHistory.map(transformMealPlan)
+            : [transformMealPlan(data.data.mealPlan)];
 
+          const plan = transformMealPlan(data.data.mealPlan);
           setMealHistory(history);
-          setMealPlan(history[0]);
-          setActiveVersion(0);
-          setActiveDay(0);
+          setMealPlan(plan);
         } else {
           setError('No meal plan found. Complete the plan questionnaire first.');
         }
@@ -50,12 +50,177 @@ export default function MealPlansPage() {
     fetchPlan();
   }, []);
 
+  const handleDownload = () => {
+    if (!mealPlan) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    let cursorY = 16;
+
+    const setText = (size: number, bold = false) => {
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      doc.setTextColor(0, 0, 0);
+    };
+
+    const ensureSpace = (requiredHeight: number) => {
+      if (cursorY + requiredHeight > pageHeight - margin) {
+        doc.addPage();
+        cursorY = margin;
+      }
+    };
+
+    const writeLine = (text: string, size: number, bold = false, gapAfter = 0) => {
+      setText(size, bold);
+      const lines = doc.splitTextToSize(text, pageWidth - margin * 2);
+      const lineHeight = size * 0.5 + 2;
+      ensureSpace(lines.length * lineHeight + gapAfter);
+      doc.text(lines, margin, cursorY);
+      cursorY += lines.length * lineHeight + gapAfter;
+    };
+
+    const drawCell = (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      text: string,
+      options: { bold?: boolean; align?: 'left' | 'center' | 'right'; fill?: boolean; fillColor?: [number, number, number] } = {}
+    ) => {
+      if (options.fill) {
+        doc.setFillColor(...(options.fillColor ?? [236, 236, 236]));
+        doc.rect(x, y, width, height, 'F');
+      }
+
+      doc.setDrawColor(0, 0, 0);
+      doc.rect(x, y, width, height);
+      setText(8, options.bold ?? false);
+
+      const lines = doc.splitTextToSize(text || '-', width - 5);
+      const lineHeight = 4;
+      let textY = y + 5;
+
+      lines.forEach((line: string) => {
+        if (options.align === 'center') {
+          doc.text(line, x + width / 2, textY, { align: 'center' });
+        } else if (options.align === 'right') {
+          doc.text(line, x + width - 2.5, textY, { align: 'right' });
+        } else {
+          doc.text(line, x + 2.5, textY);
+        }
+        textY += lineHeight;
+      });
+    };
+
+    const drawTableRow = (
+      cells: Array<{ text: string; width: number; align?: 'left' | 'center' | 'right'; bold?: boolean }>,
+      options: { fill?: boolean; fillColor?: [number, number, number] } = {}
+    ) => {
+      const wrapped = cells.map((cell) => {
+        setText(8, cell.bold ?? false);
+        return doc.splitTextToSize(cell.text || '-', cell.width - 5);
+      });
+
+      const rowHeight = Math.max(...wrapped.map((lines) => lines.length * 4 + 5), 10);
+      ensureSpace(rowHeight + 2);
+
+      let x = margin;
+      cells.forEach((cell, index) => {
+        drawCell(x, cursorY, cell.width, rowHeight, wrapped[index].join('\n'), {
+          bold: cell.bold,
+          align: cell.align,
+          fill: options.fill,
+          fillColor: options.fillColor,
+        });
+        x += cell.width;
+      });
+
+      cursorY += rowHeight;
+    };
+
+    writeLine('STRAIGHT BLAST GYM', 18, true, 4);
+    writeLine('PERSONALIZED MEAL PLAN', 13, true, 6);
+    writeLine(`Goal: ${mealPlan.goal}`, 10.5, true, 1);
+    writeLine(`Daily Calories: ${mealPlan.dailyCalories.toLocaleString()}`, 10.5, false, 1);
+    writeLine(`Protein: ${mealPlan.dailyProtein}g`, 10.5, false, 1);
+    writeLine(`Carbs: ${mealPlan.dailyCarbs}g`, 10.5, false, 1);
+    writeLine(`Fats: ${mealPlan.dailyFat}g`, 10.5, false, 6);
+
+    const columnWidths = [22, 54, 18, 18, 18, 22, 33];
+    const totalWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+    const availableWidth = pageWidth - margin * 2;
+    const scale = availableWidth / totalWidth;
+    const widths = columnWidths.map((width) => width * scale);
+
+    (mealPlan.weeklyPlan || []).forEach((day: any, dayIdx: number) => {
+      writeLine(`${day.day || `Day ${dayIdx + 1}`}`, 12, true, 4);
+
+      drawTableRow([
+        { text: 'Meal', width: widths[0], bold: true },
+        { text: 'Items', width: widths[1], bold: true },
+        { text: 'Calories', width: widths[2], align: 'center', bold: true },
+        { text: 'Protein', width: widths[3], align: 'center', bold: true },
+        { text: 'Carbs', width: widths[4], align: 'center', bold: true },
+        { text: 'Fats', width: widths[5], align: 'center', bold: true },
+        { text: 'Notes', width: widths[6], bold: true },
+      ], { fill: true, fillColor: [236, 236, 236] });
+
+      (day.meals || []).forEach((meal: any) => {
+        const items = Array.isArray(meal.items)
+          ? meal.items
+              .map((item: any) => item?.name || item?.item || item?.quantity || '')
+              .filter(Boolean)
+              .join(', ')
+          : '';
+
+        drawTableRow([
+          { text: meal.type || 'Meal', width: widths[0], bold: true },
+          { text: items || meal.recipe || '-', width: widths[1] },
+          { text: String(meal.calories ?? 0), width: widths[2], align: 'center' },
+          { text: `${meal.protein ?? 0}g`, width: widths[3], align: 'center' },
+          { text: `${meal.carbs ?? 0}g`, width: widths[4], align: 'center' },
+          { text: `${meal.fat ?? 0}g`, width: widths[5], align: 'center' },
+          { text: meal.notes || meal.time || '', width: widths[6] },
+        ]);
+      });
+
+      cursorY += 2;
+    });
+
+    if (mealPlan.nutritionTips) {
+      cursorY += 4;
+      writeLine('Nutrition Tips', 12, true, 3);
+      writeLine(mealPlan.nutritionTips, 9.5, false, 2);
+    }
+
+    if (mealPlan.shoppingList) {
+      cursorY += 2;
+      writeLine('Shopping List', 12, true, 3);
+      writeLine(mealPlan.shoppingList, 9.5, false, 2);
+    }
+
+    if (mealPlan.notes) {
+      cursorY += 2;
+      writeLine('Important Notes', 12, true, 3);
+      writeLine(mealPlan.notes, 9.5, false, 2);
+    }
+
+    writeLine(`Generated on: ${new Date().toLocaleDateString()}`, 9, false, 0);
+    doc.save(`${mealPlan.goal}_${mealPlan.title.replace(/\s+/g, '_')}_Meal_Plan.pdf`);
+  };
+
+  const handleRegenerate = () => {
+    window.location.href = '/bmi-calculator?regenerate=true';
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0D0D0D] p-8 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-2xl font-bold mb-4">Loading your personalized meal plan...</p>
-          <div className="animate-spin">⚙️</div>
+          <p className="text-xl font-bold text-white mb-4">Loading your personalized meal plan...</p>
+          <div className="animate-spin text-3xl">⚙️</div>
         </div>
       </div>
     );
@@ -63,232 +228,42 @@ export default function MealPlansPage() {
 
   if (error || !mealPlan) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-100 border border-red-400 p-8 rounded-lg text-center">
-            <p className="text-lg font-bold text-red-800">⚠️ {error || 'No plan available'}</p>
-            <p className="text-red-700 mt-2">Go back to <a href="/bmi-calculator" className="underline font-bold">BMI Calculator</a> to create your personalized plan.</p>
+      <div className="min-h-screen bg-[#0D0D0D] p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="rounded-xl border border-[#E63C2F]/30 bg-[#E63C2F]/5 p-8 text-center">
+            <p className="text-lg font-bold text-white">⚠️ {error || 'No plan available'}</p>
+            <p className="text-white/60 mt-3">
+              Go back to{' '}
+              <a href="/bmi-calculator" className="text-[#E63C2F] hover:underline font-bold">
+                BMI Calculator
+              </a>{' '}
+              to create your personalized plan.
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  const weekPlan = mealPlan.weeklyPlan || [];
-  const currentDay = weekPlan[activeDay] || weekPlan[0];
-  const currentMeals = currentDay?.meals || [];
-
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
-            <div className="inline-block bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-wider mb-3">
-              AI Nutrition
-            </div>
-            <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tight">
-              Your Meal Plan
-            </h1>
-          </div>
-          <div className="flex gap-3">
-            <button className="bg-black text-white hover:bg-gray-800 font-bold text-sm uppercase tracking-wider px-6 py-3 transition-colors">
-              Download PDF
-            </button>
-            <button 
-              onClick={() => setShowRegenerateModal(true)}
-              className="border-2 border-black text-black hover:bg-black hover:text-white font-bold text-sm uppercase tracking-wider px-6 py-3 transition-colors"
-            >
-              Regenerate Plan
-            </button>
-          </div>
-        </div>
-
-        {mealHistory.length > 1 && (
-          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
-            <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Saved Meal Versions</h3>
-                <p className="text-xs text-gray-500">Open any previous generated meal plan.</p>
-              </div>
-              <div className="text-xs text-gray-500 uppercase tracking-wider">
-                Showing version {activeVersion + 1} of {mealHistory.length}
-              </div>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {mealHistory.map((plan, index) => (
-                <button
-                  key={plan._id || index}
-                  onClick={() => {
-                    setMealPlan(plan);
-                    setActiveVersion(index);
-                    setActiveDay(0);
-                  }}
-                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider whitespace-nowrap border transition-all ${
-                    activeVersion === index
-                      ? 'bg-black text-[#F4D03F] border-black'
-                      : 'bg-transparent text-gray-700 border-gray-300 hover:border-black hover:text-black'
-                  }`}
-                >
-                  {plan.createdAt ? new Date(plan.createdAt).toLocaleDateString() : `Version ${index + 1}`}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Macro Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start gap-3">
-              <div className="w-1 h-12 bg-yellow-400 rounded"></div>
-              <div>
-                <div className="text-3xl font-black text-gray-900">{mealPlan.dailyCalories || '0'}</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Daily Calories</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start gap-3">
-              <div className="w-1 h-12 bg-red-500 rounded"></div>
-              <div>
-                <div className="text-3xl font-black text-gray-900">{mealPlan.protein || '0'}G</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Protein</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start gap-3">
-              <div className="w-1 h-12 bg-blue-500 rounded"></div>
-              <div>
-                <div className="text-3xl font-black text-gray-900">{mealPlan.carbs || '0'}G</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Carbs</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start gap-3">
-              <div className="w-1 h-12 bg-green-500 rounded"></div>
-              <div>
-                <div className="text-3xl font-black text-gray-900">{mealPlan.fats || '0'}G</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Fats</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Week Navigation */}
-        <div className="grid grid-cols-7 gap-2 mb-8">
-          {weekPlan.map((day: any, idx: number) => (
-            <button
-              key={idx}
-              onClick={() => setActiveDay(idx)}
-              className={`py-4 font-bold text-sm uppercase tracking-wider transition-all ${
-                activeDay === idx
-                  ? 'bg-black text-yellow-400'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md'
-              }`}
-            >
-              {day.day?.substring(0, 3) || ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'][idx]}
-            </button>
-          ))}
-        </div>
-
-        {/* Meal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {currentMeals.length > 0 ? (
-            currentMeals.map((meal: any, idx: number) => (
-              <div key={idx} className="bg-white rounded-lg shadow-xl overflow-hidden">
-                <div className="bg-[#2B2621] text-white p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="font-black text-lg uppercase tracking-wide">{meal.mealType}</span>
-                    </div>
-                    <div className="font-black text-xl">{meal.calories || '0'} kcal</div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4 mb-6">
-                    {(meal.items || []).map((item: any, itemIdx: number) => (
-                      <div key={itemIdx}>
-                        <div className="flex items-start gap-2">
-                          <span className="text-yellow-400 text-lg mt-0.5">●</span>
-                          <div>
-                            <div className="font-bold text-gray-900">{item.name}</div>
-                            <div className="text-sm text-gray-500">{item.quantity || item.portion}</div>
-                            {item.notes && <div className="text-xs text-gray-400 mt-1">{item.notes}</div>}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-black text-gray-900">{meal.protein || '0'}G</div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Protein</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-black text-gray-900">{meal.carbs || '0'}G</div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Carbs</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-black text-gray-900">{meal.fats || '0'}G</div>
-                        <div className="text-xs text-gray-500 uppercase tracking-wider font-medium">Fats</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12">
-              <p className="text-gray-500 text-lg">No meals configured for this day</p>
-            </div>
-          )}
-        </div>
-        {/* Guidelines Section */}
-        {mealPlan.guidelines && mealPlan.guidelines.length > 0 && (
-          <div className="mt-12 bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-black uppercase tracking-tight mb-6 text-gray-900">
-              Nutrition Guidelines
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mealPlan.guidelines.map((guideline: string, idx: number) => (
-                <div key={idx} className="flex gap-3">
-                  <span className="text-[#F4D03F] text-lg font-bold">✓</span>
-                  <p className="text-gray-700">{guideline}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {showRegenerateModal && (
-          <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50 p-4">
-            <div className="bg-white p-8 md:p-12 border-4 border-black max-w-xl text-center relative max-h-[90vh] overflow-y-auto shadow-[8px_8px_0_rgba(0,0,0,1)]">
-              <h2 className="text-3xl font-black mb-6 uppercase tracking-wider text-black">Are you sure?</h2>
-              <p className="text-gray-700 mb-8 font-medium">
-                Regenerating your plan will replace your current nutrition schedule.
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button 
-                  onClick={() => setShowRegenerateModal(false)} 
-                  className="px-8 py-3 bg-gray-200 text-black font-bold hover:bg-gray-300 transition-colors uppercase tracking-wider border-2 border-black"
-                >
-                  No, Keep
-                </button>
-                <button 
-                  onClick={() => window.location.href = '/bmi-calculator?regenerate=true'} 
-                  className="px-8 py-3 bg-[#F4D03F] text-black font-black hover:bg-yellow-400 transition-colors uppercase tracking-wider border-2 border-black shadow-[4px_4px_0_black]"
-                >
-                  Yes, Regenerate
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+    <div className="min-h-screen bg-[#0D0D0D] p-6 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        <MealPlanContainer
+          title={mealPlan.title}
+          goal={mealPlan.goal}
+          dailyCalories={mealPlan.dailyCalories}
+          dailyProtein={mealPlan.dailyProtein}
+          dailyCarbs={mealPlan.dailyCarbs}
+          dailyFat={mealPlan.dailyFat}
+          weeklyPlan={mealPlan.weeklyPlan}
+          mealHistory={mealHistory}
+          onDownload={handleDownload}
+          onRegenerate={handleRegenerate}
+          isLoading={regenerating}
+          nutritionTips={mealPlan.nutritionTips}
+          shoppingList={mealPlan.shoppingList}
+          notes={mealPlan.notes}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Toast from '@/src/components/ui/Toast';
 
 interface MembershipPlan {
   _id: string;
@@ -66,7 +67,7 @@ export default function MembershipPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F4D03F] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading membership plans...</p>
@@ -77,7 +78,7 @@ export default function MembershipPage() {
 
   if (error || plans.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 font-bold mb-4">{error || 'No membership plans available'}</p>
           <p className="text-gray-600">Please try again later</p>
@@ -87,9 +88,9 @@ export default function MembershipPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      {/* Yellow top border */}
-      <div className="w-full h-1 bg-[#F4D03F] absolute top-0 left-0"></div>
+    <div className="min-h-screen bg-linear-to-br from-gray-900 to-[#070707] py-12 px-4 sm:px-6 lg:px-8 text-white">
+      {/* Primary top border */}
+      <div className="w-full h-1 bg-[#E63C2F] absolute top-0 left-0"></div>
       
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -110,91 +111,134 @@ export default function MembershipPage() {
           )}
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {plans.map((plan) => (
-            <div
-              key={plan._id}
-              className={`shadow-xl overflow-hidden relative ${
-                plan.isFeatured
-                  ? 'bg-[#2B2621] text-white border-4 border-[#F4D03F]'
-                  : 'bg-white text-gray-900'
-              }`}
-            >
-              {/* Most Popular Badge */}
-              {plan.isFeatured && (
-                <div className="absolute top-0 right-0 bg-[#F4D03F] text-black font-bold text-xs uppercase tracking-wider px-4 py-2">
-                  {plan.badge || 'Most Popular'}
-                </div>
-              )}
+        {/* Pricing Carousel */}
+        <PricingCarousel plans={plans} />
+      </div>
+    </div>
+  );
+}
 
-              <div className="p-8">
-                {/* Plan Name */}
-                <h2
-                  className={`text-4xl font-black uppercase tracking-tight mb-6 ${
-                    plan.isFeatured ? 'text-[#F4D03F]' : 'text-gray-900'
+function PricingCarousel({ plans }: { plans: MembershipPlan[] }) {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(3);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const handleSubscribe = async (planName: string, id: string) => {
+    setProcessingId(id);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/memberships/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan: planName })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setToast({ message: `Successfully subscribed to the ${planName.toUpperCase()} plan!`, type: 'success' });
+      setTimeout(() => {
+        window.location.href = '/dashboard/profile';
+      }, 2000);
+    } catch (err: any) {
+      setToast({ message: 'Error: ' + err.message, type: 'error' });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  useEffect(() => {
+    const calc = () => {
+      const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+      if (w < 640) setVisible(1);
+      else if (w < 1024) setVisible(2);
+      else setVisible(3);
+    };
+    calc();
+    window.addEventListener('resize', calc);
+    return () => window.removeEventListener('resize', calc);
+  }, []);
+
+  // Move PREMIUM to the end (user requested premium shown last)
+  const premium = plans.find((p) => (p.name || '').toUpperCase() === 'PREMIUM');
+  const others = plans.filter((p) => (p.name || '').toUpperCase() !== 'PREMIUM');
+  const ordered = premium ? [...others, premium] : [...plans];
+
+  // Clamp index so we always have 'visible' cards to show where possible
+  useEffect(() => {
+    if (index > Math.max(0, ordered.length - visible)) {
+      setIndex(Math.max(0, ordered.length - visible));
+    }
+  }, [visible, ordered.length, index]);
+
+  const prev = () => setIndex((i) => Math.max(0, i - 1));
+  const next = () => setIndex((i) => Math.min(ordered.length - visible, i + 1));
+
+  const translatePercent = (index * 100) / visible;
+  const activeCard = index + Math.floor(visible / 2);
+
+  return (
+    <div className="relative">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="text-sm text-white/60 mb-6">Showing {ordered.length} plans</div>
+
+      {/* Right-side arrows */}
+      <div className="absolute right-8 top-28 flex flex-col gap-2 z-20">
+        <button onClick={prev} disabled={index === 0} className="w-10 h-10 rounded bg-white/6 text-white/90 disabled:opacity-40">◀</button>
+        <button onClick={next} disabled={index >= ordered.length - visible} className="w-10 h-10 rounded bg-white/6 text-white/90 disabled:opacity-40">▶</button>
+      </div>
+
+      <div className="overflow-hidden">
+        <div
+          className="flex transition-transform duration-500"
+          style={{ transform: `translateX(-${translatePercent}%)` }}
+        >
+          {ordered.map((plan, i) => {
+            const isActive = i === activeCard;
+            return (
+              <div key={plan._id} className={`w-full md:w-1/2 lg:w-1/3 px-4 shrink-0`}>
+                <div
+                  className={`relative rounded-2xl overflow-hidden shadow-xl p-8 transition-transform duration-300 ${
+                    isActive ? 'scale-105 border-4 border-[#E63C2F] bg-[#0F0F0F]' : 'bg-white/3'
                   }`}
                 >
-                  {plan.name}
-                </h2>
-
-                {/* Tagline */}
-                {plan.tagline && (
-                  <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${
-                    plan.isFeatured ? 'text-[#F4D03F]' : 'text-[#F4D03F]'
-                  }`}>
-                    {plan.tagline}
-                  </p>
-                )}
-
-                {/* Price */}
-                <div className="mb-8">
-                  <div className={`text-5xl font-black ${plan.isFeatured ? 'text-white' : 'text-gray-900'}`}>
-                    LKR {plan.price.toLocaleString()}
+                  {plan.isFeatured && (
+                    <div className="absolute top-4 right-4 bg-[#E63C2F] text-black font-bold text-xs uppercase tracking-wider px-4 py-2">
+                      {plan.badge || 'Most Popular'}
+                    </div>
+                  )}
+                  <h3 className={`text-3xl font-black uppercase mb-3 ${isActive ? 'text-[#E63C2F]' : 'text-white'}`}>{plan.name}</h3>
+                  {plan.tagline && <p className="text-sm text-white/70 mb-4">{plan.tagline}</p>}
+                  <div className="mb-6">
+                    <div className="text-4xl font-black text-white">LKR {plan.price.toLocaleString()}</div>
+                    <div className="text-sm text-white/60">/ {plan.duration || 'month'}</div>
                   </div>
-                  <div className={`text-sm ${plan.isFeatured ? 'text-gray-400' : 'text-gray-500'}`}>
-                    / {plan.duration || 'month'}
-                  </div>
+                  {plan.description && <p className="text-white/70 mb-6">{plan.description}</p>}
+                  <ul className="mb-6 space-y-3">
+                    {plan.features.map((f, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <span className="text-[#E63C2F]">✓</span>
+                        <span className="text-white/80">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button 
+                    onClick={() => handleSubscribe(plan.name, plan._id)}
+                    disabled={processingId === plan._id}
+                    className={`w-full py-3 font-black rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? 'bg-[#E63C2F] hover:bg-[#ff4e40] text-black' : 'border-2 border-[#E63C2F] hover:bg-white/5 text-white'}`}
+                  >
+                    {processingId === plan._id ? 'Processing...' : 'Get Started'}
+                  </button>
                 </div>
-
-                {/* Description */}
-                {plan.description && (
-                  <p className={`text-sm mb-6 ${plan.isFeatured ? 'text-gray-300' : 'text-gray-600'}`}>
-                    {plan.description}
-                  </p>
-                )}
-
-                {/* Features List */}
-                <ul className="space-y-4 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="text-[#F4D03F] text-xl flex-shrink-0 mt-0.5">✓</span>
-                      <span
-                        className={`text-sm ${
-                          plan.isFeatured ? 'text-white' : 'text-gray-900'
-                        }`}
-                      >
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA Button */}
-                <button
-                  className={`w-full font-black text-sm uppercase tracking-wider py-4 px-6 transition-all ${
-                    plan.isFeatured
-                      ? 'bg-[#F4D03F] hover:bg-[#E5C730] text-black'
-                      : plan.name.toUpperCase() === 'ELITE'
-                      ? 'bg-black hover:bg-gray-900 text-[#F4D03F]'
-                      : 'border-2 border-[#F4D03F] text-black hover:bg-[#F4D03F]'
-                  }`}
-                >
-                  {plan.badge ? `Get ${plan.badge} →` : 'Get Started'}
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
