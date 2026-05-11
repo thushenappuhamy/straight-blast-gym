@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Toast from '@/src/components/ui/Toast';
 
 interface Membership {
   _id: string;
@@ -24,6 +25,7 @@ export default function AdminMembershipsPage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMembership, setEditingMembership] = useState<Membership | null>(null);
@@ -139,13 +141,14 @@ export default function AdminMembershipsPage() {
       }
 
       console.log('✅ [ADMIN MEMBERSHIPS] Created:', data.data);
+      setToast({ message: 'Membership created successfully!', type: 'success' });
       setShowAddModal(false);
       resetForm();
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
       console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
-      alert(`Error: ${err.message}`);
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
 
@@ -187,13 +190,14 @@ export default function AdminMembershipsPage() {
       }
 
       console.log('✅ [ADMIN MEMBERSHIPS] Updated:', data.data);
+      setToast({ message: 'Membership updated successfully!', type: 'success' });
       setShowEditModal(false);
       resetForm();
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
       console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
-      alert(`Error: ${err.message}`);
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
 
@@ -216,27 +220,32 @@ export default function AdminMembershipsPage() {
       }
 
       console.log('✅ [ADMIN MEMBERSHIPS] Deleted');
+      setToast({ message: 'Membership deleted successfully!', type: 'success' });
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
       console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
-      alert(`Error: ${err.message}`);
+      setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
-      <div className="flex items-center justify-between bg-white border-b-2 border-[#F4D03F] p-6 mb-8">
+      <div className="flex items-center justify-between p-6 mb-8" style={{ borderBottom: '2px solid var(--primary)', background: 'linear-gradient(90deg, rgba(0,0,0,0.2), transparent)' }}>
         <div className="max-w-7xl mx-auto flex-1">
-          <div className="text-[#F4D03F] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--primary)' }}>
             Manage Memberships
           </div>
-          <h1 className="text-4xl font-black text-gray-900 uppercase">Membership Plans</h1>
+          <h1 className="text-4xl font-black uppercase" style={{ color: 'var(--foreground)' }}>Membership Plans</h1>
         </div>
         <button
           onClick={handleAddClick}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-3 transition-all shadow-lg"
+          className="text-black font-black text-sm uppercase px-6 py-3 transition-all shadow-lg"
+          style={{ background: 'var(--primary)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
         >
           + NEW PLAN
         </button>
@@ -271,92 +280,94 @@ export default function AdminMembershipsPage() {
         )}
 
         {/* Memberships Grid */}
-        {!loading && memberships.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {memberships.map((membership) => (
-              <div key={membership._id} className="border-2 border-gray-200 overflow-hidden hover:border-[#F4D03F] transition-all">
-                {/* Header */}
-                <div className={`p-4 ${membership.isFeatured ? 'bg-[#F4D03F]/10 border-b-2 border-[#F4D03F]' : 'bg-gray-50 border-b border-gray-200'}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="text-xs text-[#F4D03F] font-black uppercase mb-1">{membership.tagline}</div>
-                      <h3 className="text-xl font-black text-gray-900 uppercase">{membership.name}</h3>
+          {!loading && memberships.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {memberships.map((membership) => (
+                <div key={membership._id} className="overflow-hidden transition-all" style={{ border: '2px solid rgba(255,255,255,0.04)', background: 'var(--card)' }}>
+                  {/* Header */}
+                  <div className="p-4" style={membership.isFeatured ? { background: 'rgba(230,60,47,0.06)', borderBottom: '2px solid var(--primary)' } : { borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="text-xs font-black uppercase mb-1" style={{ color: 'var(--primary)' }}>{membership.tagline}</div>
+                        <h3 className="text-xl font-black uppercase" style={{ color: 'var(--foreground)' }}>{membership.name}</h3>
+                      </div>
+                      {membership.isFeatured && <span className="text-sm font-black px-2 py-1" style={{ background: 'var(--primary)', color: 'black' }}>⭐ Featured</span>}
                     </div>
-                    {membership.isFeatured && <span className="text-sm bg-[#F4D03F] text-black font-black px-2 py-1">⭐ Featured</span>}
-                  </div>
-                  {!membership.isActive && <span className="text-xs bg-gray-600 text-white font-bold px-2 py-1">⊘ Inactive</span>}
-                </div>
-
-                {/* Content */}
-                <div className="p-4 border-b border-gray-200">
-                  <p className="text-sm text-gray-700 mb-3">{membership.description}</p>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="bg-[#2B2621] text-white p-3 rounded">
-                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Price</p>
-                      <p className="text-lg font-black">LKR {membership.price.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-[#2B2621] text-white p-3 rounded">
-                      <p className="text-xs text-gray-400 uppercase font-bold mb-1">Duration</p>
-                      <p className="text-lg font-black capitalize">{membership.duration}</p>
-                    </div>
+                    {!membership.isActive && <span className="text-xs font-bold px-2 py-1" style={{ background: '#4b4b4b', color: 'white' }}>⊘ Inactive</span>}
                   </div>
 
-                  {/* Revenue Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-blue-50 p-3 rounded border border-blue-200">
-                      <p className="text-xs text-gray-600 uppercase font-bold">Members</p>
-                      <p className="text-xl font-black text-blue-600">{membership.activeMembersCount}</p>
+                  {/* Content */}
+                  <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>{membership.description}</p>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
+                        <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Price</p>
+                        <p className="text-lg font-black">LKR {membership.price.toLocaleString()}</p>
+                      </div>
+                      <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
+                        <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Duration</p>
+                        <p className="text-lg font-black text-capitalize">{membership.duration}</p>
+                      </div>
                     </div>
-                    <div className="bg-green-50 p-3 rounded border border-green-200">
-                      <p className="text-xs text-gray-600 uppercase font-bold">Revenue</p>
-                      <p className="text-lg font-black text-green-600">LKR {Math.round(membership.monthlyRevenue).toLocaleString()}</p>
+
+                    {/* Revenue Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                        <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Members</p>
+                        <p className="text-xl font-black" style={{ color: 'var(--primary)' }}>{membership.activeMembersCount}</p>
+                      </div>
+                      <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                        <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Revenue</p>
+                        <p className="text-lg font-black" style={{ color: 'var(--primary)' }}>LKR {Math.round(membership.monthlyRevenue).toLocaleString()}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Features */}
-                <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-                  <p className="text-xs font-bold text-gray-600 uppercase mb-2">Features ({membership.features.length})</p>
-                  <ul className="space-y-1 text-sm text-gray-700">
-                    {membership.features.slice(0, 3).map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#F4D03F] font-bold">✓</span>
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                    {membership.features.length > 3 && <li className="text-xs font-bold text-gray-500">+ {membership.features.length - 3} more</li>}
-                  </ul>
-                </div>
+                  {/* Features */}
+                  <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <p className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--muted-foreground)' }}>Features ({membership.features.length})</p>
+                    <ul className="space-y-1 text-sm">
+                      {membership.features.slice(0, 3).map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="font-bold" style={{ color: 'var(--primary)' }}>✓</span>
+                          <span style={{ color: 'var(--foreground)' }}>{feature}</span>
+                        </li>
+                      ))}
+                      {membership.features.length > 3 && <li className="text-xs font-bold" style={{ color: 'var(--muted-foreground)' }}>+ {membership.features.length - 3} more</li>}
+                    </ul>
+                  </div>
 
-                {/* Actions */}
-                <div className="p-4 flex gap-2">
-                  <button
-                    onClick={() => handleEditClick(membership)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm uppercase py-2 transition-all"
-                  >
-                    ✏️ Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMembership(membership._id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-sm uppercase py-2 transition-all"
-                  >
-                    🗑️ Delete
-                  </button>
+                  {/* Actions */}
+                  <div className="p-4 flex gap-2">
+                    <button
+                      onClick={() => handleEditClick(membership)}
+                      className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
+                      style={{ background: '#2563EB' }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMembership(membership._id)}
+                      className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
+                      style={{ background: '#DC2626' }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
       </div>
 
       {/* Add/Edit Modal */}
       {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-[#F4D03F]/5 via-white to-blue-50 border-2 border-[#F4D03F] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ background: 'var(--card)', border: '2px solid var(--primary)' }}>
             {/* Modal Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-[#F4D03F]/10 to-blue-100 border-b-2 border-[#F4D03F] p-6">
+            <div className="sticky top-0 p-6" style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.04), transparent)', borderBottom: '2px solid rgba(255,255,255,0.04)' }}>
               <h2 className="text-2xl font-black text-slate-700 uppercase">{showAddModal ? 'Add New Membership Plan' : 'Edit Membership Plan'}</h2>
               <p className="text-sm text-gray-600 mt-1">{showAddModal ? 'Create a new membership plan' : 'Update membership plan details'}</p>
             </div>
@@ -372,7 +383,10 @@ export default function AdminMembershipsPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Premium Plus"
                   required
-                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  className="w-full px-4 py-2 border-2 border-gray-300 outline-none font-bold"
+                  style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
                 />
               </div>
 
@@ -385,7 +399,10 @@ export default function AdminMembershipsPage() {
                   onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
                   placeholder="e.g. Best Value"
                   required
-                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  className="w-full px-4 py-2 border-2 border-gray-300 outline-none font-bold"
+                  style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
                 />
               </div>
 
@@ -398,7 +415,10 @@ export default function AdminMembershipsPage() {
                   placeholder="Describe this membership plan"
                   required
                   rows={3}
-                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                  className="w-full px-4 py-2 border-2 border-gray-300 outline-none font-bold"
+                  style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
                 />
               </div>
 
@@ -412,7 +432,10 @@ export default function AdminMembershipsPage() {
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     placeholder="0"
                     required
-                    className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold"
+                    className="w-full px-4 py-2 border-2 border-gray-300 outline-none font-bold"
+                    style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
                   />
                 </div>
                 <div>
@@ -438,7 +461,10 @@ export default function AdminMembershipsPage() {
                   placeholder="Unlimited gym access&#10;Personal trainer&#10;Nutrition plan"
                   required
                   rows={4}
-                  className="w-full px-4 py-2 border-2 border-gray-300 focus:border-[#F4D03F] outline-none font-bold text-sm"
+                  className="w-full px-4 py-2 border-2 border-gray-300 outline-none font-bold text-sm"
+                  style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
                 />
               </div>
 
@@ -479,7 +505,10 @@ export default function AdminMembershipsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-3 transition-all"
+                  className="flex-1 text-black font-black uppercase py-3 transition-all"
+                  style={{ background: 'var(--primary)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
                 >
                   {showAddModal ? '✓ Create Plan' : '✓ Update Plan'}
                 </button>

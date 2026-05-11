@@ -164,10 +164,10 @@ export default function StaffManagementPage() {
   return (
     <div className="min-h-screen bg-[#2B2621] text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#2B2621] to-[#3D3430] border-b-2 border-[#F4D03F] px-8 py-6">
+      <div className="bg-gradient-to-r from-[#2B2621] to-[#3D3430] border-b-2 px-8 py-6" style={{ borderColor: 'var(--primary)' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[#F4D03F] text-xs font-black uppercase tracking-widest mb-2">Management</p>
+            <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Management</p>
             <h1 className="text-4xl font-black text-white uppercase tracking-tight">Staff Management</h1>
           </div>
           <div className="text-5xl">👥</div>
@@ -181,7 +181,7 @@ export default function StaffManagementPage() {
             onClick={() => setActiveTab('roles')}
             className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${
               activeTab === 'roles'
-                ? 'text-[#F4D03F] border-[#F4D03F]'
+                ? 'text-[var(--primary)] border-[var(--primary)]'
                 : 'text-gray-400 border-transparent hover:text-gray-300'
             }`}
           >
@@ -194,7 +194,7 @@ export default function StaffManagementPage() {
             onClick={() => setActiveTab('login-history')}
             className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${
               activeTab === 'login-history'
-                ? 'text-[#F4D03F] border-[#F4D03F]'
+                ? 'text-[var(--primary)] border-[var(--primary)]'
                 : 'text-gray-400 border-transparent hover:text-gray-300'
             }`}
           >
@@ -218,7 +218,7 @@ export default function StaffManagementPage() {
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <div className="animate-spin mb-4">
-                <RefreshCw size={40} className="text-[#F4D03F]" />
+                <RefreshCw size={40} className="text-[var(--primary)]" />
               </div>
               <p className="text-gray-400">Loading...</p>
             </div>
@@ -229,14 +229,14 @@ export default function StaffManagementPage() {
             {/* Role Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {roles.map((role) => (
-                <div key={role.id} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-gray-700 p-8 hover:border-[#F4D03F] transition-all duration-300">
+                <div key={role.id} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-gray-700 p-8 hover:border-[var(--primary)] transition-all duration-300">
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <div className="text-4xl mb-3">{role.icon}</div>
                       <h3 className="text-2xl font-black text-white uppercase">{role.name}</h3>
                     </div>
                     <div className="bg-black/50 rounded-xl px-4 py-2 text-center">
-                      <p className="text-[#F4D03F] text-2xl font-black">{role.count}</p>
+                      <p className="text-2xl font-black" style={{ color: 'var(--primary)' }}>{role.count}</p>
                       <p className="text-xs text-gray-400 uppercase tracking-wider">Active</p>
                     </div>
                   </div>
@@ -245,11 +245,11 @@ export default function StaffManagementPage() {
 
                   {/* Permissions */}
                   <div>
-                    <p className="text-xs font-black text-[#F4D03F] uppercase tracking-widest mb-4">Permissions</p>
+                    <p className="text-xs font-black text-[var(--primary)] uppercase tracking-widest mb-4">Permissions</p>
                     <div className="space-y-2">
                       {role.permissions.slice(0, 5).map((perm, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-sm text-gray-300">
-                          <span className="text-[#F4D03F]">✓</span>
+                          <span className="text-[var(--primary)]">✓</span>
                           <span className="capitalize">{perm.replace(/_/g, ' ')}</span>
                         </div>
                       ))}
@@ -300,7 +300,7 @@ export default function StaffManagementPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-white text-sm truncate">{member.firstName} {member.lastName}</p>
                         <p className="text-xs text-gray-400 truncate">{member.email}</p>
-                        <p className="text-xs text-[#F4D03F] mt-1">{member.membershipStatus || 'N/A'}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--primary)' }}>{member.membershipStatus || 'N/A'}</p>
                       </div>
                     </div>
                   ))}
@@ -321,7 +321,7 @@ export default function StaffManagementPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-white text-sm truncate">{trainer.name}</p>
                         <p className="text-xs text-gray-400 truncate">{trainer.email}</p>
-                        <p className="text-xs text-[#F4D03F] mt-1">{trainer.specialization}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--primary)' }}>{trainer.specialization}</p>
                       </div>
                     </div>
                   ))}
@@ -342,7 +342,7 @@ export default function StaffManagementPage() {
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-gray-700 p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-[#F4D03F] uppercase mb-2 tracking-wider">
+                  <label className="block text-xs font-black uppercase mb-2 tracking-wider" style={{ color: 'var(--primary)' }}>
                     Search Email
                   </label>
                   <div className="relative">
@@ -352,19 +352,21 @@ export default function StaffManagementPage() {
                       value={searchEmail}
                       onChange={(e) => setSearchEmail(e.target.value)}
                       placeholder="Enter email..."
-                      className="w-full bg-black/50 border-2 border-gray-600 focus:border-[#F4D03F] text-white px-10 py-2 rounded-lg outline-none transition-all"
+                      className="w-full bg-black/50 border-2 border-gray-600 text-white px-10 py-2 rounded-lg outline-none transition-all"
+                      style={{ borderColor: 'var(--primary)' }}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-[#F4D03F] uppercase mb-2 tracking-wider">
+                  <label className="block text-xs font-black uppercase mb-2 tracking-wider" style={{ color: 'var(--primary)' }}>
                     Role
                   </label>
                   <select
                     value={searchRole}
                     onChange={(e) => setSearchRole(e.target.value)}
-                    className="w-full bg-black/50 border-2 border-gray-600 focus:border-[#F4D03F] text-white px-4 py-2 rounded-lg outline-none transition-all"
+                    className="w-full bg-black/50 border-2 border-gray-600 text-white px-4 py-2 rounded-lg outline-none transition-all"
+                    style={{ borderColor: 'var(--primary)' }}
                   >
                     <option value="">All Roles</option>
                     <option value="admin">Admin</option>
@@ -375,7 +377,10 @@ export default function StaffManagementPage() {
                 <div className="flex items-end">
                   <button
                     onClick={handleSearchLoginHistory}
-                    className="w-full bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+                    className="w-full text-black font-black uppercase py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+                    style={{ backgroundColor: 'var(--primary)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary-light)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--primary)')}
                   >
                     <Search size={18} />
                     Search
@@ -388,16 +393,16 @@ export default function StaffManagementPage() {
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border-2 border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-[#F4D03F]/20 to-gray-800 border-b-2 border-gray-700">
+                  <thead className="bg-gradient-to-r to-gray-800 border-b-2 border-gray-700" style={{ background: 'linear-gradient(to right, rgba(230,60,47,0.2), #2b2621)' }}>
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">User</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">Login Time</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">Device</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">Browser</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">OS</th>
-                      <th className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">IP Address</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>User</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>Email</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>Login Time</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>Status</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>Device</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>Browser</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>OS</th>
+                      <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider" style={{ color: 'var(--primary)' }}>IP Address</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-700">
@@ -416,7 +421,7 @@ export default function StaffManagementPage() {
                               className={`w-8 h-8 rounded-full flex items-center justify-center ${
                                 record.status === 'failed'
                                   ? 'bg-red-600'
-                                  : 'bg-[#F4D03F]'
+                                  : 'bg-[var(--primary)]'
                               }`}
                             >
                               <span
@@ -434,7 +439,7 @@ export default function StaffManagementPage() {
                               <p className={`text-xs uppercase ${
                                 record.status === 'failed'
                                   ? 'text-red-400'
-                                  : 'text-[#F4D03F]'
+                                  : 'text-[var(--primary)]'
                               }`}>
                                 {record.role}
                                 {record.status === 'failed' && ` • ⚠️ ${record.failureReason || 'Failed'}`}
@@ -487,7 +492,7 @@ export default function StaffManagementPage() {
                           <code className={`text-xs px-3 py-1 rounded font-mono ${
                             record.status === 'failed'
                               ? 'bg-red-900/30 text-red-300'
-                              : 'bg-black/50 text-[#F4D03F]'
+                              : 'bg-black/50 text-[var(--primary)]'
                           }`}>
                             {record.ipAddress}
                           </code>
@@ -529,7 +534,7 @@ export default function StaffManagementPage() {
                           onClick={() => fetchLoginHistory(pageNum)}
                           className={`px-3 py-1 rounded font-bold transition-all ${
                             pageNum === currentPage
-                              ? 'bg-[#F4D03F] text-black'
+                              ? 'bg-[var(--primary)] text-black'
                               : 'bg-gray-700 text-white hover:bg-gray-600'
                           }`}
                         >

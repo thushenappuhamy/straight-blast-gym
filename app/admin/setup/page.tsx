@@ -63,7 +63,7 @@ export default function AdminSetupPage() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img 
-            src="/logo.jpeg" 
+            src="/logo_new.jpeg" 
             alt="SBG Logo" 
             className="w-24 h-24 rounded-full"
           />

@@ -36,7 +36,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void 
     <button
       onClick={onChange}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-        enabled ? 'bg-[#F4D03F]' : 'bg-gray-300'
+        enabled ? 'bg-[var(--primary)]' : 'bg-[#888888]'
       }`}
     >
       <span
@@ -92,104 +92,128 @@ function GymInfoPanel() {
 
   return (
     <div>
-      <h2 className="text-xl font-black uppercase tracking-tight mb-6">Gym Information</h2>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Gym Information</h2>
 
       <div className="space-y-5">
         {/* Gym Name */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Gym Name
           </label>
           <input
             type="text"
             value={form.gymName}
             onChange={(e) => setForm({ ...form, gymName: e.target.value })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         {/* Phone + Email */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Phone Number
             </label>
             <input
               type="text"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Email Address
             </label>
             <input
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
         </div>
 
         {/* Address */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Address
           </label>
           <input
             type="text"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         {/* Opening + Closing */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Opening Time
             </label>
             <input
               type="time"
               value={form.openingTime}
               onChange={(e) => setForm({ ...form, openingTime: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Closing Time
             </label>
             <input
               type="time"
               value={form.closingTime}
               onChange={(e) => setForm({ ...form, closingTime: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
         </div>
 
         {/* About */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             About / Description
           </label>
           <textarea
             rows={4}
             value={form.about}
             onChange={(e) => setForm({ ...form, about: e.target.value })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F] resize-none"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none resize-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] disabled:bg-gray-400 text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+          className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black disabled:bg-gray-400 disabled:opacity-60"
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = 'var(--primary)')}
+          style={{ background: loading ? '#888888' : 'var(--primary)' }}
         >
           {loading ? 'Updating...' : 'Update Gym Info →'}
         </button>
@@ -257,42 +281,50 @@ function MembershipPlansPanel() {
 
   return (
     <div>
-      <h2 className="text-xl font-black uppercase tracking-tight mb-6">Membership Plan Pricing</h2>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Membership Plan Pricing</h2>
 
       <div className="space-y-5">
         {/* Plan prices */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Basic Plan (LKR/Mo)
             </label>
             <input
               type="number"
               value={form.basicPrice}
               onChange={(e) => setForm({ ...form, basicPrice: Number(e.target.value) })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Gold Plan (LKR/Mo)
             </label>
             <input
               type="number"
               value={form.goldPrice}
               onChange={(e) => setForm({ ...form, goldPrice: Number(e.target.value) })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Elite Plan (LKR/Mo)
             </label>
             <input
               type="number"
               value={form.elitePrice}
               onChange={(e) => setForm({ ...form, elitePrice: Number(e.target.value) })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
             />
           </div>
         </div>
@@ -300,39 +332,48 @@ function MembershipPlansPanel() {
         {/* Discounts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Gold Supplement Discount (%)
             </label>
             <input
               type="number"
               value={form.goldDiscount}
               onChange={(e) => setForm({ ...form, goldDiscount: Number(e.target.value) })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Elite Supplement Discount (%)
             </label>
             <input
               type="number"
               value={form.eliteDiscount}
               onChange={(e) => setForm({ ...form, eliteDiscount: Number(e.target.value) })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
         </div>
 
         {/* Gold Sessions */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Gold Trainer Sessions / Month
           </label>
           <input
             type="number"
             value={form.goldSessions}
             onChange={(e) => setForm({ ...form, goldSessions: Number(e.target.value) })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
@@ -340,15 +381,15 @@ function MembershipPlansPanel() {
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-sm text-gray-800">Allow Annual Billing</p>
-              <p className="text-xs text-gray-500">Members can pay yearly at a discounted rate</p>
+              <p className="font-semibold text-sm text-white">Allow Annual Billing</p>
+              <p className="text-xs text-white/50">Members can pay yearly at a discounted rate</p>
             </div>
             <Toggle enabled={annualBilling} onChange={() => setAnnualBilling(!annualBilling)} />
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-sm text-gray-800">Free Trial (7 Days)</p>
-              <p className="text-xs text-gray-500">New members get a 7-day free trial</p>
+              <p className="font-semibold text-sm text-white">Free Trial (7 Days)</p>
+              <p className="text-xs text-white/50">New members get a 7-day free trial</p>
             </div>
             <Toggle enabled={freeTrial} onChange={() => setFreeTrial(!freeTrial)} />
           </div>
@@ -357,7 +398,10 @@ function MembershipPlansPanel() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] disabled:bg-gray-400 text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+          className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black disabled:bg-gray-400 disabled:opacity-60"
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = 'var(--primary)')}
+          style={{ background: loading ? '#888888' : 'var(--primary)' }}
         >
           {loading ? 'Saving...' : 'Save Plan Settings →'}
         </button>
@@ -416,42 +460,48 @@ function PaymentPanel() {
 
   return (
     <div>
-      <h2 className="text-xl font-black uppercase tracking-tight mb-6">Payment Gateway</h2>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Payment Gateway</h2>
 
       <div className="space-y-5">
         {/* Connected banner */}
-        <div className="border border-gray-200 bg-gray-50 px-5 py-4">
-          <p className="text-sm font-semibold text-gray-800">
+        <div className="border border-white/10 bg-[#1A1A1A] px-5 py-4">
+          <p className="text-sm font-semibold text-white">
             🔒 PayHere (Pvt) Ltd — Connected
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-white/50 mt-0.5">
             {liveMode ? 'Live mode active' : 'Sandbox mode active. Switch to Live for real payments.'}
           </p>
         </div>
 
         {/* Merchant ID */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Merchant ID
           </label>
           <input
             type="password"
             value={merchantId}
             onChange={(e) => setMerchantId(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         {/* Merchant Secret */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Merchant Secret
           </label>
           <input
             type="password"
             value={merchantSecret}
             onChange={(e) => setMerchantSecret(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
@@ -459,15 +509,15 @@ function PaymentPanel() {
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-sm text-gray-800">Live Mode</p>
-              <p className="text-xs text-gray-500">Currently in {liveMode ? 'live' : 'sandbox/test'} mode</p>
+              <p className="font-semibold text-sm text-white">Live Mode</p>
+              <p className="text-xs text-white/50">Currently in {liveMode ? 'live' : 'sandbox/test'} mode</p>
             </div>
             <Toggle enabled={liveMode} onChange={() => setLiveMode(!liveMode)} />
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-sm text-gray-800">Email Payment Receipts</p>
-              <p className="text-xs text-gray-500">Send receipt to member after payment</p>
+              <p className="font-semibold text-sm text-white">Email Payment Receipts</p>
+              <p className="text-xs text-white/50">Send receipt to member after payment</p>
             </div>
             <Toggle enabled={emailReceipts} onChange={() => setEmailReceipts(!emailReceipts)} />
           </div>
@@ -476,7 +526,10 @@ function PaymentPanel() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] disabled:bg-gray-400 text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+          className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black disabled:bg-gray-400 disabled:opacity-60"
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = 'var(--primary)')}
+          style={{ background: loading ? '#888888' : 'var(--primary)' }}
         >
           {loading ? 'Saving...' : 'Save Payment Settings →'}
         </button>
@@ -547,14 +600,14 @@ function NotificationsPanel() {
 
   return (
     <div>
-      <h2 className="text-xl font-black uppercase tracking-tight mb-6">Notification Preferences</h2>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Notification Preferences</h2>
 
       <div className="space-y-5">
         {rows.map((row) => (
           <div key={row.key} className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-sm text-gray-800">{row.label}</p>
-              <p className="text-xs text-gray-500">{row.sub}</p>
+              <p className="font-semibold text-sm text-white">{row.label}</p>
+              <p className="text-xs text-white/50">{row.sub}</p>
             </div>
             <Toggle enabled={prefs[row.key]} onChange={() => toggle(row.key)} />
           </div>
@@ -562,21 +615,27 @@ function NotificationsPanel() {
 
         {/* Admin email */}
         <div className="pt-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Admin Notification Email
           </label>
           <input
             type="email"
             value={notifEmail}
             onChange={(e) => setNotifEmail(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] disabled:bg-gray-400 text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+          className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black disabled:bg-gray-400 disabled:opacity-60"
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = 'var(--primary)')}
+          style={{ background: loading ? '#888888' : 'var(--primary)' }}
         >
           {loading ? 'Saving...' : 'Save Notifications →'}
         </button>
@@ -663,12 +722,12 @@ function AdminAccountPanel() {
 
   return (
     <div>
-      <h2 className="text-xl font-black uppercase tracking-tight mb-6">Admin Account</h2>
+      <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Admin Account</h2>
 
       <div className="space-y-5">
         {/* Profile banner */}
-        <div className="bg-[#1A1816] px-6 py-5 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-[#F4D03F] flex items-center justify-center flex-shrink-0">
+        <div className="bg-[var(--card)] px-6 py-5 flex items-center gap-4 border border-white/10">
+          <div className="w-14 h-14 rounded-full bg-[var(--primary)] flex items-center justify-center flex-shrink-0">
             <span className="text-black font-black text-xl">
               {form.firstName.charAt(0).toUpperCase()}
             </span>
@@ -677,52 +736,61 @@ function AdminAccountPanel() {
             <p className="text-white font-black text-lg uppercase tracking-wide">
               {form.firstName} {form.lastName}
             </p>
-            <p className="text-gray-400 text-sm">Super Admin · {form.email}</p>
+            <p className="text-white/50 text-sm">Super Admin · {form.email}</p>
           </div>
         </div>
 
         {/* First + Last Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               First Name
             </label>
             <input
               type="text"
               value={form.firstName}
               onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Last Name
             </label>
             <input
               type="text"
               value={form.lastName}
               onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Email
           </label>
           <input
             type="email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F]"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         {/* Current Password */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+          <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
             Current Password
           </label>
           <input
@@ -730,14 +798,17 @@ function AdminAccountPanel() {
             placeholder="Enter current password (only if changing password)"
             value={form.currentPassword}
             onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
-            className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F] placeholder-gray-400"
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+            className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
           />
         </div>
 
         {/* New + Confirm */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               New Password
             </label>
             <input
@@ -745,11 +816,14 @@ function AdminAccountPanel() {
               placeholder="Min. 8 characters (optional)"
               value={form.newPassword}
               onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F] placeholder-gray-400"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-white/65 mb-1">
               Confirm Password
             </label>
             <input
@@ -757,7 +831,10 @@ function AdminAccountPanel() {
               placeholder="Repeat password"
               value={form.confirmPassword}
               onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-              className="w-full border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:border-[#F4D03F] placeholder-gray-400"
+              onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.06)')}
+              className="w-full border px-4 py-3 text-sm bg-[#0c0c0c] text-white placeholder:text-white/28 focus:outline-none"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
             />
           </div>
         </div>
@@ -765,7 +842,10 @@ function AdminAccountPanel() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="bg-[#F4D03F] hover:bg-[#E5C730] disabled:bg-gray-400 text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+          className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black disabled:bg-gray-400 disabled:opacity-60"
+          onMouseEnter={(e) => !loading && (e.currentTarget.style.background = 'var(--primary-light)')}
+          onMouseLeave={(e) => !loading && (e.currentTarget.style.background = 'var(--primary)')}
+          style={{ background: loading ? '#888888' : 'var(--primary)' }}
         >
           {loading ? 'Updating...' : 'Update Account →'}
         </button>
@@ -798,12 +878,16 @@ export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('gym');
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Header */}
-      <div className="bg-white border-b-4 border-[#F4D03F] px-8 py-6">
+      <div className="px-8 py-6" style={{ background: 'var(--card)', borderBottom: '2px solid var(--primary)' }}>
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black uppercase tracking-tight">Settings</h1>
-          <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all">
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white">Settings</h1>
+          <button className="font-black text-sm uppercase tracking-wider px-6 py-3 transition-all text-black" 
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
+            style={{ background: 'var(--primary)' }}
+          >
             Save Changes
           </button>
         </div>
@@ -812,16 +896,17 @@ export default function AdminSettingsPage() {
       <div className="p-8">
         <div className="flex gap-6 items-start">
           {/* Left Nav */}
-          <div className="w-64 flex-shrink-0 bg-white shadow-lg">
+          <div className="w-64 flex-shrink-0" style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}>
             {navItems.map((item) => (
               <button
                 key={item.key}
                 onClick={() => setActiveTab(item.key)}
                 className={`w-full flex items-center gap-3 px-5 py-4 text-sm font-bold uppercase tracking-widest text-left transition-all border-l-4 ${
                   activeTab === item.key
-                    ? 'border-[#F4D03F] bg-gray-50 text-gray-900'
-                    : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                    ? 'text-white'
+                    : 'text-white/50 hover:text-white/75'
                 }`}
+                style={activeTab === item.key ? { borderLeftColor: 'var(--primary)', background: 'rgba(230, 60, 47, 0.1)' } : { borderLeftColor: 'transparent' }}
               >
                 <span className="text-base">{item.icon}</span>
                 {item.label}
@@ -830,7 +915,7 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Right Content */}
-          <div className="flex-1 bg-white shadow-lg p-8">
+          <div className="flex-1 p-8" style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}>
             {activeTab === 'gym' && <GymInfoPanel />}
             {activeTab === 'membership' && <MembershipPlansPanel />}
             {activeTab === 'payment' && <PaymentPanel />}

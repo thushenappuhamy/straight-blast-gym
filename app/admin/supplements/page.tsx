@@ -1,25 +1,36 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import {
+  AdminLayout,
+  AdminSidebar,
+  AdminHeader,
+  AdminStatsGrid,
+  AdminTable,
+} from '@/src/components/admin';
+import AdminSupplementFormModal from '@/src/components/admin/AdminSupplementFormModal';
+import Toast from '@/src/components/ui/Toast';
 
 const categoryColors: Record<string, string> = {
-  Protein: 'bg-blue-100 text-blue-800',
-  'Mass Gainer': 'bg-orange-100 text-orange-800',
-  Creatine: 'bg-purple-100 text-purple-800',
-  'Fat Burner': 'bg-red-100 text-red-800',
-  Vitamins: 'bg-green-100 text-green-800',
+  Protein: 'bg-[#E63C2F]/20 text-[#E63C2F] border border-[#E63C2F]/30',
+  'Mass Gainer': 'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+  Creatine: 'bg-violet-500/15 text-violet-300 border border-violet-500/30',
+  'Fat Burner': 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
+  Vitamins: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30',
 };
 
 const statusColors: Record<string, string> = {
-  active: 'text-green-600',
-  'low-stock': 'text-orange-500',
-  'out-of-stock': 'text-red-500',
+  active: 'text-emerald-400',
+  'low-stock': 'text-amber-400',
+  'out-of-stock': 'text-rose-400',
 };
 
 export default function SupplementsPage() {
+  const [searchQuery, setSearchQuery] = useState('');
   const [supplements, setSupplements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,8 +60,15 @@ export default function SupplementsPage() {
     discount: '',
     rating: '',
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [additionalInfo, setAdditionalInfo] = useState<Record<string, string>>({});
+
+  const handleCloseSupplementModal = () => {
+    setShowAddModal(false);
+    setShowEditModal(false);
+    setEditingId(null);
+    setAdditionalInfo({});
+  };
 
   // Dynamic questions based on category
   const getCategoryQuestions = (category: string): { question: string; key: string; type: 'text' | 'select'; options?: string[] }[] => {
@@ -136,13 +154,13 @@ export default function SupplementsPage() {
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
+        setToast({ message: 'Image size must be less than 5MB', type: 'error' });
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
+        setToast({ message: 'Please select a valid image file', type: 'error' });
         return;
       }
 
@@ -159,7 +177,7 @@ export default function SupplementsPage() {
   // Handle image removal
   const handleRemoveImage = () => {
     setFormData({ ...formData, image: '' });
-    setImagePreview(null);
+    setImagePreview('');
   };
 
   // Handle adding supplement
@@ -168,6 +186,10 @@ export default function SupplementsPage() {
     setFormLoading(true);
 
     try {
+      if (!formData.image) {
+        throw new Error('Product image is required. Please upload an image before adding the supplement.');
+      }
+
       const token = localStorage.getItem('token');
       console.log('🔐 [SUPPLEMENTS] Token:', token ? 'Found' : 'Not found');
       
@@ -215,7 +237,7 @@ export default function SupplementsPage() {
       }
 
       console.log('✅ [SUPPLEMENTS] Added:', data.data);
-      alert('✅ Supplement added successfully!');
+      setToast({ message: 'Supplement added successfully!', type: 'success' });
 
       // Refresh list
       const refreshResponse = await fetch('/api/admin/supplements');
@@ -249,11 +271,11 @@ export default function SupplementsPage() {
         rating: '',
       });
       setAdditionalInfo({});
-      setImagePreview(null);
+      setImagePreview('');
       setShowAddModal(false);
     } catch (err: any) {
       console.error('❌ [SUPPLEMENTS] Error:', err);
-      alert('❌ Error: ' + (err.message || 'Failed to add supplement'));
+      setToast({ message: `Error: ${err.message || 'Failed to add supplement'}`, type: 'error' });
     } finally {
       setFormLoading(false);
     }
@@ -286,7 +308,7 @@ export default function SupplementsPage() {
       discount: supplement.discount || '',
       rating: supplement.rating || '',
     });
-    setImagePreview(supplement.image || null);
+    setImagePreview(supplement.image || '');
     setEditingId(supplement._id);
     setShowEditModal(true);
   };
@@ -328,7 +350,7 @@ export default function SupplementsPage() {
       }
 
       console.log('✅ [SUPPLEMENTS] Updated:', data.data);
-      alert('✅ Supplement updated successfully!');
+      setToast({ message: 'Supplement updated successfully!', type: 'success' });
 
       // Refresh list
       const refreshResponse = await fetch('/api/admin/supplements');
@@ -361,12 +383,11 @@ export default function SupplementsPage() {
         discount: '',
         rating: '',
       });
-      setImagePreview(null);
       setEditingId(null);
       setShowEditModal(false);
     } catch (err: any) {
       console.error('❌ [SUPPLEMENTS] Error:', err);
-      alert('❌ ' + (err.message || 'Failed to update supplement'));
+      setToast({ message: `Error: ${err.message || 'Failed to update supplement'}`, type: 'error' });
     } finally {
       setFormLoading(false);
     }
@@ -396,7 +417,7 @@ export default function SupplementsPage() {
       }
 
       console.log('✅ [SUPPLEMENTS] Deleted');
-      alert('✅ Supplement deleted successfully!');
+      setToast({ message: 'Supplement deleted successfully!', type: 'success' });
 
       // Refresh list
       const refreshResponse = await fetch('/api/admin/supplements');
@@ -404,7 +425,7 @@ export default function SupplementsPage() {
       setSupplements(refreshData.data || []);
     } catch (err: any) {
       console.error('❌ [SUPPLEMENTS] Error:', err);
-      alert('❌ ' + (err.message || 'Failed to delete supplement'));
+      setToast({ message: `Error: ${err.message || 'Failed to delete supplement'}`, type: 'error' });
     }
   };
 
@@ -414,126 +435,166 @@ export default function SupplementsPage() {
   const totalSales = supplements.reduce((sum, s) => sum + (s.salesThisMonth || 0), 0);
   const totalRevenue = supplements.reduce((sum, s) => sum + (s.price * (s.salesThisMonth || 0)), 0);
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="bg-white border-b-2 border-[#F4D03F] p-6">
-        <div className="flex justify-between items-center max-w-7xl mx-auto">
-          <h1 className="text-4xl font-black uppercase text-black">Supplements</h1>
+  const stats = [
+    { icon: '📦', label: 'Total Products', value: totalProducts },
+    { icon: '💰', label: 'Total Sales', value: `LKR ${(totalRevenue / 1000).toFixed(0)}K` },
+    { icon: '📈', label: 'Units Sold', value: totalSales },
+    { icon: '🧴', label: 'Total Stock', value: totalStock },
+  ];
+
+  const getStatus = (supplement: any) => {
+    if ((supplement?.stock || 0) <= 0) return 'out-of-stock';
+    if ((supplement?.stock || 0) <= 10) return 'low-stock';
+    return supplement?.status || 'active';
+  };
+
+  const filteredSupplements = supplements.filter((supplement) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      `${supplement?.name || ''}`.toLowerCase().includes(q) ||
+      `${supplement?.category || ''}`.toLowerCase().includes(q) ||
+      `${supplement?.sku || ''}`.toLowerCase().includes(q) ||
+      `${supplement?.manufacturer || ''}`.toLowerCase().includes(q)
+    );
+  });
+
+  const supplementColumns = [
+    {
+      key: 'name',
+      label: 'Product',
+      render: (value: string, row: any) => (
+        <div>
+          <p className="font-semibold text-white">{value}</p>
+          {row?.dosage && <p className="text-xs text-white/45 mt-0.5">{row.dosage}</p>}
+        </div>
+      ),
+    },
+    {
+      key: 'category',
+      label: 'Category',
+      render: (value: string) => (
+        <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider ${categoryColors[value] || 'bg-white/10 text-white/70 border border-white/20'}`}>
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: 'price',
+      label: 'Price',
+      render: (value: number) => <span className="font-semibold text-white">LKR {(value || 0).toLocaleString()}</span>,
+    },
+    {
+      key: 'stock',
+      label: 'Stock',
+      render: (value: number) => (
+        <span className="text-white/80">
+          {value || 0} units {(value || 0) <= 10 && (value || 0) > 0 ? <span className="text-amber-400">⚠</span> : null}
+        </span>
+      ),
+    },
+    {
+      key: 'salesThisMonth',
+      label: 'Sales',
+      render: (value: number) => <span className="text-white/80">{value || 0} sold</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (_: string, row: any) => {
+        const status = getStatus(row);
+        return (
+          <span className={`text-xs font-black uppercase ${statusColors[status] || 'text-white/60'}`}>
+            {status === 'low-stock' ? 'Low Stock' : status === 'out-of-stock' ? 'Out Of Stock' : 'Active'}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_: any, row: any) => (
+        <div className="flex gap-2">
           <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-2 transition-all"
+            onClick={() => handleEditClick(row)}
+            className="border border-[#E63C2F]/50 text-[#E63C2F] hover:bg-[#E63C2F]/10 font-bold text-xs uppercase px-2.5 py-1.5 rounded-md transition-colors"
           >
-            + Add Product
+            Edit
+          </button>
+          <button
+            onClick={() => handleDeleteSupplement(row._id)}
+            className="border border-rose-500/50 text-rose-400 hover:bg-rose-500/10 font-bold text-xs uppercase px-2.5 py-1.5 rounded-md transition-colors"
+          >
+            Remove
           </button>
         </div>
-      </div>
+      ),
+    },
+  ];
 
-      {/* Stats */}
-      <div className="bg-white px-6 py-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-4 gap-6">
-            <div className="bg-[#2B2621] p-6 rounded">
-              <div className="text-[#F4D03F] text-sm font-black uppercase tracking-wider mb-2">📦</div>
-              <div className="text-white text-4xl font-black mb-1">{totalProducts}</div>
-              <div className="text-gray-400 text-xs uppercase">Total Products</div>
-            </div>
-            <div className="bg-[#2B2621] p-6 rounded">
-              <div className="text-[#F4D03F] text-sm font-black uppercase tracking-wider mb-2">💰</div>
-              <div className="text-white text-4xl font-black mb-1">LKR {(totalRevenue / 1000).toFixed(0)}K</div>
-              <div className="text-gray-400 text-xs uppercase">Total Sales</div>
-              <div className="text-yellow-400 text-xs mt-1">This month</div>
-            </div>
-            <div className="bg-[#2B2621] p-6 rounded">
-              <div className="text-[#F4D03F] text-sm font-black uppercase tracking-wider mb-2">📈</div>
-              <div className="text-white text-4xl font-black mb-1">{totalSales}</div>
-              <div className="text-gray-400 text-xs uppercase">Units Sold</div>
-            </div>
-            <div className="bg-[#2B2621] p-6 rounded">
-              <div className="text-[#F4D03F] text-sm font-black uppercase tracking-wider mb-2">📦</div>
-              <div className="text-white text-4xl font-black mb-1">{totalStock}</div>
-              <div className="text-gray-400 text-xs uppercase">Total Stock</div>
-            </div>
+  return (
+    <AdminLayout
+      sidebar={<AdminSidebar />}
+      header={
+        <AdminHeader
+          title="Supplements"
+          description="Manage inventory, pricing, and stock levels"
+          searchPlaceholder="Search product, category, SKU..."
+          onSearch={setSearchQuery}
+          actionButton={{
+            label: '+ Add Product',
+            onClick: () => {
+              setEditingId(null);
+              setShowEditModal(false);
+              setShowAddModal(true);
+            },
+            variant: 'primary',
+          }}
+        />
+      }
+    >
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="space-y-6">
+        <AdminStatsGrid stats={stats} columns={4} />
+
+        {error && (
+          <div className="rounded-xl border border-[#E63C2F]/40 bg-[#E63C2F]/10 p-4 text-sm text-[#ffb4ae]">
+            {error}
           </div>
-        </div>
+        )}
+
+        <AdminTable
+          title={`Product Inventory (${filteredSupplements.length})`}
+          columns={supplementColumns}
+          data={filteredSupplements}
+          emptyMessage={loading ? 'Loading supplements...' : 'No supplements found. Click "+ Add Product" to add one.'}
+        />
       </div>
 
-      {/* Product Inventory */}
-      <div className="bg-white px-6 py-8">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-2xl font-black uppercase text-black mb-6">Product Inventory</h2>
-
-          {loading && <p className="text-center text-gray-600">Loading supplements...</p>}
-          {error && <p className="text-center text-red-600">{error}</p>}
-
-          {!loading && !error && supplements.length === 0 && (
-            <p className="text-center text-gray-600 py-12">No supplements found. Click "+ Add Product" to add one.</p>
-          )}
-
-          {!loading && !error && supplements.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-[#2B2621] text-[#F4D03F]">
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Product</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Stock</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Sales</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {supplements.map((supplement, index) => (
-                    <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-gray-900">{supplement.name}</div>
-                        {supplement.dosage && <div className="text-xs text-gray-500">{supplement.dosage}</div>}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${categoryColors[supplement.category] || 'bg-gray-100 text-gray-800'}`}>
-                          {supplement.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-gray-900">LKR {supplement.price.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-gray-900">
-                        {supplement.stock} units
-                        {supplement.stock <= 10 && supplement.stock > 0 && <span className="text-orange-600 text-xs ml-2">⚠️</span>}
-                      </td>
-                      <td className="px-6 py-4 text-gray-900">{supplement.salesThisMonth} sold</td>
-                      <td className="px-6 py-4">
-                        <span className={`text-xs font-black uppercase ${statusColors[supplement.status] || 'text-gray-600'}`}>
-                          {supplement.status === 'low-stock' ? '🟠 Low Stock' : supplement.status === 'out-of-stock' ? '🔴 Out of Stock' : '🟢 Active'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          <button 
-                            onClick={() => handleEditClick(supplement)}
-                            className="border-2 border-[#F4D03F] text-[#F4D03F] hover:bg-[#F4D03F] hover:text-black font-black text-xs uppercase px-3 py-1 transition-all">
-                            Edit
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteSupplement(supplement._id)}
-                            className="border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-black text-xs uppercase px-3 py-1 transition-all">
-                            Remove
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+      <AdminSupplementFormModal
+        isOpen={showAddModal || (showEditModal && !!editingId)}
+        isEdit={showEditModal && !!editingId}
+        formData={formData}
+        additionalInfo={additionalInfo}
+        imagePreview={imagePreview}
+        formLoading={formLoading}
+        certificationOptions={certificationOptions}
+        allergenOptions={allergenOptions}
+        getCategoryQuestions={getCategoryQuestions}
+        onClose={handleCloseSupplementModal}
+        onSubmit={showEditModal && editingId ? handleUpdateSupplement : handleAddSupplement}
+        onImageChange={handleImageChange}
+        onRemoveImage={handleRemoveImage}
+        onFormDataChange={setFormData}
+        onAdditionalInfoChange={setAdditionalInfo}
+        onCertificationToggle={handleCertificationToggle}
+        onAllergenToggle={handleAllergenToggle}
+      />
 
       {/* Add Supplement Modal */}
-      {showAddModal && (
+      {false && showAddModal && (
         <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full my-8 p-8 shadow-[0_0_40px_rgba(244,208,63,0.15)]">
+          <div className="bg-linear-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full my-8 p-8 shadow-[0_0_40px_rgba(244,208,63,0.15)]">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 pb-6 border-b-2 border-[#F4D03F]">
               <div>
@@ -646,9 +707,9 @@ export default function SupplementsPage() {
                     <p className="text-xs text-gray-500 mt-2">Max 5MB • Supported: JPG, PNG, GIF, WebP</p>
                   </div>
                   {imagePreview && (
-                    <div className="w-20 h-20 relative flex-shrink-0">
+                    <div className="w-20 h-20 relative shrink-0">
                       <img
-                        src={imagePreview}
+                        src={imagePreview ?? undefined}
                         alt="Preview"
                         className="w-full h-full object-cover border-2 border-[#F4D03F] rounded"
                       />
@@ -912,7 +973,7 @@ export default function SupplementsPage() {
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 bg-gradient-to-r from-[#F4D03F] to-yellow-400 hover:from-[#E5C730] hover:to-yellow-300 disabled:opacity-50 text-black font-black text-lg uppercase tracking-wider py-4 transition-all shadow-[0_4px_20px_rgba(244,208,63,0.3)] hover:shadow-[0_6px_30px_rgba(244,208,63,0.5)]"
+                  className="flex-1 bg-linear-to-r from-[#F4D03F] to-yellow-400 hover:from-[#E5C730] hover:to-yellow-300 disabled:opacity-50 text-black font-black text-lg uppercase tracking-wider py-4 transition-all shadow-[0_4px_20px_rgba(244,208,63,0.3)] hover:shadow-[0_6px_30px_rgba(244,208,63,0.5)]"
                 >
                   {formLoading ? '🔄 Adding...' : '✓ Add Supplement'}
                 </button>
@@ -928,9 +989,9 @@ export default function SupplementsPage() {
           </div>
         </div>
       )}
-      {showEditModal && editingId && (
+      {false && showEditModal && editingId && (
         <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 overflow-y-auto backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full my-8 p-8 shadow-[0_0_40px_rgba(244,208,63,0.15)]">
+          <div className="bg-linear-to-br from-[#F4D03F]/5 via-white to-blue-50 rounded-2xl border-2 border-[#F4D03F] max-w-2xl w-full my-8 p-8 shadow-[0_0_40px_rgba(244,208,63,0.15)]">
             {/* Header */}
             <div className="flex justify-between items-center mb-8 pb-6 border-b-2 border-[#F4D03F]">
               <div>
@@ -1043,7 +1104,7 @@ export default function SupplementsPage() {
                     <p className="text-xs text-gray-500 mt-2">Max 5MB • Supported: JPG, PNG, GIF, WebP</p>
                   </div>
                   {imagePreview && (
-                    <div className="w-20 h-20 relative flex-shrink-0">
+                    <div className="w-20 h-20 relative shrink-0">
                       <img
                         src={imagePreview}
                         alt="Preview"
@@ -1309,7 +1370,7 @@ export default function SupplementsPage() {
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 bg-gradient-to-r from-[#F4D03F] to-yellow-400 hover:from-[#E5C730] hover:to-yellow-300 disabled:opacity-50 text-black font-black text-lg uppercase tracking-wider py-4 transition-all shadow-[0_4px_20px_rgba(244,208,63,0.3)] hover:shadow-[0_6px_30px_rgba(244,208,63,0.5)]"
+                  className="flex-1 bg-linear-to-r from-[#F4D03F] to-yellow-400 hover:from-[#E5C730] hover:to-yellow-300 disabled:opacity-50 text-black font-black text-lg uppercase tracking-wider py-4 transition-all shadow-[0_4px_20px_rgba(244,208,63,0.3)] hover:shadow-[0_6px_30px_rgba(244,208,63,0.5)]"
                 >
                   {formLoading ? '🔄 Updating...' : '✓ Update Supplement'}
                 </button>
@@ -1353,6 +1414,6 @@ export default function SupplementsPage() {
           </div>
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 }
