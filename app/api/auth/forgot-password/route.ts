@@ -30,14 +30,17 @@ export async function POST(req: NextRequest) {
     user.resetPasswordExpire = resetPasswordExpire;
     await user.save();
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      new URL(req.url).origin;
     const resetUrl = `${appUrl}/reset-password?token=${resetToken}`;
 
     if (!isSmtpConfigured()) {
       if (process.env.NODE_ENV !== 'production') {
         return NextResponse.json(
           {
-            message: 'SMTP is not configured. Using local reset link fallback.',
+            message: 'Password reset link is ready.',
             resetUrl,
           },
           { status: 200 }
@@ -65,7 +68,7 @@ export async function POST(req: NextRequest) {
       if (process.env.NODE_ENV !== 'production' && isAuthError) {
         return NextResponse.json(
           {
-            message: 'SMTP authentication failed in local mode. Using reset link fallback.',
+            message: 'Password reset link is ready.',
             resetUrl,
           },
           { status: 200 }

@@ -67,3 +67,74 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    // Verify JWT token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { success: false, error: 'No authorization header' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    
+    if (!token || token.trim() === '') {
+      return NextResponse.json(
+        { success: false, error: 'No token provided' },
+        { status: 401 }
+      );
+    }
+
+    let decoded: any;
+    try {
+      decoded = verify(token, JWT_SECRET);
+    } catch (verifyError: any) {
+      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
+      return NextResponse.json(
+        { success: false, error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    await connectDB();
+
+    const body = await req.json();
+    const { trainerId, type, fee, dateTime, notes } = body;
+
+    // Validate required fields
+    if (!trainerId || !type || fee === undefined || !dateTime) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const booking = new Booking({
+      memberId: decoded.id,
+      trainerId,
+      type,
+      fee: Number(fee),
+      dateTime: new Date(dateTime),
+      status: 'UPCOMING',
+      notes,
+    });
+
+    await booking.save();
+
+    console.log('✅ [PUBLIC BOOKINGS] Created booking for user:', decoded.id);
+
+    return NextResponse.json({
+      success: true,
+      data: booking,
+    });
+  } catch (error) {
+    console.error('❌ [API] Error creating booking:', error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Failed to create booking' },
+      { status: 500 }
+    );
+  }
+}

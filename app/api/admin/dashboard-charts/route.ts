@@ -1,19 +1,28 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { Attendance } from '@/models/Attendance';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
     
-    // MRR Data calculation (last 30 days based on User creation dates and their plans)
+    const { searchParams } = new URL(req.url);
+    const selectedYear = parseInt(searchParams.get('year') || new Date().getFullYear().toString());
+
+    // MRR Data calculation (last 30 days of the selected year or last 30 days if current year)
     const mrrData = [];
     let currentMRR = 0;
     
-    // Calculate initial MRR from Users created before 30 days ago
-    const olderRecords = await User.find({ role: 'user', createdAt: { $lt: subDays(new Date(), 30) } });
+    const isCurrentYear = selectedYear === new Date().getFullYear();
+    const referenceDate = isCurrentYear ? new Date() : new Date(selectedYear, 11, 31);
+
+    // Calculate initial MRR from Users created before the start of the period
+    const olderRecords = await User.find({ 
+      role: 'user', 
+      createdAt: { $lt: subDays(referenceDate, 30) } 
+    });
     olderRecords.forEach(user => {
       const plan = (user.plan || '').toLowerCase();
       if (plan === 'elite') currentMRR += 8000;
@@ -22,7 +31,7 @@ export async function GET() {
     });
 
     for (let i = 30; i >= 0; i--) {
-      const targetDate = subDays(new Date(), i);
+      const targetDate = subDays(referenceDate, i);
       const start = startOfDay(targetDate);
       const end = endOfDay(targetDate);
       
@@ -52,7 +61,10 @@ export async function GET() {
     ];
 
     const allAttendances = await Attendance.find({ 
-      checkInTime: { $gte: subDays(new Date(), 7) }
+      checkInTime: { 
+        $gte: startOfDay(subDays(referenceDate, 7)),
+        $lte: endOfDay(referenceDate)
+      }
     });
 
     allAttendances.forEach(att => {

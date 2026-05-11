@@ -161,30 +161,6 @@ export async function POST(request: NextRequest) {
     console.error('❌ [LOGIN] Error:', error);
     console.error('❌ [LOGIN] Error message:', error.message);
     console.error('❌ [LOGIN] Error stack:', error.stack);
-    
-    // Detect database connection errors
-    if (error.message.includes('ENOTFOUND')) {
-      console.error('⚠️ MongoDB DNS resolution failed');
-      return NextResponse.json(
-        { 
-          error: 'Database connection failed: MongoDB cluster not found. Check that your cluster exists and the connection string is correct.',
-          code: 'DB_DNS_ERROR'
-        },
-        { status: 503 }
-      );
-    }
-    
-    if (error.message.includes('ETIMEOUT') || error.message.includes('querySrv')) {
-      console.error('⚠️ MongoDB connection timeout');
-      return NextResponse.json(
-        { 
-          error: 'Database connection timeout. The MongoDB cluster may be paused. Try resuming it at cloud.mongodb.com',
-          code: 'DB_TIMEOUT'
-        },
-        { status: 503 }
-      );
-    }
-    
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

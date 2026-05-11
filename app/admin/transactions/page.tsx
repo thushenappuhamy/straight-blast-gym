@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingCart, Calendar, CreditCard, Loader } from 'lucide-react';
+import { DollarSign, ShoppingCart, Calendar, CreditCard, Loader, Plus, X } from 'lucide-react';
+import Toast from '@/src/components/ui/Toast';
 
 export default function AdminTransactionsPage() {
   const [typeFilter, setTypeFilter] = useState('All Types');
@@ -10,46 +11,65 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [stats, setStats] = useState({
     monthlyRevenue: 0,
     supplementSales: 0,
     trainerSessions: 0,
     membershipFees: 0,
   });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [members, setMembers] = useState<any[]>([]);
+  const [newTxn, setNewTxn] = useState({
+    memberId: '',
+    memberName: '',
+    type: 'Membership',
+    amount: '',
+    paymentMethod: 'Cash',
+    date: new Date().toISOString().split('T')[0],
+    reference: ''
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   // Fetch all transaction data from endpoints
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const [membersRes, supplementsRes, bookingsRes, membershipsRes] = await Promise.all([
-          fetch('/api/admin/members'),
-          fetch('/api/supplements'),
-          fetch('/api/admin/bookings'),
-          fetch('/api/memberships'),
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+
+        const [membersRes, supplementsRes, bookingsRes, realTxnsRes] = await Promise.all([
+          fetch('/api/admin/members', { headers }),
+          fetch('/api/supplements', { headers }),
+          fetch('/api/admin/bookings', { headers }),
+          fetch('/api/admin/transactions', { headers }),
         ]);
 
         const membersData = await membersRes.json();
         const supplementsData = await supplementsRes.json();
         const bookingsData = await bookingsRes.json();
-        const membershipsData = await membershipsRes.json();
+        const realTxnsData = await realTxnsRes.json();
+
+        if (membersData.data) setMembers(membersData.data);
 
         const allTransactions: any[] = [];
         let supplementSales = 0;
         let trainerSessions = 0;
         let membershipFees = 0;
 
-        // Process membership transactions from members
+        // Process membership transactions from members (Historical/Legacy)
         if (membersData.data) {
           membersData.data.forEach((member: any) => {
+            const plan = member.plan?.toUpperCase() || 'BASIC';
             const planPrices: Record<string, number> = {
               GOLD: 5000,
               ELITE: 8000,
               BASIC: 2500,
             };
-            const amount = planPrices[member.plan] || 0;
+            const amount = planPrices[plan] || 0;
             membershipFees += amount;
-            
+
             const typeMap: Record<string, string> = {
               GOLD: 'Gold Membership',
               ELITE: 'Elite Membership',
@@ -58,10 +78,10 @@ export default function AdminTransactionsPage() {
 
             allTransactions.push({
               id: `#TXN-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-              member: member.name || 'Unknown',
-              type: typeMap[member.plan] || 'Membership',
+              member: member.firstName ? `${member.firstName} ${member.lastName}` : (member.name || 'Unknown'),
+              type: typeMap[plan] || 'Membership',
               amount,
-              payment: ['PayHere', 'Card'][Math.floor(Math.random() * 2)],
+              payment: 'PayHere',
               date: new Date(member.createdAt).toLocaleDateString(),
               status: member.status === 'ACTIVE' ? 'COMPLETED' : 'PROCESSING',
               typeIcon: 'membership',
@@ -70,44 +90,24 @@ export default function AdminTransactionsPage() {
           });
         }
 
-        // Process booking transactions
-        if (bookingsData.data) {
-          bookingsData.data.forEach((booking: any) => {
-            const amount = booking.price || 3500;
-            trainerSessions += amount;
-            
-            allTransactions.push({
-              id: `#TXN-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-              member: booking.memberName || 'Unknown',
-              type: 'Trainer Booking',
-              amount,
-              payment: ['PayHere', 'Card'][Math.floor(Math.random() * 2)],
-              date: new Date(booking.date).toLocaleDateString(),
-              status: booking.status === 'CONFIRMED' ? 'COMPLETED' : 'PROCESSING',
-              typeIcon: 'trainer',
-              isRefund: false,
-            });
-          });
-        }
+        // Process real transactions from DB
+        if (realTxnsData.success && realTxnsData.data) {
+          realTxnsData.data.forEach((txn: any) => {
+            if (txn.type.includes('Supplement')) supplementSales += txn.amount;
+            else if (txn.type.includes('Trainer')) trainerSessions += txn.amount;
+            else membershipFees += txn.amount;
 
-        // Process supplement orders (from members' orders)
-        if (supplementsData.data) {
-          supplementsData.data.slice(0, 5).forEach((supplement: any, idx: number) => {
-            const amount = supplement.price * (Math.floor(Math.random() * 3) + 1);
-            supplementSales += amount;
-            
-            const memberNames = ['Thushen A.', 'Kavinda M.', 'Nimali P.', 'Sahan W.', 'Dulani F.'];
-            
             allTransactions.push({
-              id: `#TXN-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-              member: memberNames[idx % memberNames.length],
-              type: 'Supplement Order',
-              amount: Math.floor(amount),
-              payment: ['PayHere', 'Card'][Math.floor(Math.random() * 2)],
-              date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-              status: ['COMPLETED', 'PROCESSING'][Math.floor(Math.random() * 2)],
-              typeIcon: 'supplement',
-              isRefund: false,
+              id: `#TXN-${txn._id.slice(-4).toUpperCase()}`,
+              dbId: txn._id,
+              member: txn.memberName,
+              type: txn.type,
+              amount: txn.amount,
+              payment: txn.paymentMethod,
+              date: new Date(txn.date).toLocaleDateString(),
+              status: txn.status,
+              typeIcon: txn.type.toLowerCase().includes('supplement') ? 'supplement' : txn.type.toLowerCase().includes('trainer') ? 'trainer' : 'membership',
+              isRefund: txn.status === 'REFUNDED',
             });
           });
         }
@@ -235,8 +235,9 @@ export default function AdminTransactionsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      setToast({ message: 'Transactions CSV exported successfully!', type: 'success' });
     } catch (error: any) {
-      alert(`Export failed: ${error.message}`);
+      setToast({ message: `Export failed: ${error.message}`, type: 'error' });
     } finally {
       setExporting(false);
     }
@@ -265,10 +266,71 @@ export default function AdminTransactionsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      setToast({ message: 'Transaction report generated successfully!', type: 'success' });
     } catch (error: any) {
-      alert(`Report generation failed: ${error.message}`);
+      setToast({ message: `Report generation failed: ${error.message}`, type: 'error' });
     } finally {
       setExporting(false);
+    }
+  };
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch('/api/admin/transactions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...newTxn,
+          amount: parseFloat(newTxn.amount)
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setToast({ message: 'Transaction recorded successfully!', type: 'success' });
+        setShowAddModal(false);
+        // Trigger re-fetch
+        window.location.reload();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      setToast({ message: error.message, type: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSettle = async (id: string) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/transactions', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id, status: 'COMPLETED' })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setToast({ message: 'Transaction settled successfully!', type: 'success' });
+        window.location.reload();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      setToast({ message: error.message, type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -282,7 +344,7 @@ export default function AdminTransactionsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader size={48} className="animate-spin mx-auto mb-4 text-[#F4D03F]" />
+          <Loader size={48} className="animate-spin mx-auto mb-4 text-[var(--primary)]" />
           <p className="text-xl font-bold">Loading transactions...</p>
         </div>
       </div>
@@ -291,11 +353,18 @@ export default function AdminTransactionsPage() {
 
   return (
     <div className="min-h-screen">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
-      <div className="bg-white border-b-4 border-[#F4D03F] px-8 py-6">
+      <div className="bg-white px-8 py-6" style={{ borderBottomWidth: '4px', borderBottomColor: 'var(--primary)' }}>
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-black uppercase tracking-tight">Transactions</h1>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-black text-[var(--primary)] border-2 border-[var(--primary)] font-black text-xs uppercase tracking-wider px-5 py-3 hover:bg-[var(--primary)] hover:text-black transition-all flex items-center gap-2"
+            >
+              <Plus size={16} /> Record Cash Payment
+            </button>
             <button
               onClick={handleExportCSV}
               disabled={exporting}
@@ -306,7 +375,7 @@ export default function AdminTransactionsPage() {
             <button
               onClick={handleGenerateReport}
               disabled={exporting}
-              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {exporting ? '📄 Generating...' : '📄 Generate Report'}
             </button>
@@ -321,8 +390,8 @@ export default function AdminTransactionsPage() {
             const IconComponent = card.icon;
             return (
               <div key={index} className="bg-[#2B2621] p-6 relative overflow-hidden">
-                <IconComponent size={32} className="text-[#F4D03F] opacity-40 mb-3" />
-                <div className="text-4xl font-black text-[#F4D03F] mb-2">{card.value}</div>
+                <IconComponent size={32} className="text-[var(--primary)] opacity-40 mb-3" />
+                <div className="text-4xl font-black text-[var(--primary)] mb-2">{card.value}</div>
                 <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">{card.label}</div>
                 {card.subtext && (
                   <div className={`text-sm font-bold ${card.subtextColor}`}>{card.subtext}</div>
@@ -340,21 +409,21 @@ export default function AdminTransactionsPage() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[#F4D03F]"
+                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
               >
                 {typeOptions.map((opt) => <option key={opt}>{opt}</option>)}
               </select>
               <select
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[#F4D03F]"
+                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
               >
                 {dateOptions.map((opt) => <option key={opt}>{opt}</option>)}
               </select>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[#F4D03F]"
+                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
               >
                 {statusOptions.map((opt) => <option key={opt}>{opt}</option>)}
               </select>
@@ -366,7 +435,7 @@ export default function AdminTransactionsPage() {
               <thead className="bg-[#2B2621]">
                 <tr>
                   {['ID', 'Member', 'Type', 'Amount', 'Payment', 'Date', 'Status', 'Action'].map((col) => (
-                    <th key={col} className="px-6 py-4 text-left text-xs font-black text-[#F4D03F] uppercase tracking-wider">
+                    <th key={col} className="px-6 py-4 text-left text-xs font-black text-[var(--primary)] uppercase tracking-wider">
                       {col}
                     </th>
                   ))}
@@ -419,9 +488,19 @@ export default function AdminTransactionsPage() {
                     </td>
                     {/* Action */}
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button className="text-xs font-bold uppercase px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-100 tracking-wider">
-                        View
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {txn.status === 'PROCESSING' && (
+                          <button
+                            onClick={() => handleSettle(txn.dbId || txn.id)}
+                            className="text-xs font-black uppercase px-3 py-1 bg-green-500 text-white hover:bg-green-600 tracking-wider shadow-sm"
+                          >
+                            Settle
+                          </button>
+                        )}
+                        <button className="text-xs font-bold uppercase px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-100 tracking-wider">
+                          View
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -437,7 +516,7 @@ export default function AdminTransactionsPage() {
             <span className="text-sm text-gray-500">Showing {filtered.length} of {transactions.length} transactions</span>
             <div className="flex items-center gap-1">
               <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300">← Prev</button>
-              <button className="px-3 py-1 text-sm font-bold bg-[#F4D03F] text-black border border-[#F4D03F]">1</button>
+              <button className="px-3 py-1 text-sm font-bold bg-[var(--primary)] text-black border border-[var(--primary)]">1</button>
               <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 border border-gray-300">2</button>
               <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 border border-gray-300">3</button>
               <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300">Next →</button>
@@ -445,6 +524,111 @@ export default function AdminTransactionsPage() {
           </div>
         </div>
       </div>
+
+      {/* Record Cash Payment Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white max-w-lg w-full rounded-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="bg-[#2B2621] p-6 flex justify-between items-center">
+              <h2 className="text-[var(--primary)] text-xl font-black uppercase tracking-wider">Record Transaction</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-white hover:text-[var(--primary)] transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTransaction} className="p-8 space-y-6">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Select Member</label>
+                <select
+                  required
+                  value={newTxn.memberId}
+                  onChange={(e) => {
+                    const member = members.find(m => m._id === e.target.value);
+                    setNewTxn({ ...newTxn, memberId: e.target.value, memberName: member ? `${member.firstName} ${member.lastName}` : '' });
+                  }}
+                  className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                >
+                  <option value="">-- Select Member --</option>
+                  {members.map(m => (
+                    <option key={m._id} value={m._id}>{m.firstName} {m.lastName} ({m.email})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Transaction Type</label>
+                  <select
+                    value={newTxn.type}
+                    onChange={(e) => setNewTxn({ ...newTxn, type: e.target.value })}
+                    className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                  >
+                    <option>Membership</option>
+                    <option>Supplement Order</option>
+                    <option>Trainer Booking</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Amount (LKR)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="0.00"
+                    value={newTxn.amount}
+                    onChange={(e) => setNewTxn({ ...newTxn, amount: e.target.value })}
+                    className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Payment Method</label>
+                  <select
+                    value={newTxn.paymentMethod}
+                    onChange={(e) => setNewTxn({ ...newTxn, paymentMethod: e.target.value as any })}
+                    className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                  >
+                    <option>Cash</option>
+                    <option>Card</option>
+                    <option>PayHere</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={newTxn.date}
+                    onChange={(e) => setNewTxn({ ...newTxn, date: e.target.value })}
+                    className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 block mb-2">Reference / Note</label>
+                <input
+                  type="text"
+                  placeholder="Receipt #, note, etc."
+                  value={newTxn.reference}
+                  onChange={(e) => setNewTxn({ ...newTxn, reference: e.target.value })}
+                  className="w-full border-b-2 border-gray-200 py-3 focus:border-[var(--primary)] outline-none transition-all text-sm font-bold text-gray-900"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-[var(--primary)] text-black font-black uppercase tracking-widest py-4 rounded-xl hover:bg-[var(--primary-light)] transition-all shadow-lg disabled:opacity-50"
+              >
+                {submitting ? 'Recording...' : 'Confirm Transaction'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
