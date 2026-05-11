@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 
 const JWT_SECRET = 'straight-blast-gym-secret-key-2024-change-in-production';
 const MONGO_URI = 'mongodb+srv://gymadmin:gadaya%402003@straightblastgym.amatibx.mongodb.net/?appName=StraightBlastGym';
+const BASE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
 
 async function test() {
   const client = new MongoClient(MONGO_URI);
@@ -19,7 +20,7 @@ async function test() {
   
   console.log('Testing plan generation...\n');
   
-  const res = await fetch('http://localhost:3000/api/health/generate-plan', {
+  const res = await fetch(`${BASE_URL}/api/health/generate-plan`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'Cookie': `authToken=${token}`},
     body: JSON.stringify({
