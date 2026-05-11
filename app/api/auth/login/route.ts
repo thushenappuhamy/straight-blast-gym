@@ -12,17 +12,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🔐 [LOGIN] Request received");
-    console.log("🔐 [LOGIN] JWT_SECRET configured:", !!process.env.JWT_SECRET);
-    
     await connectDB();
-    console.log("✅ [LOGIN] Database connected");
 
     const body = await request.json();
     const { email, password } = body;
-    
-    console.log("📧 [LOGIN] Email:", email);
-    console.log("🔑 [LOGIN] Password length:", password?.length);
 
     // Validation
     if (!email || !password) {
@@ -40,10 +33,6 @@ export async function POST(request: NextRequest) {
 
     // Find user with password (select: false is set on password, so we need to explicitly select it)
     const user = await User.findOne({ email }).select('+password');
-    
-    console.log("🔍 [LOGIN] User found:", !!user);
-    console.log("👤 [LOGIN] User email:", user?.email);
-    console.log("👤 [LOGIN] User role:", user?.role);
 
     if (!user) {
       console.error("❌ [LOGIN] User not found");
@@ -66,7 +55,6 @@ export async function POST(request: NextRequest) {
           failureReason: 'User not found',
         });
         await failedRecord.save();
-        console.log("📝 [LOGIN] Failed login attempt recorded (user not found)");
       } catch (historyError: any) {
         console.warn("⚠️ [LOGIN] Failed to record failed login history:", historyError.message);
       }
@@ -79,8 +67,6 @@ export async function POST(request: NextRequest) {
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
-    console.log("🔑 [LOGIN] Password valid:", isPasswordValid);
 
     if (!isPasswordValid) {
       console.error("❌ [LOGIN] Invalid password");
@@ -103,7 +89,6 @@ export async function POST(request: NextRequest) {
           failureReason: 'Invalid password',
         });
         await failedRecord.save();
-        console.log("📝 [LOGIN] Failed login attempt recorded (invalid password)");
       } catch (historyError: any) {
         console.warn("⚠️ [LOGIN] Failed to record failed login history:", historyError.message);
       }
@@ -124,8 +109,6 @@ export async function POST(request: NextRequest) {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
-    
-    console.log("🎟️ [LOGIN] Token created");
 
     // Record login history (using device info extracted earlier)
     try {
@@ -145,7 +128,6 @@ export async function POST(request: NextRequest) {
       });
 
       await loginRecord.save();
-      console.log("📝 [LOGIN] Login history recorded");
     } catch (historyError: any) {
       console.warn("⚠️ [LOGIN] Failed to record login history:", historyError.message);
       // Don't fail the login if history recording fails
@@ -174,12 +156,35 @@ export async function POST(request: NextRequest) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
-    console.log("✅ [LOGIN] Response sent successfully");
     return response;
   } catch (error: any) {
     console.error('❌ [LOGIN] Error:', error);
     console.error('❌ [LOGIN] Error message:', error.message);
     console.error('❌ [LOGIN] Error stack:', error.stack);
+    
+    // Detect database connection errors
+    if (error.message.includes('ENOTFOUND')) {
+      console.error('⚠️ MongoDB DNS resolution failed');
+      return NextResponse.json(
+        { 
+          error: 'Database connection failed: MongoDB cluster not found. Check that your cluster exists and the connection string is correct.',
+          code: 'DB_DNS_ERROR'
+        },
+        { status: 503 }
+      );
+    }
+    
+    if (error.message.includes('ETIMEOUT') || error.message.includes('querySrv')) {
+      console.error('⚠️ MongoDB connection timeout');
+      return NextResponse.json(
+        { 
+          error: 'Database connection timeout. The MongoDB cluster may be paused. Try resuming it at cloud.mongodb.com',
+          code: 'DB_TIMEOUT'
+        },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

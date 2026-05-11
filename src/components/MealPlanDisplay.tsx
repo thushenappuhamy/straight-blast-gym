@@ -8,144 +8,125 @@ interface MealPlanDisplayProps {
 }
 
 export default function MealPlanDisplay({ plan }: MealPlanDisplayProps) {
-  const [expandedWeek, setExpandedWeek] = useState<number | null>(null);
+  const [expandedWeek, setExpandedWeek] = useState<number | null>(0);
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
 
   if (!plan) return null;
 
   const formatMacro = (value: string | number) => {
     if (typeof value === 'string') {
-      return parseInt(value).toLocaleString();
+      return parseInt(value, 10).toLocaleString();
     }
     return value.toLocaleString();
   };
 
   return (
-    <div className="space-y-4">
-      {/* Plan Header */}
-      <div className="bg-gradient-to-r from-green-900 to-green-800 text-white p-6 rounded-lg">
-        <div className="flex items-start justify-between mb-4">
+    <div className="space-y-4 text-white">
+      <section className="rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,rgba(230,60,47,0.16),rgba(17,17,17,0.96))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.25)] backdrop-blur-xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-black mb-2">{plan.title || 'Meal Plan'}</h2>
-            <p className="text-green-100">{plan.goal}</p>
+            <div className="mb-3 inline-flex rounded-full border border-[#E63C2F]/25 bg-[#E63C2F]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.35em] text-white/70">
+              Meal plan
+            </div>
+            <h2 className="text-3xl font-black uppercase tracking-tight sm:text-4xl">{plan.title || 'Meal Plan'}</h2>
+            <p className="mt-2 text-white/60">{plan.goal}</p>
           </div>
-          <UtensilsCrossed size={40} className="text-[#F4D03F]" />
+          <UtensilsCrossed size={40} className="text-[#E63C2F]" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <p className="text-green-300 text-xs font-bold uppercase">Daily Calories</p>
-            <p className="text-lg font-black">{plan.dailyCalories?.toLocaleString() || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-green-300 text-xs font-bold uppercase">Protein</p>
-            <p className="text-lg font-black">{formatMacro(plan.dailyProtein || 0)}g</p>
-          </div>
-          <div>
-            <p className="text-green-300 text-xs font-bold uppercase">Carbs</p>
-            <p className="text-lg font-black">{formatMacro(plan.dailyCarbs || 0)}g</p>
-          </div>
-          <div>
-            <p className="text-green-300 text-xs font-bold uppercase">Fat</p>
-            <p className="text-lg font-black">{formatMacro(plan.dailyFat || 0)}g</p>
-          </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            ['Daily Calories', plan.dailyCalories?.toLocaleString() || 'N/A'],
+            ['Protein', `${formatMacro(plan.dailyProtein || 0)}g`],
+            ['Carbs', `${formatMacro(plan.dailyCarbs || 0)}g`],
+            ['Fat', `${formatMacro(plan.dailyFat || 0)}g`],
+          ].map(([label, value]) => (
+            <div key={label as string} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-white/35">{label}</p>
+              <p className="mt-2 text-lg font-black text-white">{value as string}</p>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Weekly Breakdown */}
       {plan.weeks && (
         <div className="space-y-3">
           {plan.weeks.map((week: any, weekIdx: number) => (
-            <div key={weekIdx} className="border-2 border-gray-300 overflow-hidden">
+            <div key={weekIdx} className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5 backdrop-blur-xl">
               <button
                 onClick={() => setExpandedWeek(expandedWeek === weekIdx ? null : weekIdx)}
-                className="w-full bg-gray-900 text-white p-4 flex justify-between items-center hover:bg-gray-800 transition-colors"
+                className="flex w-full items-center justify-between bg-white/5 p-4 text-left transition-colors hover:bg-white/8"
               >
-                <div className="flex-1 text-left">
-                  <p className="font-black text-lg">{week.week || `Week ${weekIdx + 1}`}</p>
-                  <p className="text-gray-300 text-sm">
-                    {week.days ? week.days.length : 0} days meal plan
-                  </p>
+                <div>
+                  <p className="text-lg font-black text-white">{week.week || `Week ${weekIdx + 1}`}</p>
+                  <p className="text-sm text-white/45">{week.days ? week.days.length : 0} days meal plan</p>
                 </div>
-                {expandedWeek === weekIdx ? (
-                  <ChevronUp className="text-[#F4D03F]" />
-                ) : (
-                  <ChevronDown className="text-[#F4D03F]" />
-                )}
+                {expandedWeek === weekIdx ? <ChevronUp className="text-[#E63C2F]" /> : <ChevronDown className="text-[#E63C2F]" />}
               </button>
 
               {expandedWeek === weekIdx && week.days && (
-                <div className="space-y-2 p-4 bg-gray-50">
-                  {week.days.map((day: any, dayIdx: number) => (
-                    <div key={dayIdx} className="border border-gray-200 overflow-hidden">
-                      <button
-                        onClick={() =>
-                          setExpandedDay(
-                            expandedDay === `${weekIdx}-${dayIdx}` ? null : `${weekIdx}-${dayIdx}`
-                          )
-                        }
-                        className="w-full bg-green-50 text-left p-3 flex justify-between items-center hover:bg-green-100 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <p className="font-black text-green-900">{day.day || `Day ${dayIdx + 1}`}</p>
-                          <p className="text-xs text-gray-600">
-                            {day.totalCalories?.toLocaleString() || 0} cal • P: {formatMacro(day.protein || 0)}g • C: {formatMacro(day.carbs || 0)}g • F: {formatMacro(day.fat || 0)}g
-                          </p>
-                        </div>
-                        {expandedDay === `${weekIdx}-${dayIdx}` ? (
-                          <ChevronUp size={18} className="text-[#F4D03F]" />
-                        ) : (
-                          <ChevronDown size={18} className="text-[#F4D03F]" />
-                        )}
-                      </button>
+                <div className="space-y-2 border-t border-white/10 bg-black/25 p-4">
+                  {week.days.map((day: any, dayIdx: number) => {
+                    const dayKey = `${weekIdx}-${dayIdx}`;
 
-                      {expandedDay === `${weekIdx}-${dayIdx}` && day.meals && (
-                        <div className="bg-white p-4 space-y-4 border-t border-gray-200">
-                          {day.meals.map((meal: any, mealIdx: number) => (
-                            <div
-                              key={mealIdx}
-                              className="pb-4 border-b border-gray-200 last:border-0 last:pb-0"
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <h5 className="font-black text-gray-900">{meal.type}</h5>
-                                  <p className="text-xs text-gray-600">{meal.time || ''}</p>
+                    return (
+                      <div key={dayIdx} className="overflow-hidden rounded-2xl border border-white/10">
+                        <button
+                          onClick={() => setExpandedDay(expandedDay === dayKey ? null : dayKey)}
+                          className="flex w-full items-center justify-between bg-white/5 p-3 text-left transition-colors hover:bg-white/8"
+                        >
+                          <div>
+                            <p className="font-black text-white">{day.day || `Day ${dayIdx + 1}`}</p>
+                            <p className="text-xs text-white/45">
+                              {day.totalCalories?.toLocaleString() || 0} cal • P: {formatMacro(day.protein || 0)}g • C: {formatMacro(day.carbs || 0)}g • F: {formatMacro(day.fat || 0)}g
+                            </p>
+                          </div>
+                          {expandedDay === dayKey ? <ChevronUp size={18} className="text-[#E63C2F]" /> : <ChevronDown size={18} className="text-[#E63C2F]" />}
+                        </button>
+
+                        {expandedDay === dayKey && day.meals && (
+                          <div className="space-y-4 border-t border-white/10 bg-[#111111] p-4">
+                            {day.meals.map((meal: any, mealIdx: number) => (
+                              <div key={mealIdx} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div className="mb-3 flex items-start justify-between gap-3">
+                                  <div>
+                                    <h5 className="font-black text-white uppercase tracking-[0.2em]">{meal.type}</h5>
+                                    <p className="text-xs text-white/45">{meal.time || ''}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-black text-[#E63C2F]">{meal.calories?.toLocaleString() || 0} cal</p>
+                                    <p className="text-xs text-white/45">
+                                      P: {formatMacro(meal.protein || 0)}g | C: {formatMacro(meal.carbs || 0)}g | F: {formatMacro(meal.fat || 0)}g
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="text-right">
-                                  <p className="font-black text-[#F4D03F]">{meal.calories?.toLocaleString() || 0} cal</p>
-                                  <p className="text-xs text-gray-600">
-                                    P: {formatMacro(meal.protein || 0)}g | C: {formatMacro(meal.carbs || 0)}g | F: {formatMacro(meal.fat || 0)}g
-                                  </p>
-                                </div>
+
+                                {meal.items && (
+                                  <ul className="mb-2 space-y-1 pl-2">
+                                    {meal.items.map((item: any, itemIdx: number) => (
+                                      <li key={itemIdx} className="text-sm text-white/75">
+                                        <span className="font-bold text-[#E63C2F]">•</span> {item.item || item}
+                                        {item.quantity && <span className="text-white/45"> - {item.quantity}</span>}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+
+                                {meal.recipe && (
+                                  <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-sm">
+                                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#E63C2F]">Recipe</p>
+                                    <p className="text-white/75 text-xs">{meal.recipe}</p>
+                                  </div>
+                                )}
+
+                                {meal.notes && <p className="mt-2 text-sm italic text-white/45">📝 {meal.notes}</p>}
                               </div>
-
-                              {meal.items && (
-                                <ul className="space-y-1 ml-2 mb-2">
-                                  {meal.items.map((item: any, itemIdx: number) => (
-                                    <li key={itemIdx} className="text-sm text-gray-700">
-                                      <span className="font-bold">•</span> {item.item || item}
-                                      {item.quantity && <span className="text-gray-600"> - {item.quantity}</span>}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-
-                              {meal.recipe && (
-                                <div className="bg-blue-50 p-2 rounded text-sm mt-2">
-                                  <p className="font-bold text-blue-900 mb-1">📖 Recipe:</p>
-                                  <p className="text-blue-800 text-xs">{meal.recipe}</p>
-                                </div>
-                              )}
-
-                              {meal.notes && (
-                                <p className="text-sm italic text-gray-600 mt-2">📝 {meal.notes}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -153,27 +134,24 @@ export default function MealPlanDisplay({ plan }: MealPlanDisplayProps) {
         </div>
       )}
 
-      {/* Nutrition Summary */}
       {plan.nutritionTips && (
-        <div className="bg-blue-50 border-2 border-blue-300 p-4 rounded-lg">
-          <p className="font-black text-gray-900 mb-2">💡 Nutrition Tips:</p>
-          <p className="text-gray-700 text-sm">{plan.nutritionTips}</p>
+        <div className="rounded-2xl border border-[#E63C2F]/25 bg-[#E63C2F]/10 p-4">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white">💡 Nutrition Tips</p>
+          <p className="text-sm text-white/75">{plan.nutritionTips}</p>
         </div>
       )}
 
-      {/* Shopping List */}
       {plan.shoppingList && (
-        <div className="bg-purple-50 border-2 border-purple-300 p-4 rounded-lg">
-          <p className="font-black text-gray-900 mb-2">🛒 Shopping List:</p>
-          <p className="text-gray-700 text-sm">{plan.shoppingList}</p>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white">🛒 Shopping List</p>
+          <p className="text-sm text-white/75">{plan.shoppingList}</p>
         </div>
       )}
 
-      {/* Notes Section */}
       {plan.notes && (
-        <div className="bg-yellow-50 border-2 border-[#F4D03F] p-4 rounded-lg">
-          <p className="font-black text-gray-900 mb-2">📌 Important Notes:</p>
-          <p className="text-gray-700 text-sm">{plan.notes}</p>
+        <div className="rounded-2xl border border-[#E63C2F]/25 bg-[#E63C2F]/10 p-4">
+          <p className="mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-white">📌 Important Notes</p>
+          <p className="text-sm text-white/75">{plan.notes}</p>
         </div>
       )}
     </div>

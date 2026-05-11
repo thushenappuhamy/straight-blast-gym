@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -11,22 +13,9 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log("📝 Email changed:", value);
-    setEmail(value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log("🔐 Password changed, length:", value.length);
-    setPassword(value);
-  };
-
   const handleSignIn = async (e: React.FormEvent) => {
-    console.log("🔐 Sign in button clicked");
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError("Please enter email and password");
       return;
@@ -36,10 +25,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      console.log("📤 Sending login request...");
-      console.log("📧 Email:", email);
-      console.log("🔑 Password length:", password.length);
-
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -49,143 +34,160 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log("📥 Response status:", response.status);
-      console.log("📥 Response ok:", response.ok);
-
       const data = await response.json();
-      console.log("📥 Response data:", data);
 
       if (!response.ok) {
-        console.error("❌ Login failed:", data.error);
         setError(data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      console.log("✅ Login successful!");
-      console.log("👤 User:", data.user);
-      console.log("👤 User role:", data.user?.role);
-      console.log("🎟️ Token:", data.token?.substring(0, 20) + "...");
-
-      // Store token in localStorage
       if (data.token) {
-        localStorage.setItem('token', data.token);
-        console.log("✅ Token stored in localStorage");
+        localStorage.setItem("token", data.token);
       }
 
       const redirectPath = data.user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
-      console.log("🔄 Will redirect to:", redirectPath);
-      console.log("🔄 Current location:", window.location.href);
-      console.log("🔄 About to execute window.location.href = '" + redirectPath + "'");
-
-      // Hard redirect
       setTimeout(() => {
-        console.log("⏱️ Executing redirect now...");
         window.location.href = redirectPath;
       }, 100);
     } catch (err: any) {
-      console.error("❌ Error:", err);
-      console.error("❌ Error message:", err.message);
-      console.error("❌ Error stack:", err.stack);
       setError(err.message || "An error occurred");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex justify-center mb-8">
-          <img 
-            src="/logo.jpeg" 
-            alt="SBG Logo" 
-            className="w-24 h-24 rounded-full"
-          />
-        </div>
+    <div className="min-h-screen bg-[#090909] text-white">
+      <div className="grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
+        <aside className="relative hidden overflow-hidden border-r border-white/10 bg-[#0b0b0b] lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.22),transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.04)_0,rgba(255,255,255,0.04)_1px,transparent_1px,transparent_34px)] opacity-70" />
 
-        {/* Heading */}
-        <h1 className="text-3xl lg:text-4xl font-black text-[#1A1816] text-center mb-2 uppercase">
-          Welcome Back
-        </h1>
-        <p className="text-gray-500 text-center mb-10">
-          Sign in to your SBG account
-        </p>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-3 bg-red-100 border border-red-300 text-red-700 text-sm rounded">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSignIn} className="space-y-6">
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-bold text-[#1A1816] uppercase tracking-wider mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={handleEmailChange}
-              required
-              className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
-            />
+          <div className="relative z-10 flex items-center justify-between px-8 py-6">
+            <Link href="/" className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs font-black uppercase tracking-[0.35em] text-white/75 transition-colors hover:border-[#E63C2F]/40 hover:text-white">
+              <Home size={14} className="text-[#E63C2F]" />
+              Home
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#E63C2F]/40 bg-black/40">
+                <Image src="/logo.jpeg" alt="SBG Logo" width={48} height={48} className="h-full w-full object-cover" />
+              </div>
+              <div className="leading-none">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.45em] text-white/55">Straight</div>
+                <div className="text-sm font-black uppercase tracking-[0.35em] text-white">Blast Gym</div>
+              </div>
+            </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-xs font-bold text-[#1A1816] uppercase tracking-wider mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={handlePasswordChange}
-              required
-              className="w-full px-4 py-4 bg-white border border-gray-300 text-[#1A1816] placeholder-gray-400 focus:outline-none focus:border-[#F4D03F] transition-colors"
-            />
-            <div className="text-right mt-2">
-              <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-[#1A1816] transition-colors">
-                Forgot password?
+          <div className="relative z-10 flex flex-1 flex-col justify-center px-12 xl:px-16">
+            <div className="max-w-xl">
+              <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-[#E63C2F]/30 bg-black/35 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.35em] text-white/80 backdrop-blur-md">
+                <span className="h-2 w-2 rounded-full bg-[#E63C2F]" />
+                Negombo&apos;s combat training system
+              </div>
+
+              <h1 className="text-5xl font-black uppercase leading-[0.92] tracking-tight text-white sm:text-6xl xl:text-7xl">
+                Welcome
+                <span className="mt-2 block text-[#E63C2F]">Back.</span>
+              </h1>
+
+              <p className="mt-6 max-w-lg text-base leading-8 text-white/68">
+                Sign in to access your workout plans, meal plans, dashboard history, and training tools inside the SBG system.
+              </p>
+
+            </div>
+          </div>
+        </aside>
+
+        <main className="relative flex items-center justify-center overflow-hidden px-6 py-12 sm:px-8 lg:px-10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.15),transparent_35%),linear-gradient(180deg,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0)_36%)]" />
+
+          <div className="relative z-10 w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#111111] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl sm:p-8">
+            <div className="mb-8 flex items-center justify-between gap-4 lg:hidden">
+              <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.3em] text-white/80">
+                <Home size={14} className="text-[#E63C2F]" />
+                Home
               </Link>
+              <div className="flex items-center gap-3">
+                <Image src="/logo.jpeg" alt="SBG Logo" width={40} height={40} className="rounded-full border border-white/10" />
+                <span className="text-xs font-black uppercase tracking-[0.35em] text-white/70">SBG</span>
+              </div>
             </div>
+
+            <div className="text-center">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-[#E63C2F]/35 bg-black/45 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]">
+                <Image src="/logo.jpeg" alt="SBG Logo" width={80} height={80} className="h-full w-full object-cover" />
+              </div>
+              <h2 className="mt-6 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+                Welcome Back
+              </h2>
+              <p className="mt-2 text-sm text-white/55">Sign in to your SBG account</p>
+            </div>
+
+            {error && (
+              <div className="mt-6 rounded-2xl border border-[#E63C2F]/30 bg-[#E63C2F]/10 px-4 py-3 text-sm text-[#F5F5F5]">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSignIn} className="mt-8 space-y-5">
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.35em] text-white/65">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-white/10 bg-[#0c0c0c] px-4 py-4 text-white placeholder:text-white/28 focus:border-[#E63C2F] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-[0.35em] text-white/65">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-white/10 bg-[#0c0c0c] px-4 py-4 text-white placeholder:text-white/28 focus:border-[#E63C2F] focus:outline-none"
+                />
+                <div className="mt-2 text-right">
+                  <Link href="/forgot-password" className="text-sm text-white/50 transition-colors hover:text-white">
+                    Forgot password?
+                  </Link>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="inline-flex w-full items-center justify-center gap-3 rounded-full bg-[#E63C2F] px-6 py-4 text-sm font-black uppercase tracking-[0.32em] text-white shadow-[0_0_30px_rgba(230,60,47,0.24)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Signing in..." : "Sign In"}
+                <ArrowRight size={16} />
+              </button>
+
+              <div className="relative py-3 text-center">
+                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-white/10" />
+                <span className="relative bg-[#111111] px-4 text-xs font-semibold uppercase tracking-[0.35em] text-white/45">
+                  New to SBG?
+                </span>
+              </div>
+
+              <Link
+                href="/signup"
+                className="inline-flex w-full items-center justify-center gap-3 rounded-full border border-white/14 bg-white/5 px-6 py-4 text-sm font-black uppercase tracking-[0.3em] text-white transition-colors hover:border-[#E63C2F]/40 hover:bg-white/8"
+              >
+                Create Account
+              </Link>
+            </form>
           </div>
-
-          {/* Sign In Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 bg-[#F4D03F] text-[#1A1816] font-black text-sm uppercase tracking-wider hover:bg-[#e5c238] disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-            <span>→</span>
-          </button>
-
-          {/* Divider */}
-          <div className="relative py-4">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-[#F5F5F5] px-4 text-sm text-gray-500">New to SBG?</span>
-            </div>
-          </div>
-
-          {/* Create Account Button */}
-          <Link href="/signup">
-            <button
-              type="button"
-              className="w-full py-4 bg-transparent border-2 border-[#F4D03F] text-[#F4D03F] font-black text-sm uppercase tracking-wider hover:bg-[#F4D03F] hover:text-[#1A1816] transition-colors"
-            >
-              Create Account
-            </button>
-          </Link>
-        </form>
+        </main>
       </div>
     </div>
   );

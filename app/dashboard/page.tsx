@@ -1,101 +1,91 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { Calendar, Scale, Flame, CheckCircle2, TrendingUp, BarChart3, Pill, User as UserIcon, UtensilsCrossed, Check, Zap } from 'lucide-react';
+import {
+  Calendar,
+  Scale,
+  Flame,
+  Check,
+  BarChart3,
+  Pill,
+  User as UserIcon,
+  UtensilsCrossed,
+  Zap,
+  Dumbbell,
+  TrendingUp,
+  Target,
+} from "lucide-react";
 import PlanGenerationModal from "@/src/components/PlanGenerationModal";
-import WorkoutPlanDisplay from "@/src/components/WorkoutPlanDisplay";
-import MealPlanDisplay from "@/src/components/MealPlanDisplay";
 
-// Stat Card Component
-function StatCard({
-  icon,
-  value,
-  label,
-  sublabel,
-  highlight,
-}: {
+type StatCardProps = {
   icon: string;
   value: string;
   label: string;
   sublabel?: string;
   highlight?: string;
-}) {
-  const getIcon = (iconName: string) => {
-    const iconProps = { size: 28, className: 'text-[#F4D03F]' };
-    switch(iconName) {
-      case 'calendar': return <Calendar {...iconProps} />;
-      case 'scale': return <Scale {...iconProps} />;
-      case 'flame': return <Flame {...iconProps} />;
-      case 'chart': return <BarChart3 {...iconProps} />;
-      default: return null;
-    }
+};
+
+function StatCard({ icon, value, label, sublabel, highlight }: StatCardProps) {
+  const iconMap: Record<string, ReactNode> = {
+    calendar: <Calendar size={22} className="text-[#E63C2F]" />,
+    scale: <Scale size={22} className="text-[#E63C2F]" />,
+    flame: <Flame size={22} className="text-[#E63C2F]" />,
+    chart: <BarChart3 size={22} className="text-[#E63C2F]" />,
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm">
-      <div className="mb-2">{getIcon(icon)}</div>
-      <div className="text-4xl font-black text-[#1A1816] mb-1">{value}</div>
-      <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+    <div className="rounded-[1.75rem] border border-white/10 dark:border-white/10 dark:bg-linear-to-br dark:from-white/8 dark:to-white/5 bg-linear-to-br from-[#F4D03F]/10 to-white/30 p-6 backdrop-blur-xl dark:shadow-[0_20px_60px_rgba(0,0,0,0.2)] shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:text-white text-[#1A1816]">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E63C2F]/12 dark:bg-[#E63C2F]/12">
+        {iconMap[icon]}
+      </div>
+      <div className="text-4xl font-black tracking-tight dark:text-white text-[#1A1816]">{value}</div>
+      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.35em] dark:text-white/45 text-[#6B625A]">
         {label}
-        {sublabel && <br />}
-        {sublabel}
+        {sublabel ? <><br />{sublabel}</> : null}
       </div>
       {highlight && (
-        <div className={`text-xs font-bold mt-2 flex items-center gap-1 ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-green-600" : "text-[#F4D03F]"}`}>
-          {highlight.includes("✓") && <Check size={14} className="inline" />}
-          {highlight.replace('✓', '').trim()}
+        <div className={`mt-3 text-xs font-bold uppercase tracking-[0.22em] ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-emerald-400" : "text-[#E63C2F]"}`}>
+          {highlight.includes("✓") && <Check size={14} className="mr-1 inline" />}
+          {highlight.replace("✓", "").trim()}
         </div>
       )}
     </div>
   );
 }
 
-// Workout Card Component
-function WorkoutCard({
-  day,
-  dayLabel,
-  title,
-  exercises,
-  duration,
-  status,
-}: {
-  day: string;
+type WorkoutCardProps = {
   dayLabel: string;
   title: string;
   exercises: string;
   duration: string;
   status: "done" | "today" | "upcoming";
-}) {
+};
+
+function WorkoutCard({ dayLabel, title, exercises, duration, status }: WorkoutCardProps) {
+  const statusStyles =
+    status === "done"
+      ? "bg-emerald-500/15 text-emerald-400"
+      : status === "today"
+      ? "bg-[#E63C2F]/15 text-[#E63C2F]"
+      : "dark:bg-white/10 dark:text-white/45 bg-[#E6E3DA] text-[#6B625A]";
+
   return (
-    <div className="flex items-center gap-4 p-4 bg-[#F9F9F9] rounded-lg">
-      <div className={`px-3 py-2 rounded text-xs font-black uppercase ${
-        status === "done" ? "bg-[#1A1816] text-white" :
-        status === "today" ? "bg-[#F4D03F] text-[#1A1816]" :
-        "bg-gray-300 text-gray-600"
-      }`}>
+    <div className="flex items-center gap-4 rounded-3xl border dark:border-white/8 border-[#E6E3DA] dark:bg-black/25 bg-white/50 p-4">
+      <div className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.28em] ${status === "done" ? "bg-white dark:text-black text-[#1A1816]" : status === "today" ? "bg-[#E63C2F] text-white" : "dark:bg-white/10 dark:text-white/45 bg-[#E6E3DA] text-[#6B625A]"}`}>
         {dayLabel}
       </div>
-      <div className="flex-1">
-        <div className="font-bold text-[#1A1816]">{title}</div>
-        <div className="text-xs text-gray-500">{exercises} · {duration}</div>
+      <div className="min-w-0 flex-1">
+        <div className="font-black dark:text-white text-[#1A1816]">{title}</div>
+        <div className="text-xs dark:text-white/45 text-[#6B625A]">{exercises} · {duration}</div>
       </div>
-      <div className={`text-xs font-bold uppercase flex items-center gap-1 ${
-        status === "done" ? "text-green-600" :
-        status === "today" ? "text-[#F4D03F]" :
-        "text-gray-400"
-      }`}>
+      <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-[0.25em] ${statusStyles}`}>
         {status === "done" && (
-          <>
-            <Check size={14} />
-            Done
-          </>
+          <><Check size={14} /> Done</>
         )}
         {status === "today" && (
-          <>
-            <Flame size={14} />
-            Today
-          </>
+          <><Flame size={14} /> Today</>
         )}
         {status === "upcoming" && "Upcoming"}
       </div>
@@ -103,127 +93,234 @@ function WorkoutCard({
   );
 }
 
-// Quick Action Button
-function QuickAction({ icon, label, href }: { icon: string; label: string; href?: string }) {
-  const getIcon = (iconName: string) => {
-    const iconProps = { size: 24, className: 'text-[#F4D03F]' };
-    switch(iconName) {
-      case 'chart': return <BarChart3 {...iconProps} />;
-      case 'pill': return <Pill {...iconProps} />;
-      case 'user': return <UserIcon {...iconProps} />;
-      case 'food': return <UtensilsCrossed {...iconProps} />;
-      default: return null;
-    }
+type QuickActionProps = {
+  icon: string;
+  label: string;
+  href?: string;
+};
+
+function QuickAction({ icon, label, href }: QuickActionProps) {
+  const iconMap: Record<string, ReactNode> = {
+    chart: <Target size={20} className="text-[#E63C2F]" />,
+    pill: <Pill size={20} className="text-[#E63C2F]" />,
+    user: <UserIcon size={20} className="text-[#E63C2F]" />,
+    food: <UtensilsCrossed size={20} className="text-[#E63C2F]" />,
   };
 
   const content = (
-    <>
-      <div className="mb-2">{getIcon(icon)}</div>
-      <span className="text-xs font-bold text-[#1A1816] uppercase tracking-wider">{label}</span>
-    </>
+    <div className="flex h-full flex-col items-center justify-center rounded-2xl border dark:border-white/8 border-[#E6E3DA] dark:bg-white/5 bg-white/50 p-4 text-center transition-colors dark:hover:bg-white/8 hover:bg-[#F4D03F]/20">
+      <div className="mb-3">{iconMap[icon]}</div>
+      <span className="text-[10px] font-black uppercase tracking-[0.32em] dark:text-white/80 text-[#1A1816]">{label}</span>
+    </div>
   );
 
   if (href) {
-    return (
-      <Link href={href}>
-        <div className="flex flex-col items-center justify-center p-4 bg-[#F9F9F9] rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
-          {content}
-        </div>
-      </Link>
-    );
+    return <Link href={href}>{content}</Link>;
   }
 
-  return (
-    <button className="flex flex-col items-center justify-center p-4 bg-[#F9F9F9] rounded-lg hover:bg-gray-200 transition-colors">
-      {content}
-    </button>
-  );
+  return <button type="button" className="w-full">{content}</button>;
 }
 
-// Progress Bar
-function ProgressBar({ label, value, max, displayText }: { label: string; value: number; max: number; displayText: string }) {
-  const percentage = (value / max) * 100;
+type ProgressBarProps = {
+  label: string;
+  value: number;
+  max: number;
+  displayText: string;
+};
+
+function ProgressBar({ label, value, max, displayText }: ProgressBarProps) {
+  const percentage = Math.min((value / max) * 100, 100);
+
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-bold text-[#1A1816]">{label}</span>
-        <span className="text-sm text-gray-500">{displayText}</span>
+    <div className="mb-4 last:mb-0">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-sm font-bold dark:text-white text-[#1A1816]">{label}</span>
+        <span className="text-sm dark:text-white/50 text-[#9A8F87]">{displayText}</span>
       </div>
-      <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-[#F4D03F] rounded-full transition-all duration-500"
-          style={{ width: `${percentage}%` }}
-        />
+      <div className="h-3 rounded-full dark:bg-white/10 bg-[#E6E3DA] overflow-hidden">
+        <div className="h-full rounded-full bg-[#E63C2F] transition-all duration-500" style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );
 }
 
 export default function DashboardPage() {
-  const [currentDate] = useState(new Date(2026, 1, 28)); // February 28, 2026
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [currentDate] = useState(new Date());
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: "Thushen", height: 180, weight: 68, age: 28 });
+  const [userInfo, setUserInfo] = useState({ name: "User", height: 180, weight: 68, age: 28, bmi: 0 });
   const [generatedPlans, setGeneratedPlans] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<any[]>([]);
+  const [workouts, setWorkouts] = useState<any[]>([]);
+  const [dashboardHighlights, setDashboardHighlights] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const fetchAllData = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+        setLoading(true);
+        
+        // Fetch user info
+        const userResponse = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        if (response.ok) {
-          const data = await response.json();
+
+        if (userResponse.ok) {
+          const data = await userResponse.json();
+          const displayName = [data.user?.firstName, data.user?.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim();
+
           setUserInfo({
-            name: data.name || "Member",
-            height: data.profile?.height || 180,
-            weight: data.profile?.weight || 68,
-            age: data.profile?.age || 28,
+            name: displayName || data.user?.name || data.user?.email?.split("@")[0] || "User",
+            height: data.user?.profile?.height || 180,
+            weight: data.user?.profile?.weight || 68,
+            age: data.user?.profile?.age || 28,
+            bmi: data.user?.bmi || 0,
           });
         }
+
+        // Fetch BMI data
+        const bmiResponse = await fetch("/api/health/bmi");
+        const bmiData = await bmiResponse.json();
+        
+        const currentBMI = bmiData?.data?.bmi || 0;
+        const bmiCategory = bmiData?.data?.category || "Unknown";
+        
+        // Fetch workout plans
+        const plansResponse = await fetch("/api/health/generate-plan");
+        const plansData = await plansResponse.json();
+        
+        setGeneratedPlans(plansData?.data);
+
+        // Build stats from fetched data
+        const calculatedStats = [
+          { 
+            icon: "calendar", 
+            value: "0", 
+            label: "Workouts", 
+            sublabel: "This Month", 
+            highlight: "Plan active ✓" 
+          },
+          { 
+            icon: "scale", 
+            value: currentBMI.toString(), 
+            label: "Current BMI", 
+            highlight: `${bmiCategory} ✓` 
+          },
+          { 
+            icon: "flame", 
+            value: "2,450", 
+            label: "Daily Calories", 
+            sublabel: "Target", 
+            highlight: "↑ Muscle Gain Plan" 
+          },
+          { 
+            icon: "chart", 
+            value: "18", 
+            label: "Days Left", 
+            sublabel: "In Plan", 
+            highlight: "60% Complete" 
+          },
+        ];
+        setStats(calculatedStats);
+
+        // Extract workouts from plan
+        const extractedWorkouts: any[] = [];
+        if (plansData?.data?.workoutPlan?.weeks?.[0]?.days) {
+          const days = plansData.data.workoutPlan.weeks[0].days;
+          const dayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+          const currentDayOfWeek = currentDate.getDay();
+          
+          days.forEach((day: any, index: number) => {
+            if (index < 4) {
+              // Determine status based on current day of week
+              let status: "done" | "today" | "upcoming" = "upcoming";
+              if (index < currentDayOfWeek) {
+                status = "done";
+              } else if (index === currentDayOfWeek) {
+                status = "today";
+              }
+              
+              extractedWorkouts.push({
+                dayLabel: dayLabels[index] || `DAY ${index + 1}`,
+                title: day.title || "Workout",
+                exercises: `${day.exercises?.length || 0} exercises`,
+                duration: day.duration || "60 min",
+                status: status
+              });
+            }
+          });
+        }
+        
+        if (extractedWorkouts.length > 0) {
+          setWorkouts(extractedWorkouts);
+        } else {
+          setWorkouts([
+            { dayLabel: "MON", title: "Generate a plan", exercises: "Start with BMI", duration: "-- min", status: "upcoming" as const },
+          ]);
+        }
+
+        // Calculate highlights
+        const calculatedHighlights = [
+          { title: "Training streak", value: plansData?.data?.workoutPlan ? "Active" : "No Plan", detail: "Start planning to track progress" },
+          { title: "Goal pace", value: plansData?.data?.workoutPlan ? "On track" : "Pending", detail: "Generate a plan to get started" },
+          { title: "Coach access", value: "Live", detail: "Book sessions from the portal" },
+        ];
+        setDashboardHighlights(calculatedHighlights);
+        
       } catch (error) {
-        console.error("Failed to fetch user info:", error);
+        console.error("Failed to fetch dashboard data:", error);
+        // Set default state if API fails
+        setStats([
+          { icon: "calendar", value: "--", label: "Workouts", sublabel: "This Month", highlight: "Data unavailable" },
+          { icon: "scale", value: "--", label: "Current BMI", highlight: "No data" },
+          { icon: "flame", value: "--", label: "Daily Calories", sublabel: "Target", highlight: "No plan" },
+          { icon: "chart", value: "--", label: "Days Left", sublabel: "In Plan", highlight: "No plan" },
+        ]);
+      } finally {
+        setLoading(false);
       }
     };
-    
-    fetchUserInfo();
+
+    fetchAllData();
   }, []);
 
   const handlePlanSuccess = (plans: any) => {
     setGeneratedPlans(plans);
-    setActiveTab("workout-plan");
   };
-  
-  const stats = [
-    { icon: "calendar", value: "24", label: "Workouts", sublabel: "This Month", highlight: "↑ 4 from last month" },
-    { icon: "scale", value: "22.4", label: "Current BMI", sublabel: "", highlight: "Normal Range ✓" },
-    { icon: "flame", value: "2,450", label: "Daily Calories", sublabel: "Target", highlight: "↑ Muscle Gain Plan" },
-    { icon: "chart", value: "18", label: "Days Left in", sublabel: "Plan", highlight: "60% Complete" },
-  ];
 
-  const workouts = [
-    { day: "MON", dayLabel: "MON", title: "Chest & Triceps", exercises: "8 exercises", duration: "60 min", status: "done" as const },
-    { day: "TUE", dayLabel: "TUE", title: "Back & Biceps", exercises: "7 exercises", duration: "55 min", status: "done" as const },
-    { day: "WED", dayLabel: "WED", title: "Legs & Glutes", exercises: "9 exercises", duration: "65 min", status: "today" as const },
-    { day: "THU", dayLabel: "THU", title: "Shoulders & Core", exercises: "6 exercises", duration: "50 min", status: "upcoming" as const },
-  ];
+  // Generate calendar for current month
+  const generateCalendarDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const days: (number | null)[] = Array(firstDay).fill(null);
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    
+    // Split into weeks
+    const weeks: (number | null)[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
+    }
+    return weeks;
+  };
 
-  // Calendar data for February 2026
-  const calendarDays = [
-    [null, null, null, null, null, null, 1],
-    [2, 3, 4, 5, 6, 7, 8],
-    [9, 10, 11, 12, 13, 14, 15],
-    [16, 17, 18, 19, 20, 21, 22],
-    [23, 24, 25, 26, 27, 28, null],
-  ];
+  const calendarDays = generateCalendarDays();
 
-  const workoutDays = [3, 4, 10, 11, 17, 18, 24, 25];
+  // Get current day of week (0-6, 0 = Sunday)
+  const getDayOfWeek = () => {
+    return currentDate.getDay();
+  };
+
+  const workoutDays: number[] = [];
 
   return (
-    <div className="p-8">
+    <div className="min-h-screen px-6 py-8 dark:text-white text-[#1A1816] lg:px-10">
       <PlanGenerationModal
         isOpen={isPlanModalOpen}
         onClose={() => setIsPlanModalOpen(false)}
@@ -234,180 +331,112 @@ export default function DashboardPage() {
         onSuccess={handlePlanSuccess}
       />
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-[#1A1816] uppercase mb-1">
-          Welcome Back, {userInfo.name}
-        </h1>
-        <p className="text-gray-500">
-          Tuesday, February 28, 2026 — Leg Day Today!
-        </p>
-      </div>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="text-white text-lg font-bold">Loading dashboard...</div>
+        </div>
+      )}
 
-      {/* Tab Navigation */}
-      <div className="mb-8 flex gap-2 overflow-x-auto pb-2 border-b-2 border-gray-200">
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
-            activeTab === "dashboard"
-              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
-              : "text-gray-600 hover:text-[#1A1816]"
-          }`}
-        >
-          Dashboard
-        </button>
-        <button
-          onClick={() => setActiveTab("generate-plan")}
-          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
-            activeTab === "generate-plan"
-              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
-              : "text-gray-600 hover:text-[#1A1816]"
-          }`}
-        >
-          Generate Plan
-        </button>
-        <button
-          onClick={() => setActiveTab("workout-plan")}
-          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
-            activeTab === "workout-plan"
-              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
-              : "text-gray-600 hover:text-[#1A1816]"
-          }`}
-          disabled={!generatedPlans}
-        >
-          Workout Plan
-        </button>
-        <button
-          onClick={() => setActiveTab("meal-plan")}
-          className={`px-6 py-3 font-black uppercase whitespace-nowrap transition-all ${
-            activeTab === "meal-plan"
-              ? "text-[#F4D03F] border-b-2 border-[#F4D03F] -mb-2"
-              : "text-gray-600 hover:text-[#1A1816]"
-          }`}
-          disabled={!generatedPlans}
-        >
-          Meal Plan
-        </button>
-      </div>
+      <div className="mx-auto max-w-7xl space-y-8">
+        <section className="rounded-[2rem] border dark:border-white/10 border-[#E6E3DA] dark:bg-[linear-gradient(135deg,rgba(230,60,47,0.18),rgba(17,17,17,0.94))] bg-[linear-gradient(135deg,rgba(244,208,63,0.08),rgba(255,255,255,0.94))] p-6 dark:shadow-[0_20px_80px_rgba(0,0,0,0.35)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:backdrop-blur-xl backdrop-blur-sm lg:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border dark:border-[#E63C2F]/30 border-[#F4D03F]/30 dark:bg-black/30 bg-white/50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.4em] dark:text-white/70 text-[#6B625A]">
+                Member dashboard
+              </div>
+              <h1 className="text-4xl font-black uppercase tracking-tight dark:text-white text-[#1A1816] sm:text-5xl">
+                Welcome Back, <span className="text-[#E63C2F]">{userInfo.name}</span>
+              </h1>
+              <p className="mt-3 text-sm dark:text-white/60 text-[#9A8F87] sm:text-base">
+                {currentDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} — Leg Day Today!
+              </p>
+            </div>
 
-      {/* Dashboard Tab */}
-      {activeTab === "dashboard" && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+            <div />
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {dashboardHighlights.map((item) => (
+              <div key={item.title} className="rounded-3xl border dark:border-white/10 border-[#E6E3DA] dark:bg-black/25 bg-white/50 p-4">
+                <div className="text-[10px] font-black uppercase tracking-[0.4em] dark:text-white/40 text-[#9A8F87]">{item.title}</div>
+                <div className="mt-2 text-2xl font-black dark:text-white text-[#1A1816]">{item.value}</div>
+                <div className="mt-2 text-sm dark:text-white/60 text-[#9A8F87]">{item.detail}</div>
+              </div>
             ))}
           </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Workouts */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* This Week's Workouts */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-black text-[#1A1816] uppercase">This Week&apos;s Workouts</h2>
-              <button className="text-sm text-gray-500 hover:text-[#1A1816] transition-colors">
-                View Full Plan →
-              </button>
+          {generatedPlans && (
+            <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-100">
+              ✓ Plans generated successfully. Use the sidebar to open Workout Plan or Meal Plan.
             </div>
-            <div className="space-y-3">
-              {workouts.map((workout, index) => (
-                <WorkoutCard key={index} {...workout} />
-              ))}
-            </div>
-          </div>
-
-          {/* Progress Tracking */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-black text-[#1A1816] uppercase">Progress Tracking</h2>
-              <button className="text-sm text-gray-500 hover:text-[#1A1816] transition-colors">
-                Full Report →
-              </button>
-            </div>
-            <ProgressBar label="Weight Goal" value={68} max={75} displayText="68 kg → 75 kg" />
-            <ProgressBar label="Monthly Attendance" value={24} max={30} displayText="24/30 days" />
-          </div>
+          )}
+        </section>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
+          ))}
         </div>
 
-        {/* Right Column - Calendar & Quick Actions */}
-        <div className="space-y-6">
-          {/* Calendar */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-black text-[#1A1816] uppercase mb-4">February 2026</h2>
-            <div className="grid grid-cols-7 gap-1 text-center">
-              {["SU", "MO", "TU", "WE", "TH", "FR", "SA"].map((day) => (
-                <div key={day} className="text-xs font-bold text-gray-400 py-2">{day}</div>
-              ))}
-              {calendarDays.flat().map((day, index) => (
-                <div
-                  key={index}
-                  className={`py-2 text-sm rounded ${
-                    day === 28
-                      ? "bg-[#F4D03F] text-[#1A1816] font-black"
-                      : day && workoutDays.includes(day)
-                      ? "text-[#F4D03F] font-bold"
-                      : day
-                      ? "text-gray-600"
-                      : ""
-                  }`}
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section className="rounded-[2rem] border dark:border-white/10 border-[#E6E3DA] dark:bg-white/5 bg-white/50 p-6 dark:backdrop-blur-xl dark:shadow-[0_20px_80px_rgba(0,0,0,0.25)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-black uppercase tracking-[0.28em] dark:text-white text-[#1A1816]">This Week&apos;s Workouts</h2>
+                <Link href="/dashboard/workouts" className="text-xs uppercase tracking-[0.28em] dark:text-white/45 text-[#9A8F87] dark:hover:text-white hover:text-[#1A1816]">View Full Plan →</Link>
+              </div>
+              <div className="space-y-3">
+                {workouts.map((workout, index) => (
+                  <WorkoutCard key={index} {...workout} />
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[2rem] border dark:border-white/10 border-[#E6E3DA] dark:bg-white/5 bg-white/50 p-6 dark:backdrop-blur-xl dark:shadow-[0_20px_80px_rgba(0,0,0,0.25)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-black uppercase tracking-[0.28em] dark:text-white text-[#1A1816]">Progress Tracking</h2>
+                <Link href="/dashboard/profile" className="text-xs uppercase tracking-[0.28em] dark:text-white/45 text-[#9A8F87] dark:hover:text-white hover:text-[#1A1816]">Full Report →</Link>
+              </div>
+              <ProgressBar label="Weight Goal" value={68} max={75} displayText="68 kg → 75 kg" />
+              <ProgressBar label="Monthly Attendance" value={24} max={30} displayText="24/30 days" />
+            </section>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-lg font-black text-[#1A1816] uppercase mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <QuickAction icon="chart" label="Check BMI" href="/bmi-calculator" />
-              <QuickAction icon="pill" label="Buy Supps" />
-              <QuickAction icon="user" label="Book Trainer" />
-              <QuickAction icon="food" label="Meal Plan" />
-            </div>
+          <div className="space-y-6">
+            <section className="rounded-[2rem] border dark:border-white/10 border-[#E6E3DA] dark:bg-white/5 bg-white/50 p-6 dark:backdrop-blur-xl dark:shadow-[0_20px_80px_rgba(0,0,0,0.25)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <h2 className="mb-4 text-lg font-black uppercase tracking-[0.28em] dark:text-white text-[#1A1816]">{currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" }).toUpperCase()}</h2>
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {["SU", "MO", "TU", "WE", "TH", "FR", "SA"].map((day) => (
+                  <div key={day} className="py-2 text-[10px] font-black tracking-[0.3em] dark:text-white/35 text-[#C4BAB1]">{day}</div>
+                ))}
+                {calendarDays.flat().map((day, index) => (
+                  <div
+                    key={index}
+                    className={`rounded-lg py-2 text-sm ${
+                      day === currentDate.getDate()
+                        ? "bg-[#E63C2F] font-black text-white"
+                        : day
+                        ? "dark:text-white/55 text-[#6B625A]"
+                        : ""
+                    }`}
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-[2rem] border dark:border-white/10 border-[#E6E3DA] dark:bg-white/5 bg-white/50 p-6 dark:backdrop-blur-xl dark:shadow-[0_20px_80px_rgba(0,0,0,0.25)] shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <h2 className="mb-4 text-lg font-black uppercase tracking-[0.28em] dark:text-white text-[#1A1816]">Quick Actions</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <QuickAction icon="chart" label="Check BMI" href="/bmi-calculator" />
+                <QuickAction icon="pill" label="Buy Supps" href="/shop" />
+                <QuickAction icon="user" label="Book Trainer" href="/dashboard/trainers" />
+                <QuickAction icon="food" label="Meal Plan" href="/dashboard/meals" />
+              </div>
+            </section>
           </div>
         </div>
       </div>
-        </>
-      )}
-
-      {/* Generate Plan Tab */}
-      {activeTab === "generate-plan" && (
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-lg p-8 text-center mb-6">
-            <h2 className="text-3xl font-black text-[#1A1816] uppercase mb-3">Create Your Personal Plan</h2>
-            <p className="text-gray-600 mb-6">
-              Our AI will generate a personalized workout and meal plan based on your metrics and fitness goals.
-              Answer a few questions to get started.
-            </p>
-            <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black uppercase py-4 px-8 rounded-lg transition-all text-lg"
-            >
-              Start Plan Generation →
-            </button>
-          </div>
-
-          {generatedPlans && (
-            <div className="bg-green-50 border-2 border-green-500 p-4 rounded-lg">
-              <p className="text-green-800 font-bold">✓ Plans generated successfully! Switch to the Workout Plan or Meal Plan tabs to view your plans.</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Workout Plan Tab */}
-      {activeTab === "workout-plan" && generatedPlans && (
-        <WorkoutPlanDisplay plan={generatedPlans.workoutPlan} />
-      )}
-
-      {/* Meal Plan Tab */}
-      {activeTab === "meal-plan" && generatedPlans && (
-        <MealPlanDisplay plan={generatedPlans.mealPlan} />
-      )}
     </div>
   );
 }

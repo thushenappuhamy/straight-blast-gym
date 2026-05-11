@@ -1,8 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { BarChart3, Scale, Dumbbell, UtensilsCrossed, Pill, User, Medal, Package } from 'lucide-react';
+import { usePathname, useRouter } from "next/navigation";
+import {
+  BarChart3,
+  Scale,
+  Dumbbell,
+  UtensilsCrossed,
+  Pill,
+  User,
+  Medal,
+  Package,
+  LogOut,
+  MoonStar,
+  SunMedium,
+} from 'lucide-react';
+
+type ThemeMode = "dark" | "light";
+
+interface DashboardSidebarProps {
+  theme: ThemeMode;
+  onThemeChange: (theme: ThemeMode) => void;
+}
 
 const mainNavItems = [
   { icon: "chart", label: "Dashboard", href: "/dashboard" },
@@ -24,7 +43,7 @@ const accountNavItems = [
 
 function getIcon(iconName: string) {
   const iconProps = { size: 20, className: 'text-current' };
-  switch(iconName) {
+  switch (iconName) {
     case 'chart': return <BarChart3 {...iconProps} />;
     case 'scale': return <Scale {...iconProps} />;
     case 'dumbbell': return <Dumbbell {...iconProps} />;
@@ -37,37 +56,79 @@ function getIcon(iconName: string) {
   }
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const isDark = theme === "dark";
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } finally {
+      router.push('/login');
+    }
+  };
+
+  const toggleTheme = () => {
+    onThemeChange(isDark ? "light" : "dark");
+  };
+
+  const shellClasses = isDark
+    ? "bg-[#0b0b0b] border-white/10 text-white"
+    : "bg-[#FAFAF7] border-[#E6E3DA] text-[#1A1816]";
+
+  const backdropClasses = isDark
+    ? "bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.12),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_36px)] opacity-80"
+    : "bg-[radial-gradient(circle_at_top,rgba(244,208,63,0.18),transparent_38%),linear-gradient(135deg,rgba(26,24,22,0.05)_0,rgba(26,24,22,0.05)_1px,transparent_1px,transparent_36px)] opacity-70";
+
+  const sectionLabelClasses = isDark
+    ? "text-white/35"
+    : "text-[#6B625A]";
+
+  const itemBaseClasses = isDark
+    ? "text-white/70 hover:bg-white/5 hover:text-white"
+    : "text-[#5F574F] hover:bg-black/5 hover:text-[#1A1816]";
+
+  const itemActiveClasses = isDark
+    ? "bg-[#E63C2F] text-white shadow-[0_10px_30px_rgba(230,60,47,0.22)]"
+    : "bg-[#F4D03F] text-[#1A1816] shadow-[0_10px_30px_rgba(244,208,63,0.22)]";
+
+  const mutedText = isDark ? "text-white/45" : "text-[#6B625A]";
+
+  const toggleButtonClasses = isDark
+    ? "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white"
+    : "border-[#E6E3DA] bg-white text-[#1A1816] hover:bg-[#F4D03F]/15 hover:text-[#1A1816]";
 
   return (
-    <aside className="w-64 min-h-screen bg-[#1A1816] border-r border-[#2B2621] flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-[#2B2621]">
+    <aside className={`relative flex min-h-screen w-72 flex-col overflow-hidden border-r ${shellClasses}`}>
+      <div className={`pointer-events-none absolute inset-0 ${backdropClasses}`} />
+
+      <div className={`relative z-10 border-b p-6 ${isDark ? "border-white/10" : "border-[#E6E3DA]"}`}>
         <div className="flex items-center gap-3">
-          <img src="/logo.jpeg" alt="SBG Logo" className="w-12 h-12 rounded-full" />
+          <img
+            src="/logo.jpeg"
+            alt="SBG Logo"
+            className={`h-12 w-12 rounded-full border ${isDark ? "border-[#E63C2F]/40" : "border-[#F4D03F]/40"}`}
+          />
           <div className="flex flex-col leading-none">
-            <span className="text-[#F4D03F] font-black text-lg">SBG</span>
-            <span className="text-gray-400 text-xs uppercase tracking-wider">Member Portal</span>
+            <span className={`font-black text-lg tracking-[0.3em] uppercase ${isDark ? "text-[#F5F5F5]" : "text-[#1A1816]"}`}>SBG</span>
+            <span className={`text-[10px] uppercase tracking-[0.35em] ${mutedText}`}>Member Portal</span>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        {/* Main Section */}
+      <nav className="relative z-10 flex flex-1 flex-col p-4">
         <div className="mb-6">
-          <span className="text-gray-500 text-xs font-bold uppercase tracking-wider px-3">Main</span>
+          <span className={`px-3 text-[10px] font-black uppercase tracking-[0.4em] ${sectionLabelClasses}`}>Main</span>
           <ul className="mt-3 space-y-1">
             {mainNavItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-3 rounded text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? "bg-[#F4D03F] text-[#1A1816]"
-                      : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
-                  }`}
+                  className={`flex items-center gap-3 rounded px-3 py-3 text-sm font-medium transition-colors ${pathname === item.href ? itemActiveClasses : itemBaseClasses}`}
                 >
                   <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
@@ -77,19 +138,14 @@ export function DashboardSidebar() {
           </ul>
         </div>
 
-        {/* Services Section */}
         <div className="mb-6">
-          <span className="text-gray-500 text-xs font-bold uppercase tracking-wider px-3">Services</span>
+          <span className={`px-3 text-[10px] font-black uppercase tracking-[0.4em] ${sectionLabelClasses}`}>Services</span>
           <ul className="mt-3 space-y-1">
             {serviceNavItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-3 rounded text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? "bg-[#F4D03F] text-[#1A1816]"
-                      : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
-                  }`}
+                  className={`flex items-center gap-3 rounded px-3 py-3 text-sm font-medium transition-colors ${pathname === item.href ? itemActiveClasses : itemBaseClasses}`}
                 >
                   <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
@@ -99,19 +155,14 @@ export function DashboardSidebar() {
           </ul>
         </div>
 
-        {/* Account Section */}
         <div>
-          <span className="text-gray-500 text-xs font-bold uppercase tracking-wider px-3">Account</span>
+          <span className={`px-3 text-[10px] font-black uppercase tracking-[0.4em] ${sectionLabelClasses}`}>Account</span>
           <ul className="mt-3 space-y-1">
             {accountNavItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-3 rounded text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? "bg-[#F4D03F] text-[#1A1816]"
-                      : "text-gray-300 hover:bg-[#2B2621] hover:text-white"
-                  }`}
+                  className={`flex items-center gap-3 rounded px-3 py-3 text-sm font-medium transition-colors ${pathname === item.href ? itemActiveClasses : itemBaseClasses}`}
                 >
                   <span>{getIcon(item.icon)}</span>
                   <span className="uppercase tracking-wider">{item.label}</span>
@@ -119,6 +170,24 @@ export function DashboardSidebar() {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="mt-auto space-y-3 pt-6">
+          <button
+            onClick={toggleTheme}
+            className={`flex w-full items-center gap-3 rounded px-3 py-3 text-sm font-black uppercase tracking-[0.28em] transition-colors ${toggleButtonClasses}`}
+          >
+            <span>{isDark ? <SunMedium size={18} className="text-current" /> : <MoonStar size={18} className="text-current" />}</span>
+            <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className={`flex w-full items-center gap-3 rounded px-3 py-3 text-sm font-black uppercase tracking-[0.28em] transition-colors ${isDark ? "text-white/70 hover:bg-[#E63C2F]/15 hover:text-white" : "text-[#5F574F] hover:bg-black/5 hover:text-[#1A1816]"}`}
+          >
+            <span><LogOut size={18} className="text-current" /></span>
+            <span>Log Out</span>
+          </button>
         </div>
       </nav>
     </aside>

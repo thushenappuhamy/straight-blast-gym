@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react';
 
 export default function MealPlansPage() {
   const [mealPlan, setMealPlan] = useState<any>(null);
+  const [mealHistory, setMealHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeDay, setActiveDay] = useState(0);
   const [showRegenerateModal, setShowRegenerateModal] = useState(false);
+  const [activeVersion, setActiveVersion] = useState(0);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -26,7 +28,13 @@ export default function MealPlansPage() {
 
         if (response.ok && data.data?.mealPlan) {
           console.log('✅ [MEALS] Plan loaded:', data.data.mealPlan);
-          setMealPlan(data.data.mealPlan);
+          const history = Array.isArray(data.data.mealHistory) && data.data.mealHistory.length > 0
+            ? data.data.mealHistory
+            : [data.data.mealPlan];
+
+          setMealHistory(history);
+          setMealPlan(history[0]);
+          setActiveVersion(0);
           setActiveDay(0);
         } else {
           setError('No meal plan found. Complete the plan questionnaire first.');
@@ -44,7 +52,7 @@ export default function MealPlansPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8 flex items-center justify-center">
         <div className="text-center">
           <p className="text-2xl font-bold mb-4">Loading your personalized meal plan...</p>
           <div className="animate-spin">⚙️</div>
@@ -55,7 +63,7 @@ export default function MealPlansPage() {
 
   if (error || !mealPlan) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-100 border border-red-400 p-8 rounded-lg text-center">
             <p className="text-lg font-bold text-red-800">⚠️ {error || 'No plan available'}</p>
@@ -71,7 +79,7 @@ export default function MealPlansPage() {
   const currentMeals = currentDay?.meals || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -95,6 +103,39 @@ export default function MealPlansPage() {
             </button>
           </div>
         </div>
+
+        {mealHistory.length > 1 && (
+          <div className="mb-6 bg-white rounded-lg shadow-md p-4 border border-gray-200">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Saved Meal Versions</h3>
+                <p className="text-xs text-gray-500">Open any previous generated meal plan.</p>
+              </div>
+              <div className="text-xs text-gray-500 uppercase tracking-wider">
+                Showing version {activeVersion + 1} of {mealHistory.length}
+              </div>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {mealHistory.map((plan, index) => (
+                <button
+                  key={plan._id || index}
+                  onClick={() => {
+                    setMealPlan(plan);
+                    setActiveVersion(index);
+                    setActiveDay(0);
+                  }}
+                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider whitespace-nowrap border transition-all ${
+                    activeVersion === index
+                      ? 'bg-black text-[#F4D03F] border-black'
+                      : 'bg-transparent text-gray-700 border-gray-300 hover:border-black hover:text-black'
+                  }`}
+                >
+                  {plan.createdAt ? new Date(plan.createdAt).toLocaleDateString() : `Version ${index + 1}`}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Macro Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
