@@ -72,7 +72,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#E63C2F]/60 bg-[#111111] shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
-              <Image src="/logo.jpeg" alt="Straight Blast Gym" width={48} height={48} className="h-full w-full object-cover" />
+              <Image src="/logo_new.jpeg" alt="Straight Blast Gym" width={48} height={48} className="h-full w-full object-cover" />
             </div>
             <div className="leading-none">
               <div className="text-[10px] font-semibold uppercase tracking-[0.45em] text-white/55">Straight</div>
@@ -223,7 +223,7 @@ export default function Home() {
                         Train hard. Recover smart.
                       </div>
                     </div>
-                    <Image src="/logo.jpeg" alt="Straight Blast Gym logo" width={84} height={84} className="rounded-full border border-white/10 bg-black/20 object-cover" />
+                    <Image src="/logo_new.jpeg" alt="Straight Blast Gym logo" width={84} height={84} className="rounded-full border border-white/10 bg-black/20 object-cover" />
                   </div>
                 </div>
               </div>

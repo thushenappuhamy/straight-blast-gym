@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Toast from '@/src/components/ui/Toast';
 
 interface AnalyticsData {
   stats: {
@@ -27,6 +28,7 @@ export default function AnalyticsPage() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [dateRange, setDateRange] = useState('Last 30 Days');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const fetchAnalytics = async () => {
     try {
@@ -103,8 +105,9 @@ export default function AnalyticsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      setToast({ message: 'Analytics report exported successfully!', type: 'success' });
     } catch (error: any) {
-      alert(`Export failed: ${error.message}`);
+      setToast({ message: `Export failed: ${error.message}`, type: 'error' });
     } finally {
       setExporting(false);
     }
@@ -112,17 +115,17 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-600 text-lg font-bold">📊 Loading analytics...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <p className="text-lg font-bold">📊 Loading analytics...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white p-6">
+      <div className="min-h-screen p-6" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
         <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 font-bold rounded">
+          <div className="px-4 py-3 font-bold rounded" style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.35)', color: '#fca5a5' }}>
             ❌ {error}
           </div>
         </div>
@@ -132,27 +135,31 @@ export default function AnalyticsPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-gray-600 text-lg">No data available</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+        <p className="text-lg">No data available</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
-      <div className="flex items-center justify-between bg-white border-b-2 border-[#F4D03F] p-6 mb-8">
+      <div className="flex items-center justify-between p-6 mb-8" style={{ borderBottom: '2px solid var(--primary)', background: 'linear-gradient(90deg, rgba(0,0,0,0.12), transparent)' }}>
         <div className="max-w-7xl mx-auto flex-1">
-          <div className="text-[#F4D03F] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--primary)' }}>
             Business Intelligence
           </div>
-          <h1 className="text-4xl font-black text-gray-900 uppercase">Analytics</h1>
+          <h1 className="text-4xl font-black uppercase" style={{ color: 'var(--foreground)' }}>Analytics</h1>
         </div>
         <div className="flex items-center gap-4">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="bg-white border-2 border-gray-300 text-gray-900 font-bold px-4 py-2 focus:outline-none focus:border-[#F4D03F]"
+            className="font-bold px-4 py-2 focus:outline-none"
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
           >
             <option>Last 30 Days</option>
             <option>Last 60 Days</option>
@@ -162,7 +169,10 @@ export default function AnalyticsPage() {
           <button
             onClick={handleExportReport}
             disabled={exporting}
-            className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase px-6 py-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-black font-black text-sm uppercase px-6 py-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: 'var(--primary)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
           >
             {exporting ? '📥 Exporting...' : '📥 EXPORT REPORT'}
           </button>
@@ -173,57 +183,57 @@ export default function AnalyticsPage() {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Revenue Growth */}
-          <div className="bg-[#2B2621] p-6 flex flex-col">
+          <div className="p-6 flex flex-col" style={{ background: 'var(--card)' }}>
             <div className="text-4xl mb-2 opacity-50">📈</div>
-            <div className="text-5xl font-black text-[#F4D03F] mb-1">
+            <div className="text-5xl font-black mb-1" style={{ color: 'var(--primary)' }}>
               +{data.stats.revenueGrowth}%
             </div>
-            <div className="text-gray-400 text-xs uppercase tracking-wider font-bold">
+            <div className="text-xs uppercase tracking-wider font-bold" style={{ color: 'var(--muted-foreground)' }}>
               Revenue Growth
             </div>
-            <div className="text-[#F4D03F] text-xs font-bold mt-2">
+            <div className="text-xs font-bold mt-2" style={{ color: 'var(--primary)' }}>
               📊 vs last month
             </div>
           </div>
 
           {/* New Members */}
-          <div className="bg-[#2B2621] p-6 flex flex-col">
+          <div className="p-6 flex flex-col" style={{ background: 'var(--card)' }}>
             <div className="text-4xl mb-2 opacity-50">👥</div>
-            <div className="text-5xl font-black text-[#F4D03F] mb-1">
+            <div className="text-5xl font-black mb-1" style={{ color: 'var(--primary)' }}>
               +{data.stats.newMembers}
             </div>
-            <div className="text-gray-400 text-xs uppercase tracking-wider font-bold">
+            <div className="text-xs uppercase tracking-wider font-bold" style={{ color: 'var(--muted-foreground)' }}>
               New Members
             </div>
-            <div className="text-[#F4D03F] text-xs font-bold mt-2">
+            <div className="text-xs font-bold mt-2" style={{ color: 'var(--primary)' }}>
               This week
             </div>
           </div>
 
           {/* Retention Rate */}
-          <div className="bg-[#2B2621] p-6 flex flex-col">
+          <div className="p-6 flex flex-col" style={{ background: 'var(--card)' }}>
             <div className="text-4xl mb-2 opacity-50">🎯</div>
-            <div className="text-5xl font-black text-[#F4D03F] mb-1">
+            <div className="text-5xl font-black mb-1" style={{ color: 'var(--primary)' }}>
               {data.stats.retentionRate}%
             </div>
-            <div className="text-gray-400 text-xs uppercase tracking-wider font-bold">
+            <div className="text-xs uppercase tracking-wider font-bold" style={{ color: 'var(--muted-foreground)' }}>
               Retention Rate
             </div>
-            <div className="text-[#F4D03F] text-xs font-bold mt-2">
+            <div className="text-xs font-bold mt-2" style={{ color: 'var(--primary)' }}>
               ⬆️ 2% from last month
             </div>
           </div>
 
           {/* Avg Trainer Rating */}
-          <div className="bg-[#2B2621] p-6 flex flex-col">
+          <div className="p-6 flex flex-col" style={{ background: 'var(--card)' }}>
             <div className="text-4xl mb-2 opacity-50">⭐</div>
-            <div className="text-5xl font-black text-[#F4D03F] mb-1">
+            <div className="text-5xl font-black mb-1" style={{ color: 'var(--primary)' }}>
               {data.stats.avgTrainerRating}
             </div>
-            <div className="text-gray-400 text-xs uppercase tracking-wider font-bold">
+            <div className="text-xs uppercase tracking-wider font-bold" style={{ color: 'var(--muted-foreground)' }}>
               Avg Trainer Rating
             </div>
-            <div className="text-[#F4D03F] text-xs font-bold mt-2">
+            <div className="text-xs font-bold mt-2" style={{ color: 'var(--primary)' }}>
               {data.summary.totalMembers} ratings
             </div>
           </div>
@@ -232,8 +242,8 @@ export default function AnalyticsPage() {
         {/* Charts Row 1 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Revenue Breakdown */}
-          <div className="bg-[#2B2621] p-6">
-            <h3 className="text-[#F4D03F] font-black text-lg uppercase tracking-wider mb-6">
+          <div className="p-6" style={{ background: 'var(--card)' }}>
+            <h3 className="font-black text-lg uppercase tracking-wider mb-6" style={{ color: 'var(--primary)' }}>
               Revenue Breakdown
             </h3>
             <div className="space-y-4">
@@ -241,35 +251,35 @@ export default function AnalyticsPage() {
                 info.total > 0 && (
                   <div key={type}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-300 text-sm font-bold uppercase">
+                      <span className="text-sm font-bold uppercase" style={{ color: 'var(--foreground)' }}>
                         {type}
                       </span>
-                      <span className="text-[#F4D03F] font-black text-sm">
+                      <span className="font-black text-sm" style={{ color: 'var(--primary)' }}>
                         {info.percentage}% • LKR {info.total.toLocaleString()}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div className="w-full rounded-full h-3 overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
                       <div
-                        className="bg-[#F4D03F] h-full rounded-full transition-all duration-300"
-                        style={{ width: `${info.percentage}%` }}
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${info.percentage}%`, background: 'var(--primary)' }}
                       />
                     </div>
                   </div>
                 )
               ))}
               {Object.values(data.revenueBreakdown).every((info) => info.total === 0) && (
-                <div className="text-gray-400 text-center py-6">No booking data yet</div>
+                <div className="text-center py-6" style={{ color: 'var(--muted-foreground)' }}>No booking data yet</div>
               )}
             </div>
           </div>
 
           {/* Member Growth Chart */}
-          <div className="bg-[#2B2621] p-6">
-            <h3 className="text-[#F4D03F] font-black text-lg uppercase tracking-wider mb-6">
+          <div className="p-6" style={{ background: 'var(--card)' }}>
+            <h3 className="font-black text-lg uppercase tracking-wider mb-6" style={{ color: 'var(--primary)' }}>
               Member Growth — 2026
             </h3>
             {data.memberGrowth.length === 0 ? (
-              <div className="text-gray-400 text-center py-12">No member growth data</div>
+              <div className="text-center py-12" style={{ color: 'var(--muted-foreground)' }}>No member growth data</div>
             ) : (
               <>
                 <div className="flex items-end justify-between h-48 gap-2">
@@ -279,16 +289,16 @@ export default function AnalyticsPage() {
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center gap-2">
                         <div
-                          className="w-full bg-[#F4D03F] rounded-t transition-all duration-300"
-                          style={{ height: `${heightPercent}%`, minHeight: '4px' }}
+                          className="w-full rounded-t transition-all duration-300"
+                          style={{ height: `${heightPercent}%`, minHeight: '4px', background: 'var(--primary)' }}
                           title={`${item.month}: ${item.count}`}
                         />
-                        <span className="text-gray-400 text-xs font-bold uppercase">{item.month}</span>
+                        <span className="text-xs font-bold uppercase" style={{ color: 'var(--muted-foreground)' }}>{item.month}</span>
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-4 text-center text-gray-500 text-xs">
+                <div className="mt-4 text-center text-xs" style={{ color: 'var(--muted-foreground)' }}>
                   Total: {data.summary.totalMembers} members
                 </div>
               </>
@@ -299,12 +309,12 @@ export default function AnalyticsPage() {
         {/* Charts Row 2 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Selling Supplements */}
-          <div className="bg-white border-2 border-gray-200 p-6">
-            <h3 className="text-gray-900 font-black text-lg uppercase tracking-wider mb-6">
+          <div className="p-6" style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <h3 className="font-black text-lg uppercase tracking-wider mb-6" style={{ color: 'var(--foreground)' }}>
               Top Selling Supplements
             </h3>
             {data.topSupplements.length === 0 ? (
-              <div className="text-gray-500 text-center py-8">
+              <div className="text-center py-8" style={{ color: 'var(--muted-foreground)' }}>
                 No supplement sales data yet
               </div>
             ) : (
@@ -312,15 +322,15 @@ export default function AnalyticsPage() {
                 {data.topSupplements.map((supplement, index) => (
                   <div key={index}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-700 font-bold">{supplement.name}</span>
-                      <span className="text-[#F4D03F] font-black text-sm">
+                      <span className="font-bold" style={{ color: 'var(--foreground)' }}>{supplement.name}</span>
+                      <span className="font-black text-sm" style={{ color: 'var(--primary)' }}>
                         {supplement.percentage}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div className="w-full rounded-full h-3 overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
                       <div
-                        className="bg-[#F4D03F] h-full rounded-full transition-all duration-300"
-                        style={{ width: `${supplement.percentage}%` }}
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${supplement.percentage}%`, background: 'var(--primary)' }}
                       />
                     </div>
                   </div>
@@ -330,12 +340,12 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Member Goals Distribution */}
-          <div className="bg-white border-2 border-gray-200 p-6">
-            <h3 className="text-gray-900 font-black text-lg uppercase tracking-wider mb-6">
+          <div className="p-6" style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <h3 className="font-black text-lg uppercase tracking-wider mb-6" style={{ color: 'var(--foreground)' }}>
               Member Goals Distribution
             </h3>
             {data.memberGoals.length === 0 ? (
-              <div className="text-gray-500 text-center py-8">
+              <div className="text-center py-8" style={{ color: 'var(--muted-foreground)' }}>
                 No member goal data yet
               </div>
             ) : (
@@ -343,15 +353,15 @@ export default function AnalyticsPage() {
                 {data.memberGoals.map((goal, index) => (
                   <div key={index}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-700 font-bold">{goal.goal}</span>
-                      <span className="text-[#F4D03F] font-black text-sm">
+                      <span className="font-bold" style={{ color: 'var(--foreground)' }}>{goal.goal}</span>
+                      <span className="font-black text-sm" style={{ color: 'var(--primary)' }}>
                         {goal.percentage}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div className="w-full rounded-full h-3 overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
                       <div
-                        className="bg-[#F4D03F] h-full rounded-full transition-all duration-300"
-                        style={{ width: `${goal.percentage}%` }}
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${goal.percentage}%`, background: 'var(--primary)' }}
                       />
                     </div>
                   </div>

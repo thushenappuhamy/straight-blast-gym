@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const JWT_SECRET = 'straight-blast-gym-secret-key-2024-change-in-production';
 const MONGO_URI = 'mongodb+srv://gymadmin:gadaya%402003@straightblastgym.amatibx.mongodb.net/?appName=StraightBlastGym';
+const BASE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
 
 async function test() {
   try {
@@ -72,7 +73,7 @@ async function test() {
     console.log('- Workouts: 4 days per week');
     
     // Call the API
-    const response = await fetch('http://localhost:3000/api/health/generate-plan', {
+    const response = await fetch(`${BASE_URL}/api/health/generate-plan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

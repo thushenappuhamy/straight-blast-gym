@@ -4,6 +4,7 @@ const crypto = require('crypto');
 // Create a test token
 const userId = '507f1f77bcf86cd799439011'; // Test ID
 const JWT_SECRET = 'straight-blast-gym-secret-key-2024-change-in-production';
+const BASE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000';
 
 const token = jwt.sign(
   {
@@ -42,7 +43,7 @@ const testQuestionnaire = {
   foodAllergies: false,
 };
 
-fetch('http://localhost:3000/api/health/generate-plan', {
+fetch(`${BASE_URL}/api/health/generate-plan`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
