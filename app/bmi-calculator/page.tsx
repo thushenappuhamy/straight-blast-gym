@@ -750,11 +750,11 @@ export default function BMICalculatorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#0D0D0D] pt-12 pb-12">
+    <div className="min-h-screen dark:bg-linear-to-br dark:from-[#0D0D0D] dark:via-[#1A1A1A] dark:to-[#0D0D0D] bg-linear-to-br from-[#F5F5F5] via-[#FFFFFF] to-[#F5F5F5] pt-12 pb-12">
       {/* Header with back button */}
       <div className="max-w-7xl mx-auto px-4 mb-8">
         <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6">
+          <button className="flex items-center gap-2 dark:text-white/60 text-[#888888] dark:hover:text-white hover:text-[#1A1A1A] transition-colors mb-6">
             <span>←</span> Back to Dashboard
           </button>
         </Link>
@@ -763,18 +763,18 @@ export default function BMICalculatorPage() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Calculator */}
-          <div className="bg-[#0D0D0D] rounded-2xl border border-white/10 shadow-lg p-8">
+          <div className="dark:bg-[#0D0D0D] bg-white rounded-2xl border dark:border-white/10 border-[#E5E5E5] shadow-lg p-8">
             {/* Header */}
             <div className="mb-8">
               <div className="bg-[#E63C2F] text-white px-3 py-1 inline-block rounded text-xs font-black uppercase tracking-wider mb-4">
                 Health Metrics
               </div>
-              <h1 className="text-3xl font-black uppercase tracking-tight mb-2 text-white">BMI Calculator</h1>
+              <h1 className="text-3xl font-black uppercase tracking-tight mb-2 dark:text-white text-[#1A1A1A]">BMI Calculator</h1>
             </div>
 
             {/* Unit System */}
             <div className="mb-8">
-              <h3 className="text-xs font-black uppercase tracking-wider text-white/70 mb-4">Unit System</h3>
+              <h3 className="text-xs font-black uppercase tracking-wider dark:text-white/70 text-[#888888] mb-4">Unit System</h3>
               <div className="flex gap-4">
                 <button
                   onClick={() => {
@@ -788,8 +788,8 @@ export default function BMICalculatorPage() {
                   }}
                   className={`flex-1 py-3 px-4 font-black uppercase text-sm tracking-wider transition-all rounded ${
                     unitSystem === 'metric'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Metric (KG/CM)
@@ -806,8 +806,8 @@ export default function BMICalculatorPage() {
                   }}
                   className={`flex-1 py-3 px-4 font-black uppercase text-sm tracking-wider transition-all rounded ${
                     unitSystem === 'imperial'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Imperial (LB/FT)
@@ -823,8 +823,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setGender('male')}
                   className={`flex-1 py-3 px-4 font-black uppercase text-sm tracking-wider transition-all rounded ${
                     gender === 'male'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Male
@@ -833,8 +833,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setGender('female')}
                   className={`flex-1 py-3 px-4 font-black uppercase text-sm tracking-wider transition-all rounded ${
                     gender === 'female'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Female
@@ -913,8 +913,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setActivityLevel('sedentary')}
                   className={`py-3 px-3 font-bold uppercase text-xs tracking-wider transition-all rounded text-center ${
                     activityLevel === 'sedentary'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Sedentary<br/><span className="text-xs font-normal">(No exercise)</span>
@@ -923,8 +923,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setActivityLevel('lightly_active')}
                   className={`py-3 px-3 font-bold uppercase text-xs tracking-wider transition-all rounded text-center ${
                     activityLevel === 'lightly_active'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Lightly Active<br/><span className="text-xs font-normal">(1-3 days)</span>
@@ -933,8 +933,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setActivityLevel('moderately-active')}
                   className={`py-3 px-3 font-bold uppercase text-xs tracking-wider transition-all rounded text-center ${
                     activityLevel === 'moderately-active'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Moderately Active<br/><span className="text-xs font-normal">(3-5 days)</span>
@@ -943,8 +943,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setActivityLevel('very-active')}
                   className={`py-3 px-3 font-bold uppercase text-xs tracking-wider transition-all rounded text-center ${
                     activityLevel === 'very-active'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Very Active<br/><span className="text-xs font-normal">(6-7 days)</span>
@@ -953,8 +953,8 @@ export default function BMICalculatorPage() {
                   onClick={() => setActivityLevel('extremely-active')}
                   className={`col-span-2 py-3 px-3 font-bold uppercase text-xs tracking-wider transition-all rounded text-center ${
                     activityLevel === 'extremely-active'
-                      ? 'bg-[#0D0D0D] text-[#E63C2F]'
-                      : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      ? 'dark:bg-[#0D0D0D] bg-white dark:text-[#E63C2F] text-[#E63C2F] shadow-sm border border-[#E5E5E5] dark:border-transparent'
+                      : 'dark:bg-white/10 bg-black/5 dark:text-white/60 text-[#888888] hover:bg-black/10 dark:hover:bg-white/15'
                   }`}
                 >
                   Extremely Active<br/><span className="text-xs font-normal">(Physical job / Training)</span>
@@ -973,29 +973,29 @@ export default function BMICalculatorPage() {
           </div>
 
           {/* Right: Results */}
-          <div className="bg-linear-to-br from-[#1A1A1A] to-[#0D0D0D] rounded-2xl border border-white/10 p-8 text-white">
+          <div className="dark:bg-linear-to-br dark:from-[#1A1A1A] dark:to-[#0D0D0D] bg-white rounded-2xl border dark:border-white/10 border-[#E5E5E5] p-8 dark:text-white text-[#1A1A1A]">
             {bmiResult ? (
               <>
                 {/* BMI Score */}
                 <div className="mb-8">
-                  <p className="text-xs font-black uppercase tracking-widest text-white/50 mb-2">Your BMI Score</p>
+                  <p className="text-xs font-black uppercase tracking-widest dark:text-white/50 text-[#888888] mb-2">Your BMI Score</p>
                   <h2 className="text-7xl font-black text-[#E63C2F] mb-4">{bmiResult}</h2>
-                  <p className="text-lg font-bold uppercase tracking-wide text-white/80">
-                    {category} <span className="text-emerald-400">✓</span>
+                  <p className="text-lg font-bold uppercase tracking-wide dark:text-white/80 text-[#1A1A1A]">
+                    {category} <span className="text-emerald-500 dark:text-emerald-400">✓</span>
                   </p>
                 </div>
 
                 {/* BMI Scale */}
                 <div className="mb-8">
-                  <div className="h-2 bg-linear-to-r from-blue-500 via-green-500 to-[#E63C2F] rounded-full mb-4">
+                  <div className="h-2 bg-black/10 dark:bg-white/10 rounded-full mb-4">
                     <div
-                      className="h-2 bg-white rounded-full"
+                      className="h-2 bg-[#E63C2F] rounded-full"
                       style={{
                         width: `${Math.min((bmiResult / 35) * 100, 100)}%`,
                       }}
                     />
                   </div>
-                  <div className="flex justify-between text-xs font-bold text-white/60">
+                  <div className="flex justify-between text-xs font-bold dark:text-white/60 text-[#888888]">
                     <span>Underweight<br/>&lt;18.5</span>
                     <span>Normal<br/>18.5-24.9</span>
                     <span>Overweight<br/>25-29.9</span>
@@ -1004,14 +1004,14 @@ export default function BMICalculatorPage() {
                 </div>
 
                 {/* AI Recommendations */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
-                  <p className="text-xs font-black uppercase tracking-widest text-white/50 mb-4">AI Recommendations</p>
+                <div className="dark:bg-white/5 bg-black/5 rounded-xl p-4 border dark:border-white/10 border-[#E5E5E5]">
+                  <h3 className="text-[10px] font-black uppercase tracking-wider dark:text-white/70 text-[#888888] mb-4">AI Recommendations</h3>
                   <div className="space-y-3">
                     {recommendations.calories && (
                       <div className="flex items-start gap-3">
                         <span className="text-[#E63C2F] font-black text-lg">●</span>
-                        <p className="text-sm text-white/70">
-                          <span className="font-bold text-white">Daily calorie target: {recommendations.calories.split(' for')[0]}</span> {recommendations.calories.split(' for')[1] || ''}
+                        <p className="text-sm dark:text-white/70 text-[#555555]">
+                          <span className="font-bold dark:text-white text-[#1A1A1A]">Daily calorie target: {recommendations.calories.split(' for')[0]}</span> {recommendations.calories.split(' for')[1] || ''}
                         </p>
                       </div>
                     )}
