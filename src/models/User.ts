@@ -10,7 +10,7 @@ export interface IUser extends Document {
   age?: number;
   fitnessGoal: string[];
   role: 'user' | 'admin';
-  plan?: 'basic' | 'gold' | 'elite';
+  plan?: string;
   membershipStatus?: 'active' | 'pending' | 'inactive';
   bmi?: number;
   height?: number;
@@ -71,7 +71,6 @@ const UserSchema = new Schema<IUser>(
     },
     plan: {
       type: String,
-      enum: ['basic', 'gold', 'elite'],
       default: 'basic',
     },
     membershipStatus: {
