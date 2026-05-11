@@ -1,8 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { DashboardSidebar } from '@/src/components/dashboard/DashboardSidebar';
+import { useTheme } from '@/src/context/ThemeContext';
+import { SupplementProductCard } from '@/src/components/shop/SupplementProductCard';
+
+const categories = ['All Products', 'Protein', 'Mass Gainer', 'Creatine', 'Fat Burner', 'Vitamins'];
 
 export default function SupplementShopPage() {
+  const { theme, setTheme } = useTheme();
   const [supplements, setSupplements] = useState<any[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,203 +95,135 @@ export default function SupplementShopPage() {
     }
   };
 
+  const applyFilters = () => {
+    setSelectedCategories([...selectedCategories]);
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories(['All Products']);
+    setPriceRange([0, 50000]);
+    setSortBy('Best Match');
+  };
+
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="inline-block bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-wider mb-3">
+    <div className="flex min-h-screen bg-[#090909] text-white">
+      <DashboardSidebar theme={theme} onThemeChange={setTheme} />
+
+      <main className="flex-1 overflow-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+        <div
+          className="mb-8 overflow-hidden rounded-[2rem] border border-white/8 p-6 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:p-8"
+          style={{
+            background:
+              'radial-gradient(circle_at_top_left,rgba(230,60,47,0.18),transparent_40%),linear-gradient(135deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))',
+          }}
+        >
+          <div className="inline-flex rounded-full bg-[#E63C2F] px-4 py-2 text-xs font-black uppercase tracking-[0.28em] text-black">
             SBG Store
           </div>
-          <h1 className="text-5xl font-black text-gray-900 uppercase tracking-tight">
+          <h1 className="mt-4 max-w-3xl text-4xl font-black uppercase tracking-tight text-white sm:text-5xl lg:text-6xl">
             Supplement Shop
           </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
+            Browse supplements with a cleaner shopping flow, image-first cards, and reusable filter controls.
+          </p>
         </div>
 
-        <div className="flex gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
-              {/* Category Filter */}
-              <div className="mb-6">
-                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 mb-4">
-                  Category
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {['All Products', 'Protein', 'Mass Gainer', 'Creatine', 'Fat Burner', 'Vitamins'].map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => toggleCategory(category)}
-                      className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-full transition-all ${
-                        selectedCategories.includes(category)
-                          ? 'bg-[#F4D03F] text-black shadow-md'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price Range */}
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 mb-4">
-                  Price Range
-                </h3>
-                <div className="px-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="50000"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([0, Number(e.target.value)])}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                    style={{
-                      background: `linear-gradient(to right, #F4D03F 0%, #F4D03F ${
-                        (priceRange[1] / 50000) * 100
-                      }%, #E5E7EB ${(priceRange[1] / 50000) * 100}%, #E5E7EB 100%)`,
-                    }}
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-2">
-                    <span>LKR {priceRange[0].toLocaleString()}</span>
-                    <span>LKR {priceRange[1].toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Apply Filters Button */}
-              <button className="w-full bg-[#F4D03F] hover:bg-[#E5C730] text-black font-black text-sm uppercase tracking-wider py-3 transition-all">
-                Apply Filters
-              </button>
-            </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">
-                Showing <span className="font-bold text-gray-900">{filteredProducts.length} products</span>
+        <div className="min-w-0">
+            <div
+              className="mb-6 flex flex-col gap-4 rounded-3xl border border-white/8 p-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between"
+              style={{ background: 'rgba(255,255,255,0.03)' }}
+            >
+              <p className="text-sm text-white/55">
+                Showing <span className="font-bold text-white">{filteredProducts.length} products</span>
               </p>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 rounded text-sm font-medium text-gray-700 focus:outline-none focus:border-[#F4D03F]"
-              >
-                <option>Best Match</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Top Rated</option>
-                <option>Newest</option>
-              </select>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="rounded-full border border-white/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white/55 transition-colors hover:border-white/20 hover:text-white"
+                >
+                  Reset Filters
+                </button>
+                <label className="flex items-center gap-3 text-sm text-white/55">
+                  <span className="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.24em] text-white/40">
+                    Sort
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="rounded-xl border border-white/8 bg-black/20 px-4 py-2 text-sm text-white outline-none transition-colors focus:border-[#E63C2F]"
+                  >
+                    <option>Best Match</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Top Rated</option>
+                    <option>Newest</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="mb-6 flex flex-wrap gap-2 rounded-3xl border border-white/8 bg-white/3 p-4">
+              {categories.map((category) => {
+                const isActive = selectedCategories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    className={`rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-all duration-200 ${
+                      isActive
+                        ? 'bg-[#E63C2F] text-black shadow-[0_12px_30px_rgba(230,60,47,0.25)]'
+                        : 'bg-white/4 text-white/80 hover:bg-white/9 hover:text-white'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Loading State */}
             {loading && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Loading supplements...</p>
+              <div
+                className="rounded-3xl border border-white/8 py-16 text-center text-white/55"
+                style={{ background: 'rgba(255,255,255,0.03)' }}
+              >
+                Loading supplements...
               </div>
             )}
 
             {/* Error State */}
             {error && (
-              <div className="text-center py-12">
-                <p className="text-red-600">{error}</p>
+              <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 py-16 text-center text-rose-200">
+                {error}
               </div>
             )}
 
             {/* No Products State */}
             {!loading && !error && filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No products found. Try adjusting your filters.</p>
+              <div
+                className="rounded-3xl border border-white/8 py-16 text-center text-white/55"
+                style={{ background: 'rgba(255,255,255,0.03)' }}
+              >
+                No products found. Try adjusting your filters.
               </div>
             )}
 
             {/* Product Grid */}
             {!loading && !error && filteredProducts.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => {
-                  const discountedPrice = product.discount 
-                    ? product.price * (1 - product.discount / 100) 
-                    : product.price;
-                  
-                  return (
-                    <div key={product._id} className="bg-white rounded-lg shadow-xl overflow-hidden group hover:shadow-2xl transition-shadow">
-                      {/* Product Image Area */}
-                      <div className="bg-[#2B2621] h-48 flex items-center justify-center relative overflow-hidden">
-                        {product.discount && (
-                          <div className="absolute top-4 left-4 bg-red-500 text-white font-bold text-xs uppercase tracking-wider px-3 py-1">
-                            -{product.discount}%
-                          </div>
-                        )}
-                        {product.image ? (
-                          <img 
-                            src={product.image} 
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                          />
-                        ) : (
-                          <div className="text-6xl">💊</div>
-                        )}
-                      </div>
-
-                      {/* Product Details */}
-                      <div className="p-6">
-                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          {product.category}
-                        </div>
-                        <h3 className="text-xl font-black text-gray-900 uppercase mb-2">
-                          {product.name}
-                        </h3>
-                        {product.flavor && (
-                          <div className="text-xs text-gray-500 mb-2">{product.flavor}</div>
-                        )}
-                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                          {product.description}
-                        </p>
-
-                        {/* Rating */}
-                        {product.rating && (
-                          <div className="flex items-center gap-1 mb-4">
-                            {[...Array(5)].map((_, i) => (
-                              <span key={i} className={`text-sm ${i < Math.round(product.rating) ? 'text-[#F4D03F]' : 'text-gray-300'}`}>
-                                ★
-                              </span>
-                            ))}
-                            <span className="text-xs text-gray-500 ml-2">({product.rating})</span>
-                          </div>
-                        )}
-
-                        {/* Price and CTA */}
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <div className="text-2xl font-black text-gray-900">
-                              LKR {Math.round(discountedPrice).toLocaleString()}
-                            </div>
-                            {product.discount && (
-                              <div className="text-sm text-gray-400 line-through">
-                                LKR {product.price.toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                          <button className="bg-[#F4D03F] hover:bg-[#E5C730] text-black font-bold text-xs uppercase tracking-wider px-4 py-2 transition-all">
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.map((product) => (
+                  <SupplementProductCard key={product._id} product={product} />
+                ))}
               </div>
             )}
-          </main>
         </div>
       </div>
+      </main>
     </div>
   );
 }

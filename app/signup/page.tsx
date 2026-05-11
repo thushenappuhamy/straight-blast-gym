@@ -111,7 +111,7 @@ export default function SignupPage() {
               Home
             </Link>
             <div className="flex items-center gap-3">
-              <Image src="/logo.jpeg" alt="SBG Logo" width={44} height={44} className="rounded-full border border-[#E63C2F]/30" />
+              <Image src="/logo_new.jpeg" alt="SBG Logo" width={44} height={44} className="rounded-full border border-[#E63C2F]/30" />
               <span className="text-xs font-black uppercase tracking-[0.35em] text-white/70">SBG</span>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function SignupPage() {
                 <Home size={14} className="text-[#E63C2F]" />
                 Home
               </Link>
-              <Image src="/logo.jpeg" alt="SBG Logo" width={40} height={40} className="rounded-full border border-white/10" />
+              <Image src="/logo_new.jpeg" alt="SBG Logo" width={40} height={40} className="rounded-full border border-white/10" />
             </div>
 
             <div>
