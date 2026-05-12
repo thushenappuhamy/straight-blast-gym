@@ -10,6 +10,7 @@ import {
   Flame,
   Users,
 } from "lucide-react";
+import { Footer } from "@/src/components/Footer";
 
 const metrics = [
   { value: "01", label: "Personalized workout blueprint" },
@@ -329,6 +330,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      <Footer />
     </div>
   );
 }
