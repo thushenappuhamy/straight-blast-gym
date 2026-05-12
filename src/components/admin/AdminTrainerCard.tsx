@@ -29,11 +29,10 @@ export default function AdminTrainerCard({
             <p className="text-xs text-white/50 mt-1">{trainer?.email || 'No email'}</p>
           </div>
           <span
-            className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
-              isActive
+            className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${isActive
                 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                 : 'bg-white/10 text-white/65 border border-white/20'
-            }`}
+              }`}
           >
             {isActive ? 'Active' : 'Inactive'}
           </span>
@@ -88,11 +87,10 @@ export default function AdminTrainerCard({
 
           <button
             onClick={() => onToggleStatus(trainer)}
-            className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg transition-colors text-xs font-bold uppercase tracking-wider ${
-              isActive
+            className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg transition-colors text-xs font-bold uppercase tracking-wider ${isActive
                 ? 'bg-amber-600/85 hover:bg-amber-600 text-white'
                 : 'bg-emerald-600/85 hover:bg-emerald-600 text-white'
-            }`}
+              }`}
           >
             <Power size={13} /> {isActive ? 'Deactivate' : 'Activate'}
           </button>

@@ -34,9 +34,8 @@ export default function AdminStatCard({
             {value}
           </p>
           {change && (
-            <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${
-              change.isPositive ? 'text-[#E63C2F]' : 'text-white/40'
-            }`}>
+            <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${change.isPositive ? 'text-[#E63C2F]' : 'text-white/40'
+              }`}>
               <span>{change.direction === 'up' ? '↑' : '↓'}</span>
               <span>{Math.abs(change.value)}%</span>
               <span className="text-white/30 ml-1">vs last month</span>

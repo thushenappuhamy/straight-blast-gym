@@ -48,9 +48,8 @@ export default function AdminTable({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 md:px-6 py-3 text-left text-[10px] md:text-xs font-bold uppercase tracking-wider text-white/40 ${
-                    col.className || ''
-                  }`}
+                  className={`px-4 md:px-6 py-3 text-left text-[10px] md:text-xs font-bold uppercase tracking-wider text-white/40 ${col.className || ''
+                    }`}
                 >
                   {col.label}
                 </th>
@@ -69,9 +68,8 @@ export default function AdminTable({
                   {columns.map((col) => (
                     <td
                       key={`${rowIdx}-${col.key}`}
-                      className={`px-4 md:px-6 py-3 text-sm text-white/75 ${
-                        col.className || ''
-                      }`}
+                      className={`px-4 md:px-6 py-3 text-sm text-white/75 ${col.className || ''
+                        }`}
                     >
                       {col.render
                         ? col.render(row[col.key], row, rowIdx)

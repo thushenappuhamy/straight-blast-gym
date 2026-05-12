@@ -20,7 +20,6 @@ const managementItems: NavItem[] = [
   { icon: 'medal', label: 'Memberships', href: '/admin/memberships', badge: null },
   { icon: 'calendar', label: 'Bookings', href: '/admin/bookings', badge: 4 },
   { icon: 'lock', label: 'Staff Management', href: '/admin/staff', badge: null },
-  { icon: 'clock', label: 'Login History', href: '/admin/staff/login-history', badge: null, small: true },
 ];
 
 const financeItems: NavItem[] = [
@@ -98,8 +97,8 @@ export function AdminSidebar() {
                 <Link
                   href={item.href}
                   className={`flex items-center justify-between ${item.small ? 'px-2 py-2 text-xs' : 'px-3 py-3 text-sm'} font-medium rounded-lg transition-colors ${pathname === item.href
-                      ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
-                      : 'text-white/65 hover:bg-white/4 hover:text-white'
+                    ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
+                    : 'text-white/65 hover:bg-white/4 hover:text-white'
                     }`}
                 >
                   <div className="flex items-center gap-3">
@@ -128,8 +127,8 @@ export function AdminSidebar() {
                 <Link
                   href={item.href}
                   className={`flex items-center gap-3 ${item.small ? 'px-2 py-2 text-xs' : 'px-3 py-3 text-sm'} font-medium rounded-lg transition-colors ${pathname === item.href
-                      ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
-                      : 'text-white/65 hover:bg-white/4 hover:text-white'
+                    ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
+                    : 'text-white/65 hover:bg-white/4 hover:text-white'
                     }`}
                 >
                   <span>{getIcon(item.icon)}</span>
@@ -151,8 +150,8 @@ export function AdminSidebar() {
                 <Link
                   href={item.href}
                   className={`flex items-center gap-3 ${item.small ? 'px-2 py-2 text-xs' : 'px-3 py-3 text-sm'} font-medium rounded-lg transition-colors ${pathname === item.href
-                      ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
-                      : 'text-white/65 hover:bg-white/4 hover:text-white'
+                    ? 'bg-[#E63C2F]/15 text-[#E63C2F] border border-[#E63C2F]/40'
+                    : 'text-white/65 hover:bg-white/4 hover:text-white'
                     }`}
                 >
                   <span>{getIcon(item.icon)}</span>
