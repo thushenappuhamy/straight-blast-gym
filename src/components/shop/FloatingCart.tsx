@@ -19,11 +19,11 @@ export function FloatingCart() {
   return (
     <button
       onClick={() => router.push('/dashboard/orders')}
-      className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-[#E63C2F] text-black shadow-[0_10px_40px_rgba(230,60,47,0.4)] transition-transform duration-300 hover:-translate-y-2 hover:scale-105 hover:bg-[#ff4e40]"
+      className="fixed bottom-8 right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-white shadow-[0_10px_40px_rgba(230,60,47,0.4)] transition-all duration-300 hover:-translate-y-2 hover:scale-110 active:scale-95"
       aria-label="View Cart"
     >
-      <ShoppingCart size={28} className="mr-1" />
-      <span className="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#111] bg-white text-xs font-black text-black">
+      <ShoppingCart size={28} />
+      <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-foreground text-[10px] font-black text-background">
         {itemCount}
       </span>
     </button>
