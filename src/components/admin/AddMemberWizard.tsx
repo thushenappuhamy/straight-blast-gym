@@ -12,13 +12,13 @@ interface MemberFormData {
   dateOfBirth: string;
   age: number;
   gender: string;
-  
+
   // Step 2
   country: string;
   city: string;
   zipcode: string;
   address: string;
-  
+
   // Step 3
   fitnessGoal: string[];
   plan: string;
@@ -457,9 +457,8 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
             {[1, 2, 3].map(s => (
               <div
                 key={s}
-                className={`flex-1 h-2 rounded-full transition-colors ${
-                  s <= step ? 'bg-[#E63C2F]' : 'bg-white/10'
-                }`}
+                className={`flex-1 h-2 rounded-full transition-colors ${s <= step ? 'bg-[#E63C2F]' : 'bg-white/10'
+                  }`}
               />
             ))}
           </div>

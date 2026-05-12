@@ -61,26 +61,26 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Profile Header */}
-      <div className="bg-[#2B2621] text-white">
+      <div className="bg-card border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full bg-[#E63C2F] flex items-center justify-center">
-                <span className="text-black text-4xl font-black">T</span>
+              <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <span className="text-white text-4xl font-black">T</span>
               </div>
 
               {/* User Info */}
               <div>
-                <h1 className="text-3xl font-black uppercase tracking-tight mb-2">
+                <h1 className="text-3xl font-black uppercase tracking-tight mb-2 text-foreground">
                   {fullName.toUpperCase()}
                 </h1>
-                <p className="text-gray-400 text-sm mb-1">
+                <p className="text-muted-foreground text-sm mb-1 font-medium">
                   {email} · {phone}
                 </p>
-                <p className="text-gray-500 text-xs uppercase tracking-wider">
+                <p className="text-muted-foreground/60 text-[10px] font-black uppercase tracking-[0.2em]">
                   Member Since {memberSince} · {plan}
                 </p>
               </div>
@@ -90,22 +90,20 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleEditClick}
-              className="bg-[#E63C2F] hover:bg-[#BD2E26] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all"
+              className="bg-primary hover:bg-primary-light text-white font-black text-xs uppercase tracking-widest px-6 py-3 transition-all rounded-lg shadow-lg shadow-primary/20"
             >
               Edit Profile
             </button>
           </div>
         </div>
-        {/* Primary bottom border */}
-        <div className="w-full h-1 bg-[#E63C2F]"></div>
       </div>
 
       {/* Content Grid */}
       <div className="max-w-7xl mx-auto px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Information */}
-          <div className="bg-white shadow-lg p-8">
-            <h2 className="text-xl font-black uppercase tracking-tight mb-6">
+          <div className="bg-card border border-border rounded-3xl p-8 shadow-xl">
+            <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-foreground">
               Personal Information
             </h2>
 
@@ -113,7 +111,7 @@ export default function ProfilePage() {
               {/* Profile Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Full Name
                   </label>
                   <input
@@ -121,13 +119,12 @@ export default function ProfilePage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Email
                   </label>
                   <input
@@ -135,16 +132,15 @@ export default function ProfilePage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Phone
                   </label>
                   <input
@@ -152,13 +148,12 @@ export default function ProfilePage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Member Since
                   </label>
                   <input
@@ -166,9 +161,8 @@ export default function ProfilePage() {
                     value={memberSince}
                     onChange={(e) => setMemberSince(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
               </div>
@@ -176,7 +170,7 @@ export default function ProfilePage() {
               {/* Age and Gender */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Age
                   </label>
                   <input
@@ -184,22 +178,20 @@ export default function ProfilePage() {
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Gender
                   </label>
                   <select
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                     disabled={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#F4D03F] appearance-none bg-white ${
-                      isEditing ? 'border-gray-300' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all appearance-none bg-background ${isEditing ? 'border-border' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   >
                     <option>Male</option>
                     <option>Female</option>
@@ -211,7 +203,7 @@ export default function ProfilePage() {
               {/* Height and Weight */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Height (cm)
                   </label>
                   <input
@@ -219,13 +211,12 @@ export default function ProfilePage() {
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Weight (kg)
                   </label>
                   <input
@@ -233,16 +224,15 @@ export default function ProfilePage() {
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
                     readOnly={!isEditing}
-                    className={`w-full px-4 py-3 border text-gray-900 focus:outline-none focus:border-[#E63C2F] ${
-                      isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                    }`}
+                    className={`w-full px-4 py-3 rounded-xl border text-foreground focus:outline-none focus:border-primary transition-all ${isEditing ? 'border-border bg-background' : 'border-border bg-muted/30 cursor-not-allowed'
+                      }`}
                   />
                 </div>
               </div>
 
               {/* Fitness Goal */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-3">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">
                   Fitness Goal
                 </label>
                 <div className="flex flex-wrap gap-3">
@@ -252,11 +242,10 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => isEditing && setFitnessGoal(goal)}
                       disabled={!isEditing}
-                      className={`px-5 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
-                        fitnessGoal === goal
-                          ? 'bg-[#E63C2F] text-black'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      } ${!isEditing ? 'cursor-not-allowed opacity-70' : ''}`}
+                      className={`px-5 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${fitnessGoal === goal
+                          ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        } ${!isEditing ? 'cursor-not-allowed opacity-70' : ''}`}
                     >
                       {goal}
                     </button>
@@ -265,12 +254,12 @@ export default function ProfilePage() {
               </div>
 
               {/* Save Button */}
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex gap-3 flex-wrap pt-4">
                 <button
                   type="button"
                   onClick={handleSaveClick}
                   disabled={!isEditing}
-                  className="bg-[#E63C2F] hover:bg-[#BD2E26] text-black font-black text-sm uppercase tracking-wider px-8 py-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-primary hover:bg-primary-light text-white font-black text-xs uppercase tracking-widest px-8 py-4 transition-all rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Changes
                 </button>
@@ -278,7 +267,7 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleCancelClick}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-black text-sm uppercase tracking-wider px-8 py-4 transition-all"
+                    className="bg-muted hover:bg-muted/80 text-foreground font-black text-xs uppercase tracking-widest px-8 py-4 transition-all rounded-xl border border-border"
                   >
                     Cancel
                   </button>
@@ -288,32 +277,32 @@ export default function ProfilePage() {
           </div>
 
           {/* Health Metrics */}
-          <div className="bg-white shadow-lg p-8">
-            <h2 className="text-xl font-black uppercase tracking-tight mb-6">
+          <div className="bg-card border border-border rounded-3xl p-8 shadow-xl">
+            <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-foreground">
               Health Metrics
             </h2>
 
             {/* BMI Display */}
             <div className="text-center mb-6">
-              <div className="text-8xl font-black text-gray-900 mb-3">
+              <div className="text-8xl font-black text-foreground mb-3">
                 {bmi}
               </div>
-              <div className="inline-block bg-[#E63C2F] text-black font-bold text-xs uppercase tracking-wider px-4 py-2">
+              <div className="inline-block bg-primary text-white font-black text-xs uppercase tracking-[0.2em] px-4 py-2 rounded-lg shadow-lg shadow-primary/20">
                 {getBMIStatus()}
               </div>
             </div>
 
             {/* BMI Scale */}
             <div className="mb-8">
-              <div className="flex h-4 mb-2 overflow-hidden">
+              <div className="flex h-3 mb-4 overflow-hidden rounded-full border border-border">
                 <div className="bg-blue-400" style={{ width: '25%' }}></div>
-                <div className="bg-green-500" style={{ width: '25%' }}></div>
-                <div className="bg-orange-400" style={{ width: '25%' }}></div>
-                <div className="bg-red-500" style={{ width: '25%' }}></div>
+                <div className="bg-emerald-500" style={{ width: '25%' }}></div>
+                <div className="bg-amber-400" style={{ width: '25%' }}></div>
+                <div className="bg-rose-500" style={{ width: '25%' }}></div>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 uppercase">
+              <div className="flex justify-between text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                 <span>Under</span>
-                <span>Normal ← You</span>
+                <span className="text-primary font-black">Normal ← You</span>
                 <span>Over</span>
                 <span>Obese</span>
               </div>
@@ -321,19 +310,19 @@ export default function ProfilePage() {
 
             {/* Daily Values */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-6 text-center">
-                <div className="text-4xl font-black text-gray-900 mb-2">
+              <div className="bg-muted/30 p-6 text-center rounded-2xl border border-border">
+                <div className="text-4xl font-black text-foreground mb-2">
                   2,450
                 </div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider">
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Daily Calories
                 </div>
               </div>
-              <div className="bg-gray-50 p-6 text-center">
-                <div className="text-4xl font-black text-gray-900 mb-2">
+              <div className="bg-muted/30 p-6 text-center rounded-2xl border border-border">
+                <div className="text-4xl font-black text-foreground mb-2">
                   165G
                 </div>
-                <div className="text-xs text-gray-500 uppercase tracking-wider">
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   Protein/Day
                 </div>
               </div>
