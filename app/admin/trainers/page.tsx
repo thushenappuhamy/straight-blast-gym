@@ -123,9 +123,9 @@ export default function AdminTrainersPage() {
   const avgCost =
     total > 0
       ? Math.round(
-          trainers.reduce((sum, t) => sum + (typeof t.costPerSession === 'number' ? t.costPerSession : 0), 0) /
-            total
-        )
+        trainers.reduce((sum, t) => sum + (typeof t.costPerSession === 'number' ? t.costPerSession : 0), 0) /
+        total
+      )
       : 0;
 
   const stats = [

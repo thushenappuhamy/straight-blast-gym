@@ -179,11 +179,10 @@ export default function StaffManagementPage() {
         <div className="max-w-7xl mx-auto px-8 flex gap-8">
           <button
             onClick={() => setActiveTab('roles')}
-            className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${
-              activeTab === 'roles'
+            className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${activeTab === 'roles'
                 ? 'text-[var(--primary)] border-[var(--primary)]'
                 : 'text-gray-400 border-transparent hover:text-gray-300'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <Lock size={18} />
@@ -192,11 +191,10 @@ export default function StaffManagementPage() {
           </button>
           <button
             onClick={() => setActiveTab('login-history')}
-            className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${
-              activeTab === 'login-history'
+            className={`py-4 px-6 font-black uppercase tracking-wider text-sm transition-all border-b-4 ${activeTab === 'login-history'
                 ? 'text-[var(--primary)] border-[var(--primary)]'
                 : 'text-gray-400 border-transparent hover:text-gray-300'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <Clock size={18} />
@@ -409,38 +407,34 @@ export default function StaffManagementPage() {
                     {loginHistory.map((record) => (
                       <tr
                         key={record._id}
-                        className={`transition-all ${
-                          record.status === 'failed'
+                        className={`transition-all ${record.status === 'failed'
                             ? 'bg-red-900/20 hover:bg-red-900/30'
                             : 'hover:bg-black/30'
-                        }`}
+                          }`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                record.status === 'failed'
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${record.status === 'failed'
                                   ? 'bg-red-600'
                                   : 'bg-[var(--primary)]'
-                              }`}
+                                }`}
                             >
                               <span
-                                className={`text-xs font-black ${
-                                  record.status === 'failed'
+                                className={`text-xs font-black ${record.status === 'failed'
                                     ? 'text-white'
                                     : 'text-black'
-                                }`}
+                                  }`}
                               >
                                 {record.firstName[0]}
                               </span>
                             </div>
                             <div>
                               <p className="font-bold text-white text-sm">{record.firstName} {record.lastName}</p>
-                              <p className={`text-xs uppercase ${
-                                record.status === 'failed'
+                              <p className={`text-xs uppercase ${record.status === 'failed'
                                   ? 'text-red-400'
                                   : 'text-[var(--primary)]'
-                              }`}>
+                                }`}>
                                 {record.role}
                                 {record.status === 'failed' && ` • ⚠️ ${record.failureReason || 'Failed'}`}
                               </p>
@@ -456,29 +450,26 @@ export default function StaffManagementPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`inline-block w-2 h-2 rounded-full ${
-                                record.status === 'success'
+                              className={`inline-block w-2 h-2 rounded-full ${record.status === 'success'
                                   ? 'bg-green-500'
                                   : 'bg-red-500'
-                              }`}
+                                }`}
                             ></span>
                             <span
-                              className={`text-xs font-black uppercase ${
-                                record.status === 'success'
+                              className={`text-xs font-black uppercase ${record.status === 'success'
                                   ? 'text-green-400'
                                   : 'text-red-400'
-                              }`}
+                                }`}
                             >
                               {record.status === 'success' ? '✓ Success' : '✗ Failed'}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${
-                            record.status === 'failed'
+                          <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full ${record.status === 'failed'
                               ? 'bg-red-900/50 text-red-200'
                               : 'bg-gray-700 text-gray-200'
-                          }`}>
+                            }`}>
                             {record.device}
                           </span>
                         </td>
@@ -489,11 +480,10 @@ export default function StaffManagementPage() {
                           <p className="text-sm text-gray-300">{record.os}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <code className={`text-xs px-3 py-1 rounded font-mono ${
-                            record.status === 'failed'
+                          <code className={`text-xs px-3 py-1 rounded font-mono ${record.status === 'failed'
                               ? 'bg-red-900/30 text-red-300'
                               : 'bg-black/50 text-[var(--primary)]'
-                          }`}>
+                            }`}>
                             {record.ipAddress}
                           </code>
                         </td>
@@ -532,11 +522,10 @@ export default function StaffManagementPage() {
                         <button
                           key={i}
                           onClick={() => fetchLoginHistory(pageNum)}
-                          className={`px-3 py-1 rounded font-bold transition-all ${
-                            pageNum === currentPage
+                          className={`px-3 py-1 rounded font-bold transition-all ${pageNum === currentPage
                               ? 'bg-[var(--primary)] text-black'
                               : 'bg-gray-700 text-white hover:bg-gray-600'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>

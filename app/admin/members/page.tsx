@@ -27,14 +27,14 @@ export default function MembersPage() {
     try {
       const res = await fetch('/api/admin/members');
       const data = await res.json();
-      
+
       if (data.data) {
         setMembers(data.data);
-        
+
         const gold = data.data.filter((m: any) => m.plan === 'GOLD').length;
         const active = data.data.filter((m: any) => m.status === 'ACTIVE').length;
         const pending = data.data.filter((m: any) => m.status === 'PENDING').length;
-        
+
         setStats({
           totalMembers: data.data.length,
           goldMembers: gold,
@@ -51,7 +51,7 @@ export default function MembersPage() {
 
   useEffect(() => {
     fetchMembers();
-    
+
     // Live update every 15 seconds
     const interval = setInterval(fetchMembers, 15000);
     return () => clearInterval(interval);
@@ -142,8 +142,8 @@ export default function MembersPage() {
           plan === 'GOLD'
             ? 'bg-[#E63C2F]/20 text-[#E63C2F] border border-[#E63C2F]/30'
             : plan === 'ELITE'
-            ? 'bg-white/10 text-white border border-white/20'
-            : 'bg-white/5 text-white/70 border border-white/10';
+              ? 'bg-white/10 text-white border border-white/20'
+              : 'bg-white/5 text-white/70 border border-white/10';
 
         return (
           <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${planClass}`}>
@@ -161,8 +161,8 @@ export default function MembersPage() {
           status === 'ACTIVE'
             ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30'
             : status === 'PENDING'
-            ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30'
-            : 'text-rose-400 bg-rose-500/10 border border-rose-500/30';
+              ? 'text-amber-400 bg-amber-500/10 border border-amber-500/30'
+              : 'text-rose-400 bg-rose-500/10 border border-rose-500/30';
 
         return (
           <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${statusClass}`}>

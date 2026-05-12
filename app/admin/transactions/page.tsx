@@ -30,6 +30,8 @@ export default function AdminTransactionsPage() {
     reference: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch all transaction data from endpoints
   useEffect(() => {
@@ -340,6 +342,9 @@ export default function AdminTransactionsPage() {
     return matchType && matchStatus;
   });
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -441,9 +446,9 @@ export default function AdminTransactionsPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filtered.map((txn) => (
-                  <tr key={txn.id} className="hover:bg-gray-50">
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedData.map((txn, idx) => (
+                    <tr key={txn.id || idx} className="hover:bg-gray-50/50 transition-colors">
                     {/* ID */}
                     <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 text-sm">
                       {txn.id}
@@ -511,15 +516,37 @@ export default function AdminTransactionsPage() {
             )}
           </div>
 
-          {/* Pagination */}
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <span className="text-sm text-gray-500">Showing {filtered.length} of {transactions.length} transactions</span>
+            <span className="text-sm text-gray-500">
+              Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} transactions
+            </span>
             <div className="flex items-center gap-1">
-              <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300">← Prev</button>
-              <button className="px-3 py-1 text-sm font-bold bg-[var(--primary)] text-black border border-[var(--primary)]">1</button>
-              <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 border border-gray-300">2</button>
-              <button className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 border border-gray-300">3</button>
-              <button className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300">Next →</button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300 disabled:opacity-50"
+              >
+                ← Prev
+              </button>
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`px-3 py-1 text-sm border ${currentPage === i + 1
+                    ? 'font-bold bg-[var(--primary)] text-black border-[var(--primary)]'
+                    : 'text-gray-600 hover:bg-gray-100 border-gray-300'
+                    }`}
+                >
+                  {i + 1}
+                </button>
+              )).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))}
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300 disabled:opacity-50"
+              >
+                Next →
+              </button>
             </div>
           </div>
         </div>

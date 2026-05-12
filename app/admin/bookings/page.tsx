@@ -70,7 +70,7 @@ export default function AdminBookingsPage() {
     try {
       console.log('📅 [ADMIN BOOKINGS] Fetching...');
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         console.error('❌ [ADMIN BOOKINGS] No token found in localStorage');
         setError('Authentication required. Please log in again.');
@@ -115,7 +115,7 @@ export default function AdminBookingsPage() {
   const fetchSelectData = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       const [trainersRes, membersRes] = await Promise.all([
         fetch('/api/admin/trainers', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/admin/members', { headers: { Authorization: `Bearer ${token}` } }),
@@ -411,7 +411,7 @@ export default function AdminBookingsPage() {
               <table className="w-full">
                 <thead style={{ background: 'var(--card)' }}>
                   <tr>
-                    {['Member', 'Trainer', 'Date & Time', 'Type', 'Fee', 'Status', 'Actions'].map((col) => (
+                    {['Booking ID', 'Member', 'Trainer', 'Date & Time', 'Type', 'Fee', 'Status', 'Actions'].map((col) => (
                       <th
                         key={col}
                         className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider"
@@ -432,12 +432,16 @@ export default function AdminBookingsPage() {
                   ) : (
                     filtered.map((booking) => (
                       <tr key={booking._id} className="hover:bg-gray-50">
+                        {/* Booking ID */}
+                        <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 text-xs">
+                          BK-{booking._id.slice(-6).toUpperCase()}
+                        </td>
                         {/* Member */}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--primary)' }}>
-                                <span className="text-black font-black text-sm">{booking.memberId.firstName[0]}</span>
-                              </div>
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--primary)' }}>
+                              <span className="text-black font-black text-sm">{booking.memberId.firstName[0]}</span>
+                            </div>
                             <span className="font-medium text-gray-900 text-sm">{booking.memberId.firstName} {booking.memberId.lastName}</span>
                           </div>
                         </td>
@@ -509,7 +513,7 @@ export default function AdminBookingsPage() {
 
       {/* Edit Booking Modal */}
       {showEditModal && (
-            <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-50 p-4 backdrop-blur-sm">
           <div className="rounded-2xl border-2 max-w-2xl w-full p-8" style={{ background: 'var(--card)', borderColor: 'rgba(255,255,255,0.04)' }}>
             {/* Header */}
             <div className="flex justify-between items-center mb-8 pb-6" style={{ borderBottom: '2px solid rgba(255,255,255,0.04)' }}>
@@ -618,10 +622,10 @@ export default function AdminBookingsPage() {
                     onChange={(e) => setFormData({ ...formData, fee: e.target.value })}
                     placeholder="5000"
                     className="w-full px-4 py-2 border-2 outline-none font-bold"
-                      style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)', background: 'transparent' }}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
-                      required
+                    style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)', background: 'transparent' }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
+                    required
                   />
                 </div>
               </div>

@@ -280,86 +280,86 @@ export default function AdminMembershipsPage() {
         )}
 
         {/* Memberships Grid */}
-          {!loading && memberships.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {memberships.map((membership) => (
-                <div key={membership._id} className="overflow-hidden transition-all" style={{ border: '2px solid rgba(255,255,255,0.04)', background: 'var(--card)' }}>
-                  {/* Header */}
-                  <div className="p-4" style={membership.isFeatured ? { background: 'rgba(230,60,47,0.06)', borderBottom: '2px solid var(--primary)' } : { borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="text-xs font-black uppercase mb-1" style={{ color: 'var(--primary)' }}>{membership.tagline}</div>
-                        <h3 className="text-xl font-black uppercase" style={{ color: 'var(--foreground)' }}>{membership.name}</h3>
-                      </div>
-                      {membership.isFeatured && <span className="text-sm font-black px-2 py-1" style={{ background: 'var(--primary)', color: 'black' }}>⭐ Featured</span>}
+        {!loading && memberships.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {memberships.map((membership) => (
+              <div key={membership._id} className="overflow-hidden transition-all" style={{ border: '2px solid rgba(255,255,255,0.04)', background: 'var(--card)' }}>
+                {/* Header */}
+                <div className="p-4" style={membership.isFeatured ? { background: 'rgba(230,60,47,0.06)', borderBottom: '2px solid var(--primary)' } : { borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="text-xs font-black uppercase mb-1" style={{ color: 'var(--primary)' }}>{membership.tagline}</div>
+                      <h3 className="text-xl font-black uppercase" style={{ color: 'var(--foreground)' }}>{membership.name}</h3>
                     </div>
-                    {!membership.isActive && <span className="text-xs font-bold px-2 py-1" style={{ background: '#4b4b4b', color: 'white' }}>⊘ Inactive</span>}
+                    {membership.isFeatured && <span className="text-sm font-black px-2 py-1" style={{ background: 'var(--primary)', color: 'black' }}>⭐ Featured</span>}
                   </div>
+                  {!membership.isActive && <span className="text-xs font-bold px-2 py-1" style={{ background: '#4b4b4b', color: 'white' }}>⊘ Inactive</span>}
+                </div>
 
-                  {/* Content */}
-                  <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>{membership.description}</p>
+                {/* Content */}
+                <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <p className="text-sm mb-3" style={{ color: 'var(--muted-foreground)' }}>{membership.description}</p>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
-                        <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Price</p>
-                        <p className="text-lg font-black">LKR {membership.price.toLocaleString()}</p>
-                      </div>
-                      <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
-                        <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Duration</p>
-                        <p className="text-lg font-black text-capitalize">{membership.duration}</p>
-                      </div>
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
+                      <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Price</p>
+                      <p className="text-lg font-black">LKR {membership.price.toLocaleString()}</p>
                     </div>
-
-                    {/* Revenue Stats */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
-                        <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Members</p>
-                        <p className="text-xl font-black" style={{ color: 'var(--primary)' }}>{membership.activeMembersCount}</p>
-                      </div>
-                      <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
-                        <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Revenue</p>
-                        <p className="text-lg font-black" style={{ color: 'var(--primary)' }}>LKR {Math.round(membership.monthlyRevenue).toLocaleString()}</p>
-                      </div>
+                    <div className="p-3 rounded" style={{ background: 'rgba(0,0,0,0.4)', color: 'var(--foreground)' }}>
+                      <p className="text-xs uppercase font-bold mb-1" style={{ color: 'var(--muted-foreground)' }}>Duration</p>
+                      <p className="text-lg font-black text-capitalize">{membership.duration}</p>
                     </div>
                   </div>
 
-                  {/* Features */}
-                  <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <p className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--muted-foreground)' }}>Features ({membership.features.length})</p>
-                    <ul className="space-y-1 text-sm">
-                      {membership.features.slice(0, 3).map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="font-bold" style={{ color: 'var(--primary)' }}>✓</span>
-                          <span style={{ color: 'var(--foreground)' }}>{feature}</span>
-                        </li>
-                      ))}
-                      {membership.features.length > 3 && <li className="text-xs font-bold" style={{ color: 'var(--muted-foreground)' }}>+ {membership.features.length - 3} more</li>}
-                    </ul>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="p-4 flex gap-2">
-                    <button
-                      onClick={() => handleEditClick(membership)}
-                      className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
-                      style={{ background: '#2563EB' }}
-                    >
-                      ✏️ Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMembership(membership._id)}
-                      className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
-                      style={{ background: '#DC2626' }}
-                    >
-                      🗑️ Delete
-                    </button>
+                  {/* Revenue Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Members</p>
+                      <p className="text-xl font-black" style={{ color: 'var(--primary)' }}>{membership.activeMembersCount}</p>
+                    </div>
+                    <div className="p-3 rounded" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <p className="text-xs uppercase font-bold" style={{ color: 'var(--muted-foreground)' }}>Revenue</p>
+                      <p className="text-lg font-black" style={{ color: 'var(--primary)' }}>LKR {Math.round(membership.monthlyRevenue).toLocaleString()}</p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                {/* Features */}
+                <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <p className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--muted-foreground)' }}>Features ({membership.features.length})</p>
+                  <ul className="space-y-1 text-sm">
+                    {membership.features.slice(0, 3).map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="font-bold" style={{ color: 'var(--primary)' }}>✓</span>
+                        <span style={{ color: 'var(--foreground)' }}>{feature}</span>
+                      </li>
+                    ))}
+                    {membership.features.length > 3 && <li className="text-xs font-bold" style={{ color: 'var(--muted-foreground)' }}>+ {membership.features.length - 3} more</li>}
+                  </ul>
+                </div>
+
+                {/* Actions */}
+                <div className="p-4 flex gap-2">
+                  <button
+                    onClick={() => handleEditClick(membership)}
+                    className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
+                    style={{ background: '#2563EB' }}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteMembership(membership._id)}
+                    className="flex-1 text-white font-bold text-sm uppercase py-2 transition-all"
+                    style={{ background: '#DC2626' }}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}

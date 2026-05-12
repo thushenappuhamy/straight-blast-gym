@@ -99,7 +99,7 @@ export default function SupplementsPage() {
 
   // Certification options
   const certificationOptions = ['Vegan', 'Vegetarian', 'Organic', 'Non-GMO', 'Gluten-Free', 'Kosher', 'Halal'];
-  
+
   // Allergen options
   const allergenOptions = ['Dairy', 'Gluten', 'Nuts', 'Shellfish', 'Eggs', 'Soy', 'Sesame'];
 
@@ -192,7 +192,7 @@ export default function SupplementsPage() {
 
       const token = localStorage.getItem('token');
       console.log('🔐 [SUPPLEMENTS] Token:', token ? 'Found' : 'Not found');
-      
+
       if (!token) {
         throw new Error('No authentication token found. Please login again.');
       }
