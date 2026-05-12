@@ -78,29 +78,29 @@ export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps
 
   const shellClasses = isDark
     ? "bg-[#0b0b0b] border-white/10 text-white"
-    : "bg-[#FFFFFF] border-[#E5E5E5] text-[#1A1A1A]";
+    : "bg-white border-slate-200 text-slate-900 shadow-xl shadow-slate-200/50";
 
   const backdropClasses = isDark
     ? "bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.12),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_36px)] opacity-80"
-    : "bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.05),transparent_38%),linear-gradient(135deg,rgba(0,0,0,0.03)_0,rgba(0,0,0,0.03)_1px,transparent_1px,transparent_36px)] opacity-70";
+    : "bg-[radial-gradient(circle_at_top,rgba(230,60,47,0.03),transparent_38%)] opacity-40";
 
   const sectionLabelClasses = isDark
     ? "text-white/35"
-    : "text-[#888888]";
+    : "text-slate-400 font-bold";
 
   const itemBaseClasses = isDark
     ? "text-white/70 hover:bg-white/5 hover:text-white"
-    : "text-[#666666] hover:bg-black/5 hover:text-[#1A1A1A]";
+    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900";
 
   const itemActiveClasses = isDark
     ? "bg-[#E63C2F] text-white shadow-[0_10px_30px_rgba(230,60,47,0.22)]"
-    : "bg-[#F0F0F0] text-[#1A1A1A] shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-[#E5E5E5]";
+    : "bg-slate-100 text-slate-900 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-slate-200";
 
-  const mutedText = isDark ? "text-white/45" : "text-[#888888]";
+  const mutedText = isDark ? "text-white/45" : "text-slate-400";
 
   const toggleButtonClasses = isDark
     ? "border-white/10 bg-white/5 text-white/75 hover:bg-white/10 hover:text-white"
-    : "border-[#E5E5E5] bg-white text-[#1A1A1A] hover:bg-black/5 hover:text-[#1A1A1A]";
+    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-sm";
 
   return (
     <aside className={`relative flex min-h-screen w-72 flex-col overflow-hidden border-r ${shellClasses}`}>

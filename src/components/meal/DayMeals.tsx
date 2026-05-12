@@ -34,11 +34,7 @@ export default function DayMeals({
 }: DayMealsProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-xl font-black text-white uppercase tracking-wide mb-2">
-          {day}
-        </h3>
-      </div>
+
 
       <div className="space-y-3">
         {meals.map((meal, idx) => (
