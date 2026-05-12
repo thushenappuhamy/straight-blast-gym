@@ -3,16 +3,31 @@
 import { useCart } from '@/src/context/CartContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function FloatingCart() {
   const { items } = useCart();
   const router = useRouter();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
 
-  // Don't show the floating cart if cart is empty, we are already on the checkout page, or on admin routes
-  if (itemCount === 0 || pathname === '/dashboard/orders' || pathname?.startsWith('/admin')) {
+  // Don't show the floating cart if cart is empty, we are already on the checkout page, on admin routes, or on auth/home pages
+  const isExcludedPage = 
+    pathname === '/' || 
+    pathname === '/login' || 
+    pathname === '/signup' || 
+    pathname === '/dashboard/orders' || 
+    pathname?.startsWith('/admin');
+
+  if (itemCount === 0 || isExcludedPage) {
     return null;
   }
 
