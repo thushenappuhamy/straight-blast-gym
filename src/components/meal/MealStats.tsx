@@ -35,16 +35,16 @@ export default function MealStats({ stats, variant = 'default' }: MealStatsProps
     : 'grid grid-cols-2 md:grid-cols-4 gap-4';
 
   const cardClasses = variant === 'compact'
-    ? 'rounded-lg border border-white/8 bg-white/[0.03] p-3'
-    : 'rounded-xl border border-white/10 bg-white/5 p-4 hover:bg-white/8 transition-colors';
+    ? 'rounded-lg border border-border bg-muted/50 p-3 shadow-sm'
+    : 'rounded-xl border border-border bg-card p-4 hover:bg-muted/50 transition-colors shadow-sm';
 
   const labelClasses = variant === 'compact'
-    ? 'text-[9px] font-bold uppercase tracking-wider text-white/40'
-    : 'text-[10px] font-black uppercase tracking-[0.2em] text-white/35';
+    ? 'text-[9px] font-bold uppercase tracking-wider text-muted-foreground/60'
+    : 'text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground';
 
   const valueClasses = variant === 'compact'
-    ? 'text-base font-bold text-white mt-1'
-    : 'text-lg font-black text-white mt-2';
+    ? 'text-base font-bold text-foreground mt-1'
+    : 'text-lg font-black text-foreground mt-2';
 
   return (
     <div className={containerClasses}>
