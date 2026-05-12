@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Toast from '@/src/components/ui/Toast';
+import { Check, ArrowRight, Star, Shield, Zap, Crown, Info } from 'lucide-react';
+import Link from 'next/link';
 
 interface MembershipPlan {
   _id: string;
@@ -24,11 +26,9 @@ export default function MembershipPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [updateCounter, setUpdateCounter] = useState(0);
 
-  // Fetch memberships and poll for updates every 5 seconds
   useEffect(() => {
     const fetchMemberships = async () => {
       try {
-        console.log('💳 [USER MEMBERSHIPS] Fetching... (Poll #' + (updateCounter + 1) + ')');
         const response = await fetch('/api/memberships', {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -36,91 +36,94 @@ export default function MembershipPage() {
           },
         });
         const result = await response.json();
-        
+
         if (result.success) {
-          console.log('✅ [USER MEMBERSHIPS] Loaded:', result.data.length);
           setPlans(result.data);
           setLastUpdated(new Date());
           setUpdateCounter(prev => prev + 1);
           setError(null);
         } else {
-          console.error('❌ [USER MEMBERSHIPS] Fetch failed:', result.error);
           setError('Failed to load membership plans');
         }
       } catch (err) {
-        console.error('❌ [USER MEMBERSHIPS] Error:', err);
         setError('Failed to load membership plans');
       } finally {
         setLoading(false);
       }
     };
 
-    // Initial fetch
     fetchMemberships();
-
-    // Set up polling for real-time updates every 5 seconds
-    const interval = setInterval(fetchMemberships, 5000);
-
-    // Cleanup interval on unmount
+    const interval = setInterval(fetchMemberships, 10000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F4D03F] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading membership plans...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || plans.length === 0) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 py-12 px-4 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 font-bold mb-4">{error || 'No membership plans available'}</p>
-          <p className="text-gray-600">Please try again later</p>
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+          </div>
+          <p className="text-muted-foreground font-medium tracking-widest uppercase text-xs">Initializing Portal...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 to-[#070707] py-12 px-4 sm:px-6 lg:px-8 text-white">
-      {/* Primary top border */}
-      <div className="w-full h-1 bg-[#E63C2F] absolute top-0 left-0"></div>
-      
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden pb-20 transition-colors duration-300">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none opacity-50"></div>
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="absolute top-1/2 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto px-6 pt-16 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-block bg-black text-[#F4D03F] px-6 py-2 text-xs font-bold uppercase tracking-wider mb-4">
-            Membership Plans
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-card border border-border px-4 py-1.5 rounded-full mb-6 shadow-sm">
+            <Star size={14} className="text-primary fill-primary" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Premium Access</span>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black text-gray-900 uppercase tracking-tight mb-4">
-            Choose Your Plan
+          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter mb-6 text-foreground">
+            Choose Your <span className="text-primary">Legacy</span>
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-4">
-            Unlock full access to SBG's digital platform, trainers, and supplement store.
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed font-medium">
+            Unlock the full potential of your fitness journey with SBG's elite membership tiers.
+            Tailored for those who demand excellence.
           </p>
-          {lastUpdated && (
-            <p className="text-xs text-gray-500 font-semibold">
-              🔄 Live updates • Last updated: {lastUpdated.toLocaleTimeString()} (Poll #{updateCounter})
-            </p>
-          )}
         </div>
 
-        {/* Pricing Carousel */}
-        <PricingCarousel plans={plans} />
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {plans.map((plan, idx) => (
+            <PlanCard key={plan._id} plan={plan} index={idx} />
+          ))}
+        </div>
+
+        {/* Footer Info */}
+        <div className="mt-20 flex flex-col md:flex-row items-center justify-between gap-8 p-8 rounded-3xl border border-border bg-card backdrop-blur-sm shadow-xl">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Shield className="text-primary" size={24} />
+            </div>
+            <div>
+              <h4 className="font-bold text-foreground uppercase tracking-wider">Secure Enrollment</h4>
+              <p className="text-sm text-muted-foreground">Encrypted transactions & member protection</p>
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/dashboard" className="px-6 py-3 rounded-xl border border-border bg-muted hover:bg-muted/80 transition-colors text-xs font-bold uppercase tracking-widest text-foreground">
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function PricingCarousel({ plans }: { plans: MembershipPlan[] }) {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(3);
+function PlanCard({ plan, index }: { plan: MembershipPlan; index: number }) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -138,108 +141,90 @@ function PricingCarousel({ plans }: { plans: MembershipPlan[] }) {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to subscribe');
-      }
+      if (!response.ok) throw new Error(data.error || 'Subscription failed');
 
-      setToast({ message: `Successfully subscribed to the ${planName.toUpperCase()} plan!`, type: 'success' });
-      setTimeout(() => {
-        window.location.href = '/dashboard/profile';
-      }, 2000);
+      setToast({ message: `Welcome to the ${planName.toUpperCase()} family!`, type: 'success' });
+      setTimeout(() => window.location.href = '/dashboard/profile', 2000);
     } catch (err: any) {
-      setToast({ message: 'Error: ' + err.message, type: 'error' });
+      setToast({ message: err.message, type: 'error' });
     } finally {
       setProcessingId(null);
     }
   };
 
-  useEffect(() => {
-    const calc = () => {
-      const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
-      if (w < 640) setVisible(1);
-      else if (w < 1024) setVisible(2);
-      else setVisible(3);
-    };
-    calc();
-    window.addEventListener('resize', calc);
-    return () => window.removeEventListener('resize', calc);
-  }, []);
+  const isPopular = plan.isFeatured || plan.name.toUpperCase() === 'STANDARD';
+  const isPremium = plan.name.toUpperCase() === 'POWERLIFTING' || plan.name.toUpperCase() === 'PREMIUM';
 
-  // Move PREMIUM to the end (user requested premium shown last)
-  const premium = plans.find((p) => (p.name || '').toUpperCase() === 'PREMIUM');
-  const others = plans.filter((p) => (p.name || '').toUpperCase() !== 'PREMIUM');
-  const ordered = premium ? [...others, premium] : [...plans];
-
-  // Clamp index so we always have 'visible' cards to show where possible
-  useEffect(() => {
-    if (index > Math.max(0, ordered.length - visible)) {
-      setIndex(Math.max(0, ordered.length - visible));
-    }
-  }, [visible, ordered.length, index]);
-
-  const prev = () => setIndex((i) => Math.max(0, i - 1));
-  const next = () => setIndex((i) => Math.min(ordered.length - visible, i + 1));
-
-  const translatePercent = (index * 100) / visible;
-  const activeCard = index + Math.floor(visible / 2);
+  const getIcon = () => {
+    if (isPremium) return <Crown className="text-primary" size={28} />;
+    if (isPopular) return <Zap className="text-primary" size={28} />;
+    return <Star className="text-primary" size={28} />;
+  };
 
   return (
-    <div className="relative">
+    <div
+      className={`group relative rounded-[2.5rem] p-1 transition-all duration-500 hover:-translate-y-2 ${isPopular ? 'bg-gradient-to-b from-primary to-primary/20' : 'bg-border hover:bg-primary/30'
+        }`}
+    >
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="text-sm text-white/60 mb-6">Showing {ordered.length} plans</div>
 
-      {/* Right-side arrows */}
-      <div className="absolute right-8 top-28 flex flex-col gap-2 z-20">
-        <button onClick={prev} disabled={index === 0} className="w-10 h-10 rounded bg-white/6 text-white/90 disabled:opacity-40">◀</button>
-        <button onClick={next} disabled={index >= ordered.length - visible} className="w-10 h-10 rounded bg-white/6 text-white/90 disabled:opacity-40">▶</button>
-      </div>
+      <div className="bg-card rounded-[2.3rem] p-8 h-full flex flex-col relative overflow-hidden shadow-2xl">
+        {/* Card Shine */}
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 skew-x-12 group-hover:left-full transition-all duration-1000 pointer-events-none"></div>
 
-      <div className="overflow-hidden">
-        <div
-          className="flex transition-transform duration-500"
-          style={{ transform: `translateX(-${translatePercent}%)` }}
-        >
-          {ordered.map((plan, i) => {
-            const isActive = i === activeCard;
-            return (
-              <div key={plan._id} className={`w-full md:w-1/2 lg:w-1/3 px-4 shrink-0`}>
-                <div
-                  className={`relative rounded-2xl overflow-hidden shadow-xl p-8 transition-transform duration-300 ${
-                    isActive ? 'scale-105 border-4 border-[#E63C2F] bg-[#0F0F0F]' : 'bg-white/3'
-                  }`}
-                >
-                  {plan.isFeatured && (
-                    <div className="absolute top-4 right-4 bg-[#E63C2F] text-black font-bold text-xs uppercase tracking-wider px-4 py-2">
-                      {plan.badge || 'Most Popular'}
-                    </div>
-                  )}
-                  <h3 className={`text-3xl font-black uppercase mb-3 ${isActive ? 'text-[#E63C2F]' : 'text-white'}`}>{plan.name}</h3>
-                  {plan.tagline && <p className="text-sm text-white/70 mb-4">{plan.tagline}</p>}
-                  <div className="mb-6">
-                    <div className="text-4xl font-black text-white">LKR {plan.price.toLocaleString()}</div>
-                    <div className="text-sm text-white/60">/ {plan.duration || 'month'}</div>
-                  </div>
-                  {plan.description && <p className="text-white/70 mb-6">{plan.description}</p>}
-                  <ul className="mb-6 space-y-3">
-                    {plan.features.map((f, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="text-[#E63C2F]">✓</span>
-                        <span className="text-white/80">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button 
-                    onClick={() => handleSubscribe(plan.name, plan._id)}
-                    disabled={processingId === plan._id}
-                    className={`w-full py-3 font-black rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? 'bg-[#E63C2F] hover:bg-[#ff4e40] text-black' : 'border-2 border-[#E63C2F] hover:bg-white/5 text-white'}`}
-                  >
-                    {processingId === plan._id ? 'Processing...' : 'Get Started'}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        {/* Badge */}
+        {plan.isFeatured && (
+          <div className="absolute top-6 right-6 px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/40">
+            {plan.badge || 'Recommended'}
+          </div>
+        )}
+
+        <div className="mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            {getIcon()}
+          </div>
+          <h3 className="text-3xl font-black uppercase tracking-tighter mb-2 group-hover:text-primary transition-colors text-foreground">
+            {plan.name}
+          </h3>
+          <p className="text-muted-foreground text-sm font-bold">{plan.tagline || 'Elevate your game'}</p>
         </div>
+
+        <div className="mb-8">
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm font-bold text-muted-foreground uppercase">LKR</span>
+            <span className="text-5xl font-black tracking-tight text-foreground">{plan.price.toLocaleString()}</span>
+          </div>
+          <p className="text-muted-foreground/60 text-xs font-black uppercase tracking-widest mt-1">Per {plan.duration || 'Month'}</p>
+        </div>
+
+        <div className="flex-1 space-y-4 mb-10">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-4">Core Benefits</p>
+          {plan.features.map((feature, i) => (
+            <div key={i} className="flex items-start gap-3 group/item">
+              <div className="mt-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary/10 text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors">
+                <Check size={10} strokeWidth={4} />
+              </div>
+              <span className="text-sm text-muted-foreground group-hover/item:text-foreground transition-colors font-medium">{feature}</span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => handleSubscribe(plan.name, plan._id)}
+          disabled={processingId === plan._id}
+          className={`group/btn relative w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 overflow-hidden ${isPopular
+              ? 'bg-primary text-white hover:bg-slate-900 shadow-lg shadow-primary/20'
+              : 'border border-border bg-muted hover:bg-foreground hover:text-background'
+            } disabled:opacity-50`}
+        >
+          {processingId === plan._id ? (
+            <span className="animate-pulse">Processing Entry...</span>
+          ) : (
+            <>
+              Get Started <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

@@ -217,9 +217,9 @@ export default function MealPlansPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-background p-8 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl font-bold text-white mb-4">Loading your personalized meal plan...</p>
+          <p className="text-xl font-bold text-foreground mb-4">Loading your personalized meal plan...</p>
           <div className="animate-spin text-3xl">⚙️</div>
         </div>
       </div>
@@ -228,13 +228,13 @@ export default function MealPlansPage() {
 
   if (error || !mealPlan) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D] p-8">
+      <div className="min-h-screen bg-background p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="rounded-xl border border-[#E63C2F]/30 bg-[#E63C2F]/5 p-8 text-center">
-            <p className="text-lg font-bold text-white">⚠️ {error || 'No plan available'}</p>
-            <p className="text-white/60 mt-3">
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-8 text-center">
+            <p className="text-lg font-bold text-foreground">⚠️ {error || 'No plan available'}</p>
+            <p className="text-muted-foreground mt-3">
               Go back to{' '}
-              <a href="/bmi-calculator" className="text-[#E63C2F] hover:underline font-bold">
+              <a href="/bmi-calculator" className="text-primary hover:underline font-bold">
                 BMI Calculator
               </a>{' '}
               to create your personalized plan.
@@ -246,7 +246,7 @@ export default function MealPlansPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] p-6 md:p-8">
+    <div className="min-h-screen bg-background p-6 md:p-8">
       <div className="max-w-5xl mx-auto">
         <MealPlanContainer
           title={mealPlan.title}

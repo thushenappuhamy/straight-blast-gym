@@ -40,17 +40,17 @@ function StatCard({ icon, value, label, sublabel, highlight }: StatCardProps) {
   };
 
   return (
-    <div className="rounded-[1.75rem] border border-white/10 dark:border-white/10 dark:bg-linear-to-br dark:from-white/8 dark:to-white/5 bg-linear-to-br from-black/5 to-white/30 p-6 backdrop-blur-xl dark:shadow-[0_20px_60px_rgba(0,0,0,0.2)] shadow-[0_10px_30px_rgba(0,0,0,0.1)] dark:text-white text-[#1A1A1A]">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#E63C2F]/12 dark:bg-[#E63C2F]/12">
+    <div className="rounded-[1.75rem] border border-border bg-card p-6 backdrop-blur-xl shadow-xl transition-all hover:translate-y-[-4px]">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
         {iconMap[icon]}
       </div>
-      <div className="text-4xl font-black tracking-tight dark:text-white text-[#1A1A1A]">{value}</div>
-      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.35em] dark:text-white/45 text-[#888888]">
+      <div className="text-4xl font-black tracking-tight text-foreground">{value}</div>
+      <div className="mt-2 text-[10px] font-black uppercase tracking-[0.35em] text-muted-foreground">
         {label}
         {sublabel ? <><br />{sublabel}</> : null}
       </div>
       {highlight && (
-        <div className={`mt-3 text-xs font-bold uppercase tracking-[0.22em] ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-emerald-400" : "text-[#E63C2F]"}`}>
+        <div className={`mt-3 text-xs font-black uppercase tracking-[0.22em] ${highlight.includes("Normal") || highlight.includes("Complete") ? "text-emerald-500" : "text-primary"}`}>
           {highlight.includes("✓") && <Check size={14} className="mr-1 inline" />}
           {highlight.replace("✓", "").trim()}
         </div>
@@ -70,19 +70,19 @@ type WorkoutCardProps = {
 function WorkoutCard({ dayLabel, title, exercises, duration, status }: WorkoutCardProps) {
   const statusStyles =
     status === "done"
-      ? "bg-emerald-500/15 text-emerald-400"
+      ? "bg-emerald-500/10 text-emerald-500"
       : status === "today"
-        ? "bg-[#E63C2F]/15 text-[#E63C2F]"
-        : "dark:bg-white/10 dark:text-white/45 bg-[#E6E3DA] text-[#6B625A]";
+        ? "bg-primary/10 text-primary"
+        : "bg-muted text-muted-foreground";
 
   return (
-    <div className="flex items-center gap-4 rounded-3xl border dark:border-white/8 border-[#E6E3DA] dark:bg-black/25 bg-white/50 p-4">
-      <div className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.28em] ${status === "done" ? "bg-white dark:text-black text-[#1A1816]" : status === "today" ? "bg-[#E63C2F] text-white" : "dark:bg-white/10 dark:text-white/45 bg-[#E6E3DA] text-[#6B625A]"}`}>
+    <div className="flex items-center gap-4 rounded-3xl border border-border bg-card p-4 transition-all hover:bg-muted/50 group">
+      <div className={`rounded-xl px-3 py-2 text-xs font-black uppercase tracking-[0.28em] transition-colors ${status === "done" ? "bg-foreground text-background" : status === "today" ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
         {dayLabel}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-black dark:text-white text-[#1A1816]">{title}</div>
-        <div className="text-xs dark:text-white/45 text-[#6B625A]">{exercises} · {duration}</div>
+        <div className="font-black text-foreground uppercase tracking-tight group-hover:text-primary transition-colors">{title}</div>
+        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{exercises} · {duration}</div>
       </div>
       <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-[0.25em] ${statusStyles}`}>
         {status === "done" && (
@@ -106,16 +106,16 @@ type QuickActionProps = {
 
 function QuickAction({ icon, label, href, onClick }: QuickActionProps) {
   const iconMap: Record<string, ReactNode> = {
-    chart: <Target size={20} className="text-[#E63C2F]" />,
-    pill: <Pill size={20} className="text-[#E63C2F]" />,
-    user: <UserIcon size={20} className="text-[#E63C2F]" />,
-    food: <UtensilsCrossed size={20} className="text-[#E63C2F]" />,
+    chart: <Target size={20} className="text-primary" />,
+    pill: <Pill size={20} className="text-primary" />,
+    user: <UserIcon size={20} className="text-primary" />,
+    food: <UtensilsCrossed size={20} className="text-primary" />,
   };
 
   const content = (
-    <div className="flex h-full flex-col items-center justify-center rounded-2xl border dark:border-white/8 border-[#E5E5E5] dark:bg-white/5 bg-white/50 p-4 text-center transition-colors dark:hover:bg-white/8 hover:bg-black/5">
-      <div className="mb-3">{iconMap[icon]}</div>
-      <span className="text-[10px] font-black uppercase tracking-[0.32em] dark:text-white/80 text-[#1A1A1A]">{label}</span>
+    <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition-all hover:bg-primary/10 hover:border-primary/30 group">
+      <div className="mb-3 transition-transform group-hover:scale-110">{iconMap[icon]}</div>
+      <span className="text-[10px] font-black uppercase tracking-[0.32em] text-foreground group-hover:text-primary transition-colors">{label}</span>
     </div>
   );
 
@@ -139,11 +139,11 @@ function ProgressBar({ label, value, max, displayText }: ProgressBarProps) {
   return (
     <div className="mb-4 last:mb-0">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-bold dark:text-white text-[#1A1816]">{label}</span>
-        <span className="text-sm dark:text-white/50 text-[#9A8F87]">{displayText}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">{label}</span>
+        <span className="text-[10px] font-black text-muted-foreground uppercase">{displayText}</span>
       </div>
-      <div className="h-3 rounded-full dark:bg-white/10 bg-[#E6E3DA] overflow-hidden">
-        <div className="h-full rounded-full bg-[#E63C2F] transition-all duration-500" style={{ width: `${percentage}%` }} />
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_12px_rgba(230,60,47,0.4)]" style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );
@@ -373,71 +373,71 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center dark:bg-[#111111] bg-[#F7F6F2]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E63C2F] border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen px-6 py-8 dark:text-white text-[#1A1816] lg:px-10">
+    <div className="min-h-screen px-6 py-8 text-foreground bg-background transition-colors duration-300 lg:px-10">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="mx-auto max-w-7xl">
         {/* Header Section */}
         <header className="mb-12 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="mb-2 flex items-center gap-3">
-              <span className="h-[2px] w-8 bg-[#E63C2F]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#E63C2F]">
+              <span className="h-[2px] w-8 bg-primary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
                 Member Dashboard
               </span>
             </div>
-            <h1 className="text-4xl font-black tracking-tight dark:text-white text-[#1A1A1A] md:text-5xl">
-              WELCOME BACK, <span className="text-[#E63C2F]">{userInfo.name.toUpperCase()}</span>
+            <h1 className="text-4xl font-black tracking-tight text-foreground md:text-5xl">
+              WELCOME BACK, <span className="text-primary">{userInfo.name.toUpperCase()}</span>
             </h1>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 dark:bg-white/5 bg-white shadow-lg transition-all hover:scale-105 active:scale-95"
+              className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card shadow-lg transition-all hover:scale-105 active:scale-95"
             >
-              <Bell size={24} className="dark:text-white text-[#1A1A1A]" />
+              <Bell size={24} className="text-foreground" />
               {notifications.length > 0 && (
                 <span className="absolute right-3.5 top-3.5 flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#E63C2F] opacity-75"></span>
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-[#E63C2F]"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary"></span>
                 </span>
               )}
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-16 w-80 overflow-hidden rounded-3xl border border-white/10 dark:bg-[#1A1A1A] bg-white shadow-2xl z-50">
-                  <div className="border-b border-white/5 dark:bg-white/5 bg-gray-50 px-6 py-4">
+                <div className="absolute right-0 top-16 w-80 overflow-hidden rounded-3xl border border-border bg-card shadow-2xl z-50">
+                  <div className="border-b border-border bg-muted/50 px-6 py-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase tracking-widest dark:text-white text-[#1A1A1A]">Notifications</span>
-                      <span className="rounded-full bg-[#E63C2F]/10 px-2 py-0.5 text-[10px] font-bold text-[#E63C2F]">{notifications.length} NEW</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Notifications</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{notifications.length} NEW</span>
                     </div>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto">
                     {notifications.length > 0 ? (
                       notifications.map((notif) => (
-                        <div key={notif.id} className="border-b border-white/5 px-6 py-5 transition-colors hover:bg-white/5">
+                        <div key={notif.id} className="border-b border-border px-6 py-5 transition-colors hover:bg-muted/50">
                           <div className="mb-2 flex items-center gap-2">
-                            {notif.type === 'error' ? <AlertTriangle size={14} className="text-[#E63C2F]" /> : <Bell size={14} className="text-amber-500" />}
-                            <span className="text-xs font-black uppercase tracking-wider dark:text-white text-[#1A1A1A]">{notif.title}</span>
+                            {notif.type === 'error' ? <AlertTriangle size={14} className="text-primary" /> : <Bell size={14} className="text-amber-500" />}
+                            <span className="text-[10px] font-black uppercase tracking-wider text-foreground">{notif.title}</span>
                           </div>
-                          <p className="text-xs leading-relaxed dark:text-white/60 text-[#6B625A]">{notif.message}</p>
-                          <Link href="/membership" className="mt-3 inline-block text-[10px] font-black uppercase tracking-wider text-[#E63C2F] hover:underline">
+                          <p className="text-xs leading-relaxed text-muted-foreground">{notif.message}</p>
+                          <Link href="/membership" className="mt-3 inline-block text-[10px] font-black uppercase tracking-wider text-primary hover:underline">
                             Settle Payment →
                           </Link>
                         </div>
                       ))
                     ) : (
                       <div className="px-6 py-10 text-center">
-                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full dark:bg-white/5 bg-gray-50">
-                          <Check size={20} className="dark:text-white/20 text-gray-300" />
+                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <Check size={20} className="text-muted-foreground/30" />
                         </div>
-                        <p className="text-xs dark:text-white/40 text-gray-400">All caught up!</p>
+                        <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">All caught up!</p>
                       </div>
                     )}
                   </div>
@@ -445,7 +445,7 @@ export default function DashboardPage() {
               )}
             </button>
             <Link href="/profile">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E63C2F] text-white shadow-[0_10px_30px_rgba(230,60,47,0.3)] transition-all hover:scale-105 active:scale-95">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_10px_30px_rgba(230,60,47,0.3)] transition-all hover:scale-105 active:scale-95">
                 <UserIcon size={24} />
               </div>
             </Link>
@@ -461,12 +461,12 @@ export default function DashboardPage() {
               ))}
             </div>
 
-            <div className="mb-10 rounded-[2.5rem] border dark:border-white/8 border-[#E5E5E5] dark:bg-black/20 bg-white/50 p-8 backdrop-blur-sm">
+            <div className="mb-10 rounded-[2.5rem] border border-border bg-card p-8 shadow-xl">
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-xl font-black uppercase tracking-tight dark:text-white text-[#1A1816]">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   This Week's Workouts
                 </h2>
-                <Link href="/workouts" className="text-[10px] font-black uppercase tracking-widest dark:text-white/40 text-[#6B625A] hover:text-[#E63C2F]">
+                <Link href="/workouts" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
                   View Full Plan →
                 </Link>
               </div>
@@ -477,12 +477,12 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-[2.5rem] border dark:border-white/8 border-[#E5E5E5] dark:bg-black/20 bg-white/50 p-8 backdrop-blur-sm">
+            <div className="rounded-[2.5rem] border border-border bg-card p-8 shadow-xl">
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-xl font-black uppercase tracking-tight dark:text-white text-[#1A1816]">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   Progress Tracking
                 </h2>
-                <Link href="/analytics" className="text-[10px] font-black uppercase tracking-widest dark:text-white/40 text-[#6B625A] hover:text-[#E63C2F]">
+                <Link href="/analytics" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
                   Full Report →
                 </Link>
               </div>
@@ -493,13 +493,13 @@ export default function DashboardPage() {
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {dashboardHighlights.map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 rounded-2xl border dark:border-white/5 border-[#E5E5E5] dark:bg-white/5 bg-white p-4">
-                      <div className="h-2 w-2 rounded-full bg-[#E63C2F]" />
+                    <div key={i} className="flex items-center gap-4 rounded-2xl border border-border bg-muted/30 p-4 transition-all hover:bg-muted/50">
+                      <div className="h-2 w-2 rounded-full bg-primary" />
                       <div className="flex-1">
-                        <div className="text-[10px] font-black uppercase tracking-widest dark:text-white/45 text-[#6B625A]">{item.title}</div>
-                        <div className="font-black dark:text-white text-[#1A1816]">{item.value}</div>
+                        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.title}</div>
+                        <div className="font-black text-foreground uppercase tracking-tight">{item.value}</div>
                       </div>
-                      <div className="text-[10px] dark:text-white/30 text-[#9A8F87]">{item.detail}</div>
+                      <div className="text-[10px] font-black text-muted-foreground/60 uppercase">{item.detail}</div>
                     </div>
                   ))}
                 </div>
@@ -509,16 +509,16 @@ export default function DashboardPage() {
 
           {/* Right Column - Calendar & Actions */}
           <div className="space-y-8 lg:col-span-4">
-            <div className="rounded-[2.5rem] border dark:border-white/8 border-[#E5E5E5] dark:bg-[#1A1A1A] bg-white p-8 shadow-xl">
+            <div className="rounded-[2.5rem] border border-border bg-card p-8 shadow-xl">
               <div className="mb-8 flex items-center justify-between">
-                <h2 className="text-xl font-black uppercase tracking-tight dark:text-white text-[#1A1816]">
+                <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase()}
                 </h2>
               </div>
 
               <div className="grid grid-cols-7 gap-2 mb-4">
                 {['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].map(day => (
-                  <div key={day} className="text-center text-[10px] font-black text-[#9A8F87]">{day}</div>
+                  <div key={day} className="text-center text-[10px] font-black text-muted-foreground uppercase">{day}</div>
                 ))}
               </div>
 
@@ -531,15 +531,15 @@ export default function DashboardPage() {
                     <div
                       key={index}
                       className={`relative rounded-lg py-2 text-sm transition-all ${isToday
-                        ? "bg-[#E63C2F] font-black text-white shadow-[0_4px_12px_rgba(230,60,47,0.3)]"
+                        ? "bg-primary font-black text-white shadow-[0_4px_12px_rgba(230,60,47,0.3)]"
                         : day
-                          ? "dark:text-white text-[#1A1816] font-bold hover:bg-white/5"
+                          ? "text-foreground font-black hover:bg-muted"
                           : ""
                         }`}
                     >
                       <div className="text-center">{day}</div>
                       {isWorkoutDay && !isToday && (
-                        <div className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#E63C2F]" />
+                        <div className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
                       )}
                     </div>
                   );
@@ -547,8 +547,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-[2.5rem] border dark:border-white/8 border-[#E5E5E5] dark:bg-black/20 bg-white/50 p-8 backdrop-blur-sm">
-              <h2 className="mb-8 text-xl font-black uppercase tracking-tight dark:text-white text-[#1A1816]">
+            <div className="rounded-[2.5rem] border border-border bg-card p-8 shadow-xl">
+              <h2 className="mb-8 text-xl font-black uppercase tracking-tight text-foreground">
                 Quick Actions
               </h2>
               <div className="grid grid-cols-2 gap-4">
@@ -559,28 +559,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* AI Generator Teaser */}
-            <div className="group relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-[#E63C2F] to-[#BD2E26] p-8 text-white shadow-[0_20px_50px_rgba(230,60,47,0.3)]">
-              <div className="relative z-10">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md">
-                  <Zap size={20} className="fill-white" />
-                </div>
-                <h3 className="mb-2 text-2xl font-black uppercase leading-tight tracking-tight">
-                  Generate Your<br />AI Fitness Plan
-                </h3>
-                <p className="mb-6 text-sm font-medium text-white/80">
-                  Custom workouts & meal plans tailored to your BMI and goals.
-                </p>
-                <button
-                  onClick={() => setIsPlanModalOpen(true)}
-                  className="flex items-center gap-2 rounded-2xl bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-[#E63C2F] transition-all group-hover:gap-4 active:scale-95"
-                >
-                  Get Started <TrendingUp size={16} />
-                </button>
-              </div>
-              <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-all group-hover:scale-150" />
-              <Dumbbell size={120} className="absolute -bottom-10 -right-10 rotate-12 text-white/10" />
-            </div>
+
           </div>
         </div>
       </div>
