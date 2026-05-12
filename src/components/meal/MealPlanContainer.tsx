@@ -63,7 +63,7 @@ export default function MealPlanContainer({
 
       {/* Daily Macros Summary */}
       <div>
-        <h2 className="text-lg font-bold text-white/60 uppercase tracking-wider mb-3">
+        <h2 className="text-lg font-bold text-muted-foreground uppercase tracking-wider mb-3">
           Daily Targets
         </h2>
         <MealStats
@@ -124,45 +124,31 @@ export default function MealPlanContainer({
       {/* Info Cards */}
       <div className="grid md:grid-cols-2 gap-4">
         {isContentRenderable(nutritionTips) && (
-          <div className="rounded-xl border border-[#E63C2F]/25 bg-[#E63C2F]/5 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-3">
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
               💡 Nutrition Tips
             </p>
-            <div className="text-sm text-white/75 leading-relaxed space-y-1.5">
+            <div className="text-sm text-foreground/75 leading-relaxed space-y-1.5">
               {contentToArray(nutritionTips).map((item, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <span className="text-[#E63C2F] font-bold shrink-0">•</span>
+                  <span className="text-primary font-bold shrink-0">•</span>
                   <span>{item}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
-        {isContentRenderable(shoppingList) && (
-          <div className="rounded-xl border border-white/10 bg-white/3 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-3">
-              🛒 Shopping List
-            </p>
-            <div className="text-sm text-white/75 leading-relaxed space-y-1.5">
-              {contentToArray(shoppingList).map((item, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <span className="text-[#E63C2F] font-bold shrink-0">•</span>
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
 
       {isContentRenderable(notes) && (
-        <div className="rounded-xl border border-[#E63C2F]/25 bg-[#E63C2F]/5 p-4 flex gap-3">
-          <AlertCircle className="w-5 h-5 text-[#E63C2F] shrink-0 mt-0.5" />
+        <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
               Important Notes
             </p>
-            <div className="text-sm text-white/75 leading-relaxed space-y-1.5">
+            <div className="text-sm text-foreground/75 leading-relaxed space-y-1.5">
               {contentToArray(notes).map((item, idx) => (
                 <div key={idx}>{item}</div>
               ))}
