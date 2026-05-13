@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader } from 'lucide-react';
 import {
   AdminLayout,
@@ -13,6 +14,7 @@ import {
 import AddMemberWizard from '@/components/admin/AddMemberWizard';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
@@ -27,11 +29,14 @@ export default function AdminDashboard() {
 
   const fetchAllData = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
       const [membersRes, bookingsRes, supplementsRes, trainersRes] = await Promise.all([
-        fetch('/api/admin/members'),
-        fetch('/api/admin/bookings'),
-        fetch('/api/supplements'),
-        fetch('/api/trainers'),
+        fetch('/api/admin/members', { headers }),
+        fetch('/api/admin/bookings', { headers }),
+        fetch('/api/supplements', { headers }),
+        fetch('/api/admin/trainers', { headers }),
       ]);
 
       const membersData = await membersRes.json();
@@ -40,15 +45,24 @@ export default function AdminDashboard() {
       const trainersData = await trainersRes.json();
 
       if (membersData.data) {
-        setMembers(membersData.data.slice(0, 5));
+        // Map members to include a 'name' field for the table
+        const mappedMembers = membersData.data.map((m: any) => ({
+          ...m,
+          name: m.firstName ? `${m.firstName} ${m.lastName}` : (m.name || 'Unknown')
+        }));
+        
+        setMembers(mappedMembers.slice(0, 5));
+        
         const revenue = membersData.data.reduce((total: number, m: any) => {
           const planPrice: Record<string, number> = {
             GOLD: 5000,
             ELITE: 8000,
             BASIC: 2500,
           };
-          return total + (planPrice[m.plan] || 0);
+          const plan = (m.plan || '').toUpperCase();
+          return total + (planPrice[plan] || 0);
         }, 0);
+        
         setStats(prev => ({
           ...prev,
           totalMembers: membersData.data.length,
@@ -57,7 +71,14 @@ export default function AdminDashboard() {
       }
 
       if (bookingsData.data) {
-        setBookings(bookingsData.data.slice(0, 5));
+        // Map bookings to include memberName and trainerName
+        const mappedBookings = bookingsData.data.map((b: any) => ({
+          ...b,
+          memberName: b.memberId ? `${b.memberId.firstName} ${b.memberId.lastName}` : 'Unknown',
+          trainerName: b.trainerId ? b.trainerId.name : 'Unassigned',
+          date: new Date(b.dateTime).toLocaleDateString(),
+        }));
+        setBookings(mappedBookings.slice(0, 2));
       }
 
       if (trainersData.data) {
@@ -146,29 +167,14 @@ export default function AdminDashboard() {
       label: 'Status',
       render: (value: string) => (
         <span
-          className={`text-xs font-bold uppercase tracking-wider ${value === 'CONFIRMED' ? 'text-green-400' : 'text-orange-400'
+          className={`text-xs font-bold uppercase tracking-wider ${value === 'COMPLETED' ? 'text-green-400' : 'text-orange-400'
             }`}
         >
-          {value || 'PENDING'}
+          {value || 'UPCOMING'}
         </span>
       ),
     },
   ];
-
-  const formattedBookings = bookings.map(b => ({
-    ...b,
-    date: new Date(b.date).toLocaleDateString(),
-  }));
-
-  const filteredBookings = formattedBookings.filter((booking) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      `${booking?.memberName || ''}`.toLowerCase().includes(query) ||
-      `${booking?.trainerName || ''}`.toLowerCase().includes(query) ||
-      `${booking?.status || ''}`.toLowerCase().includes(query)
-    );
-  });
 
   if (loading) {
     return (
@@ -213,15 +219,15 @@ export default function AdminDashboard() {
             title="Recent Members"
             columns={memberColumns}
             data={filteredMembers}
-            onViewMore={() => console.log('View all members')}
+            onViewMore={() => router.push('/admin/members')}
             emptyMessage="No members found"
           />
 
           <AdminTable
             title="Recent Bookings"
             columns={bookingColumns}
-            data={filteredBookings}
-            onViewMore={() => console.log('View all bookings')}
+            data={bookings}
+            onViewMore={() => router.push('/admin/bookings')}
             emptyMessage="No bookings found"
           />
         </div>

@@ -3,6 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import AddBookingModal from '@/components/admin/AddBookingModal';
 import Toast from '@/src/components/ui/Toast';
+import ConfirmModal from '@/src/components/ui/ConfirmModal';
+import { 
+  Calendar, 
+  CheckCircle2, 
+  Clock, 
+  XCircle, 
+  Search, 
+  Plus, 
+  Edit3, 
+  Trash2,
+  MoreVertical,
+  Filter
+} from 'lucide-react';
 
 interface Booking {
   _id: string;
@@ -54,6 +67,7 @@ export default function AdminBookingsPage() {
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [trainers, setTrainers] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string } | null>(null);
 
   const [formData, setFormData] = useState({
     memberId: '',
@@ -182,13 +196,17 @@ export default function AdminBookingsPage() {
   };
 
   const handleEditClick = (booking: Booking) => {
+    const date = new Date(booking.dateTime);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    const localISODate = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+    
     setEditingBooking(booking);
     setFormData({
       memberId: booking.memberId._id,
       trainerId: booking.trainerId._id,
       type: booking.type,
       fee: booking.fee.toString(),
-      dateTime: new Date(booking.dateTime).toISOString().slice(0, 16),
+      dateTime: localISODate,
       status: booking.status,
       notes: booking.notes || '',
     });
@@ -224,7 +242,7 @@ export default function AdminBookingsPage() {
       }
 
       console.log('✅ [ADMIN BOOKINGS] Created:', data.data);
-      setBookings([...bookings, data.data]);
+      setBookings([data.data, ...bookings]);
       setToast({ message: 'Booking created successfully!', type: 'success' });
       setShowAddModal(false);
       resetForm();
@@ -277,8 +295,6 @@ export default function AdminBookingsPage() {
   };
 
   const handleDeleteBooking = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this booking?')) return;
-
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/admin/bookings/${id}`, {
@@ -297,6 +313,7 @@ export default function AdminBookingsPage() {
       console.log('✅ [ADMIN BOOKINGS] Deleted');
       setBookings(bookings.filter((b) => b._id !== id));
       setToast({ message: 'Booking deleted successfully!', type: 'success' });
+      setConfirmModal(null);
     } catch (err: any) {
       console.error('❌ [ADMIN BOOKINGS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
@@ -319,10 +336,10 @@ export default function AdminBookingsPage() {
     });
 
     return [
-      { icon: '📅', value: monthBookings.length.toString(), label: 'This Month', subtext: null, subtextColor: '' },
-      { icon: '✅', value: todayBookings.length.toString(), label: "Today's Sessions", subtext: todayBookings.filter(b => b.status === 'COMPLETED').length + ' completed', subtextColor: 'primary' },
-      { icon: '⏳', value: bookings.filter(b => b.status === 'UPCOMING').length.toString(), label: 'Upcoming', subtext: null, subtextColor: '' },
-      { icon: '✖️', value: bookings.filter(b => b.status === 'CANCELLED').length.toString(), label: 'Cancellations', subtext: 'Total', subtextColor: 'text-red-500' },
+      { icon: Calendar, value: monthBookings.length.toString(), label: 'This Month', subtext: null, color: 'text-[#E63C2F]', bg: 'bg-[#E63C2F]/5' },
+      { icon: CheckCircle2, value: todayBookings.length.toString(), label: "Today's Sessions", subtext: todayBookings.filter(b => b.status === 'COMPLETED').length + ' completed', color: 'text-green-500', bg: 'bg-green-500/5' },
+      { icon: Clock, value: bookings.filter(b => b.status === 'UPCOMING').length.toString(), label: 'Upcoming', subtext: null, color: 'text-blue-500', bg: 'bg-blue-500/5' },
+      { icon: XCircle, value: bookings.filter(b => b.status === 'CANCELLED').length.toString(), label: 'Cancellations', subtext: 'Total Action Needed', color: 'text-red-500', bg: 'bg-red-500/5' },
     ];
   };
 
@@ -334,171 +351,206 @@ export default function AdminBookingsPage() {
     const trainerName = (b.trainerId.name || '').toLowerCase();
     const matchSearch = memberName.includes(search.toLowerCase()) || trainerName.includes(search.toLowerCase());
     return matchSearch;
-  });
+  }).sort((a, b) => new Date(b.createdAt || b.dateTime).getTime() - new Date(a.createdAt || a.dateTime).getTime());
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="min-h-screen bg-[#0D0D0D] text-white font-sans selection:bg-[#E63C2F]/30">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 mb-8" style={{ borderBottom: '2px solid var(--primary)', background: 'linear-gradient(90deg, rgba(0,0,0,0.12), transparent)' }}>
-        <div className="max-w-7xl mx-auto flex-1">
-          <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--primary)' }}>
-            Manage Bookings
+      
+      {confirmModal && (
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title="Delete Booking"
+          message="Are you sure you want to permanently delete this booking? This action cannot be undone."
+          onConfirm={() => handleDeleteBooking(confirmModal.id)}
+          onCancel={() => setConfirmModal(null)}
+          variant="danger"
+        />
+      )}
+
+      {/* Header Section */}
+      <div className="relative overflow-hidden bg-white/[0.02] border-b border-white/10 px-8 py-10">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-linear-to-l from-[#E63C2F]/5 to-transparent pointer-events-none" />
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-[#E63C2F] animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#E63C2F]">Booking Management</span>
+            </div>
+            <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
+              Sessions <span className="text-[#E63C2F]">&</span> Schedules
+            </h1>
           </div>
-          <h1 className="text-4xl font-black uppercase" style={{ color: 'var(--foreground)' }}>Bookings</h1>
+          <button
+            onClick={handleAddClick}
+            className="group flex items-center gap-3 bg-[#E63C2F] text-black font-black uppercase tracking-widest px-8 py-4 rounded-2xl hover:bg-[#E63C2F]/90 transition-all active:scale-[0.98] shadow-xl shadow-[#E63C2F]/20"
+          >
+            <Plus size={20} className="transition-transform group-hover:rotate-90" />
+            New Booking
+          </button>
         </div>
-        <button
-          onClick={handleAddClick}
-          className="text-black font-black text-sm uppercase px-6 py-3 transition-all shadow-lg"
-          style={{ background: 'var(--primary)' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-light)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--primary)')}
-        >
-          + ADD BOOKING
-        </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pb-12">
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Stat Cards - Premium Dark Mode */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {statCards.map((card, index) => (
-            <div key={index} className="p-6 relative overflow-hidden" style={{ background: 'var(--card)' }}>
-              <div className="text-3xl mb-3 opacity-40" style={{ color: 'rgba(255,255,255,0.3)' }}>{card.icon}</div>
-              <div className="text-5xl font-black mb-2" style={{ color: 'var(--primary)' }}>{card.value}</div>
-              <div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--muted-foreground)' }}>{card.label}</div>
+            <div key={index} className="group relative bg-white/[0.02] border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.04] hover:border-white/10 overflow-hidden">
+              <div className={`absolute top-0 right-0 w-24 h-24 ${card.bg} rounded-full blur-3xl opacity-20 -mr-8 -mt-8 transition-transform group-hover:scale-150`} />
+              <div className={`p-3 rounded-2xl ${card.bg} ${card.color} w-fit mb-4`}>
+                <card.icon size={24} />
+              </div>
+              <div className="text-4xl font-black mb-1 tabular-nums">{card.value}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/30">{card.label}</div>
               {card.subtext && (
-                <div className="text-sm font-bold" style={card.subtextColor === 'primary' ? { color: 'var(--primary)' } : {}}>{card.subtext}</div>
+                <div className={`text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full bg-white/5 w-fit ${card.color}`}>
+                  {card.subtext}
+                </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 font-bold">
-            ❌ {error}
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg font-bold">📅 Loading bookings...</p>
-          </div>
-        )}
-
-        {/* Bookings Table */}
-        {!loading && (
-          <div className="bg-white shadow-lg border border-gray-200">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between flex-wrap gap-4">
-              <h2 className="text-xl font-black uppercase tracking-tight">All Bookings</h2>
-              <div className="relative flex-1 max-w-xs">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search member or trainer..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border text-sm"
-                  style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--foreground)', background: 'transparent' }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)')}
-                />
+        {/* Filters and Table Area */}
+        <div className="bg-white/[0.02] border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-sm">
+          <div className="p-8 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-2xl bg-[#E63C2F]/10 text-[#E63C2F]">
+                <Filter size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black uppercase tracking-tight">Active Bookings</h2>
+                <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Total {filtered.length} entries found</p>
               </div>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead style={{ background: 'var(--card)' }}>
-                  <tr>
-                    {['Booking ID', 'Member', 'Trainer', 'Date & Time', 'Type', 'Fee', 'Status', 'Actions'].map((col) => (
-                      <th
-                        key={col}
-                        className="px-6 py-4 text-left text-xs font-black uppercase tracking-wider"
-                        style={{ color: 'var(--primary)' }}
-                      >
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filtered.length === 0 && !loading ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-gray-500 font-bold">
-                        No bookings found
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((booking) => (
-                      <tr key={booking._id} className="hover:bg-gray-50">
-                        {/* Booking ID */}
-                        <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 text-xs">
-                          BK-{booking._id.slice(-6).toUpperCase()}
-                        </td>
-                        {/* Member */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--primary)' }}>
-                              <span className="text-black font-black text-sm">{booking.memberId.firstName[0]}</span>
-                            </div>
-                            <span className="font-medium text-gray-900 text-sm">{booking.memberId.firstName} {booking.memberId.lastName}</span>
-                          </div>
-                        </td>
-                        {/* Trainer */}
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">
-                          {booking.trainerId.name}
-                        </td>
-                        {/* Date & Time */}
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">
-                          {new Date(booking.dateTime).toLocaleString()}
-                        </td>
-                        {/* Type */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-block px-3 py-1 text-xs font-black uppercase tracking-wider`} style={getTypeStyle(booking.type)}>
-                            {booking.type}
-                          </span>
-                        </td>
-                        {/* Fee */}
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium text-sm">
-                          LKR {booking.fee.toLocaleString()}
-                        </td>
-                        {/* Status */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-xs font-bold uppercase tracking-wider" style={getStatusStyle(booking.status)}>
-                            {booking.status}
-                          </span>
-                        </td>
-                        {/* Actions */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditClick(booking)}
-                              className="text-xs font-bold uppercase px-3 py-1 border border-blue-400 text-blue-600 hover:bg-blue-50 tracking-wider"
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteBooking(booking._id)}
-                              className="text-xs font-bold uppercase px-3 py-1 border border-red-400 text-red-600 hover:bg-red-50 tracking-wider"
-                            >
-                              🗑️ Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 text-sm text-gray-500">
-              Showing {filtered.length} of {bookings.length} bookings
+            
+            <div className="relative group w-full md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#E63C2F] transition-colors" size={18} />
+              <input
+                type="text"
+                placeholder="Search member or trainer..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:outline-none focus:border-[#E63C2F]/50 focus:bg-white/[0.08] transition-all placeholder:text-white/20"
+              />
             </div>
           </div>
-        )}
+
+          <div className="overflow-x-auto overflow-y-hidden custom-scrollbar">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-white/[0.01]">
+                  {['Booking ID', 'Member', 'Trainer', 'Date & Time', 'Type', 'Fee', 'Status', 'Actions'].map((col) => (
+                    <th
+                      key={col}
+                      className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30 border-b border-white/5"
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-8 py-24 text-center">
+                      <div className="flex flex-col items-center gap-4 opacity-20">
+                        <Calendar size={48} />
+                        <p className="text-sm font-black uppercase tracking-widest">No bookings match your criteria</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((booking) => (
+                    <tr key={booking._id} className="group hover:bg-white/[0.02] transition-colors">
+                      <td className="px-8 py-6">
+                        <span className="text-[10px] font-black font-mono text-white/40 group-hover:text-[#E63C2F] transition-colors">
+                          #BK-{booking._id.slice(-6).toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#E63C2F] to-[#E63C2F]/60 flex items-center justify-center shadow-lg shadow-[#E63C2F]/20">
+                            <span className="text-black font-black text-sm">{booking.memberId.firstName[0]}</span>
+                          </div>
+                          <div className="max-w-[150px]">
+                            <p 
+                              className="font-bold text-white text-sm truncate" 
+                              title={`${booking.memberId.firstName} ${booking.memberId.lastName}`}
+                            >
+                              {booking.memberId.firstName} {booking.memberId.lastName}
+                            </p>
+                            <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">Member</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="max-w-[120px]">
+                          <p className="text-white/80 text-sm font-medium truncate" title={booking.trainerId.name}>
+                            {booking.trainerId.name}
+                          </p>
+                          <p className="text-[10px] text-white/20 uppercase font-black tracking-wider">Trainer</p>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-white/80 text-sm font-medium">
+                            {new Date(booking.dateTime).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                          <span className="text-[10px] text-white/30 font-bold uppercase">
+                            {new Date(booking.dateTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10" style={getTypeStyle(booking.type)}>
+                          {booking.type}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="text-white font-black text-sm tabular-nums">
+                          LKR {booking.fee.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getStatusStyle(booking.status).color }} />
+                          <span className="text-[10px] font-black uppercase tracking-widest" style={getStatusStyle(booking.status)}>
+                            {booking.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditClick(booking)}
+                            className="p-2.5 rounded-xl bg-white/5 text-white/60 hover:bg-[#E63C2F]/10 hover:text-[#E63C2F] transition-all"
+                            title="Edit"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            onClick={() => setConfirmModal({ isOpen: true, id: booking._id })}
+                            className="p-2.5 rounded-xl bg-white/5 text-white/60 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="px-8 py-6 bg-white/[0.01] border-t border-white/5 flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/20">
+              Showing {filtered.length} of {bookings.length} total sessions
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Add Booking Modal - Professional 3-Step Form */}
