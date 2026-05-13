@@ -82,7 +82,7 @@ export default function AddBookingModal({ onClose, onSuccess, members, trainers 
     trainerId: '',
     type: 'STRENGTH',
     fee: '',
-    dateTime: '',
+    dateTime: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
     status: 'UPCOMING',
     notes: '',
     // Professional questions

@@ -18,7 +18,7 @@ const managementItems: NavItem[] = [
   { icon: 'dumbbell', label: 'Trainers', href: '/admin/trainers', badge: null },
   { icon: 'pill', label: 'Supplements', href: '/admin/supplements', badge: null },
   { icon: 'medal', label: 'Memberships', href: '/admin/memberships', badge: null },
-  { icon: 'calendar', label: 'Bookings', href: '/admin/bookings', badge: 4 },
+  { icon: 'calendar', label: 'Bookings', href: '/admin/bookings', badge: null },
   { icon: 'lock', label: 'Staff Management', href: '/admin/staff', badge: null },
 ];
 
