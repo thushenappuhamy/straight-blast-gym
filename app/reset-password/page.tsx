@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -14,6 +15,8 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,17 +95,26 @@ function ResetPasswordForm() {
             <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--foreground)' }}>
               New Password
             </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-4 focus:outline-none transition-colors"
-              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-4 pr-12 focus:outline-none transition-colors [color-scheme:dark]"
+                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 transition-colors hover:text-[#E63C2F]"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {/* Confirm Password */}
@@ -110,17 +122,26 @@ function ResetPasswordForm() {
             <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--foreground)' }}>
               Confirm New Password
             </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full px-4 py-4 focus:outline-none transition-colors"
-              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="w-full px-4 py-4 pr-12 focus:outline-none transition-colors [color-scheme:dark]"
+                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--foreground)' }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 transition-colors hover:text-[#E63C2F]"
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}

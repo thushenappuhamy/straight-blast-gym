@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Home } from "lucide-react";
+import { ArrowRight, Home, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,14 +149,23 @@ export default function LoginPage() {
                 <label className="mb-2 block text-xs font-black uppercase tracking-[0.35em] text-white/65">
                   Password
                 </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full rounded-2xl border border-white/10 bg-[#0c0c0c] px-4 py-4 text-white placeholder:text-white/28 focus:border-[#E63C2F] focus:outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full rounded-2xl border border-white/10 bg-[#0c0c0c] px-4 py-4 pr-12 text-white placeholder:text-white/28 focus:border-[#E63C2F] focus:outline-none [color-scheme:dark]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 transition-colors hover:text-[#E63C2F]"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
                 <div className="mt-2 text-right">
                   <Link href="/forgot-password" className="text-sm text-white/50 transition-colors hover:text-white">
                     Forgot password?
