@@ -849,7 +849,7 @@ export default function BMICalculatorPage() {
                   max="80"
                   value={age}
                   onChange={(e) => setAge(Number(e.target.value))}
-                  className="flex-1 h-2 bg-muted rounded appearance-none cursor-pointer accent-primary"
+                  className="flex-1 h-2 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all"
                 />
               </div>
               <div className="flex justify-between text-[10px] font-black text-muted-foreground/60 mt-2">
@@ -870,7 +870,7 @@ export default function BMICalculatorPage() {
                   max={unitSystem === 'metric' ? 220 : 87}
                   value={height}
                   onChange={(e) => setHeight(Number(e.target.value))}
-                  className="flex-1 h-2 bg-muted rounded appearance-none cursor-pointer accent-primary"
+                  className="flex-1 h-2 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all"
                 />
               </div>
               <div className="flex justify-between text-[10px] font-black text-muted-foreground/60 mt-2">
@@ -891,7 +891,7 @@ export default function BMICalculatorPage() {
                   max={unitSystem === 'metric' ? 180 : 396}
                   value={weight}
                   onChange={(e) => setWeight(Number(e.target.value))}
-                  className="flex-1 h-2 bg-muted rounded appearance-none cursor-pointer accent-primary"
+                  className="flex-1 h-2 bg-gray-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-primary hover:accent-primary/80 transition-all"
                 />
               </div>
               <div className="flex justify-between text-[10px] font-black text-muted-foreground/60 mt-2">
