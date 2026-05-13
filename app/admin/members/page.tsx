@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader } from 'lucide-react';
+import { Loader, Edit3, Trash2 } from 'lucide-react';
 import {
   AdminLayout,
   AdminSidebar,
@@ -10,10 +10,20 @@ import {
   AdminTable,
 } from '@/src/components/admin';
 import AddMemberWizard from '@/components/admin/AddMemberWizard';
+import EditMemberModal from '@/src/components/admin/EditMemberModal';
+import ConfirmModal from '@/src/components/ui/ConfirmModal';
+import Toast from '@/src/components/ui/Toast';
 
 export default function MembersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [memberToEdit, setMemberToEdit] = useState<any>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; id: string | null }>({
+    isOpen: false,
+    id: null,
+  });
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -25,7 +35,12 @@ export default function MembersPage() {
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch('/api/admin/members');
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/members', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
 
       if (data.data) {
@@ -56,6 +71,27 @@ export default function MembersPage() {
     const interval = setInterval(fetchMembers, 15000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleDeleteMember = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/admin/members/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error('Failed to delete member');
+
+      setToast({ message: 'Member deleted successfully', type: 'success' });
+      fetchMembers();
+    } catch (error: any) {
+      setToast({ message: error.message, type: 'error' });
+    } finally {
+      setConfirmDelete({ isOpen: false, id: null });
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -185,6 +221,31 @@ export default function MembersPage() {
         );
       },
     },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (_: any, row: any) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setMemberToEdit(row);
+              setIsEditModalOpen(true);
+            }}
+            className="p-2 rounded-lg bg-white/5 text-white/60 hover:bg-[#E63C2F]/10 hover:text-[#E63C2F] transition-all"
+            title="Edit"
+          >
+            <Edit3 size={16} />
+          </button>
+          <button
+            onClick={() => setConfirmDelete({ isOpen: true, id: row._id })}
+            className="p-2 rounded-lg bg-white/5 text-white/60 hover:bg-red-500/10 hover:text-red-500 transition-all"
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   if (loading) {
@@ -216,6 +277,7 @@ export default function MembersPage() {
       }
     >
       <div className="space-y-6">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         <AdminStatsGrid stats={statCards} columns={4} />
 
         <div className="flex items-center justify-end">
@@ -236,6 +298,22 @@ export default function MembersPage() {
         isOpen={isAddMemberModalOpen}
         onClose={() => setIsAddMemberModalOpen(false)}
         onSuccess={fetchMembers}
+      />
+
+      <EditMemberModal
+        isOpen={isEditModalOpen}
+        member={memberToEdit}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={fetchMembers}
+      />
+
+      <ConfirmModal
+        isOpen={confirmDelete.isOpen}
+        title="Delete Member"
+        message="Are you sure you want to delete this member? This action cannot be undone."
+        onConfirm={() => confirmDelete.id && handleDeleteMember(confirmDelete.id)}
+        onCancel={() => setConfirmDelete({ isOpen: false, id: null })}
+        variant="danger"
       />
     </AdminLayout>
   );

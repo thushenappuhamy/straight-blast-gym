@@ -1,8 +1,31 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingCart, Calendar, CreditCard, Loader, Plus, X } from 'lucide-react';
+import { 
+  DollarSign, 
+  ShoppingCart, 
+  Calendar, 
+  CreditCard, 
+  Loader, 
+  Plus, 
+  X, 
+  FileText, 
+  Download, 
+  Eye, 
+  CheckCircle2, 
+  Clock, 
+  ArrowUpRight,
+  Filter,
+  Search
+} from 'lucide-react';
 import Toast from '@/src/components/ui/Toast';
+import TransactionDetailModal from '@/src/components/admin/TransactionDetailModal';
+
+const formatDateSafe = (dateStr: any) => {
+  if (!dateStr) return 'N/A';
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+};
 
 export default function AdminTransactionsPage() {
   const [typeFilter, setTypeFilter] = useState('All Types');
@@ -32,6 +55,8 @@ export default function AdminTransactionsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
+  const [search, setSearch] = useState('');
 
   // Fetch all transaction data from endpoints
   useEffect(() => {
@@ -84,7 +109,8 @@ export default function AdminTransactionsPage() {
               type: typeMap[plan] || 'Membership',
               amount,
               payment: 'PayHere',
-              date: new Date(member.createdAt).toLocaleDateString(),
+              date: formatDateSafe(member.createdAt),
+              rawDate: member.createdAt,
               status: member.status === 'ACTIVE' ? 'COMPLETED' : 'PROCESSING',
               typeIcon: 'membership',
               isRefund: false,
@@ -106,7 +132,8 @@ export default function AdminTransactionsPage() {
               type: txn.type,
               amount: txn.amount,
               payment: txn.paymentMethod,
-              date: new Date(txn.date).toLocaleDateString(),
+              date: formatDateSafe(txn.date),
+              rawDate: txn.date || txn.createdAt,
               status: txn.status,
               typeIcon: txn.type.toLowerCase().includes('supplement') ? 'supplement' : txn.type.toLowerCase().includes('trainer') ? 'trainer' : 'membership',
               isRefund: txn.status === 'REFUNDED',
@@ -114,8 +141,8 @@ export default function AdminTransactionsPage() {
           });
         }
 
-        // Sort by date (newest first)
-        allTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // Sort by rawDate (newest first)
+        allTransactions.sort((a, b) => new Date(b.rawDate || 0).getTime() - new Date(a.rawDate || 0).getTime());
 
         setTransactions(allTransactions);
         setStats({
@@ -144,28 +171,32 @@ export default function AdminTransactionsPage() {
       value: `LKR ${(stats.monthlyRevenue / 1000000).toFixed(1)}M`,
       label: 'Monthly Revenue',
       subtext: '↑ 18%',
-      subtextColor: 'text-green-500',
+      color: 'text-[#E63C2F]',
+      bg: 'bg-[#E63C2F]/10',
     },
     {
       icon: ShoppingCart,
       value: `LKR ${(stats.supplementSales / 1000).toFixed(0)}K`,
       label: 'Supplement Sales',
-      subtext: null,
-      subtextColor: '',
+      subtext: 'Last 30 Days',
+      color: 'text-orange-400',
+      bg: 'bg-orange-400/10',
     },
     {
       icon: Calendar,
       value: `LKR ${(stats.trainerSessions / 1000).toFixed(0)}K`,
       label: 'Trainer Sessions',
-      subtext: null,
-      subtextColor: '',
+      subtext: 'Active Bookings',
+      color: 'text-yellow-400',
+      bg: 'bg-yellow-400/10',
     },
     {
       icon: CreditCard,
       value: `LKR ${(stats.membershipFees / 1000).toFixed(0)}K`,
       label: 'Membership Fees',
-      subtext: null,
-      subtextColor: '',
+      subtext: 'Recurring Revenue',
+      color: 'text-purple-400',
+      bg: 'bg-purple-400/10',
     },
   ];
 
@@ -174,9 +205,9 @@ export default function AdminTransactionsPage() {
   const statusOptions = ['All Status', 'COMPLETED', 'PROCESSING', 'REFUNDED'];
 
   const statusStyles: Record<string, string> = {
-    COMPLETED: 'text-green-600',
-    PROCESSING: 'text-orange-500',
-    REFUNDED: 'text-pink-500',
+    COMPLETED: 'text-green-400 border-green-400/20 bg-green-400/5',
+    PROCESSING: 'text-orange-400 border-orange-400/20 bg-orange-400/5',
+    REFUNDED: 'text-pink-400 border-pink-400/20 bg-pink-400/5',
   };
 
   const getTypeIcon = (typeIcon: string) => {
@@ -339,213 +370,257 @@ export default function AdminTransactionsPage() {
   const filtered = transactions.filter((t) => {
     const matchType = typeFilter === 'All Types' || t.type.includes(typeFilter.split(' ')[0]);
     const matchStatus = statusFilter === 'All Status' || t.status === statusFilter;
-    return matchType && matchStatus;
+    const matchSearch = t.member.toLowerCase().includes(search.toLowerCase()) || (t.id || '').toLowerCase().includes(search.toLowerCase());
+    return matchType && matchStatus && matchSearch;
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader size={48} className="animate-spin mx-auto mb-4 text-[var(--primary)]" />
-          <p className="text-xl font-bold">Loading transactions...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0D0D0D] text-white font-sans selection:bg-[#E63C2F]/30">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      {/* Header */}
-      <div className="bg-white px-8 py-6" style={{ borderBottomWidth: '4px', borderBottomColor: 'var(--primary)' }}>
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black uppercase tracking-tight">Transactions</h1>
-          <div className="flex items-center gap-3">
+      
+      {selectedTransaction && (
+        <TransactionDetailModal
+          isOpen={!!selectedTransaction}
+          onClose={() => setSelectedTransaction(null)}
+          transaction={selectedTransaction}
+        />
+      )}
+
+      {/* Header Section */}
+      <div className="relative overflow-hidden bg-white/[0.02] border-b border-white/10 px-8 py-10">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-linear-to-l from-[#E63C2F]/5 to-transparent pointer-events-none" />
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-[#E63C2F] animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#E63C2F]">Finance Dashboard</span>
+            </div>
+            <h1 className="text-5xl font-black uppercase tracking-tighter leading-none">
+              Financial <span className="text-[#E63C2F]">Flows</span>
+            </h1>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-black text-[var(--primary)] border-2 border-[var(--primary)] font-black text-xs uppercase tracking-wider px-5 py-3 hover:bg-[var(--primary)] hover:text-black transition-all flex items-center gap-2"
+              className="flex items-center gap-2 bg-[#E63C2F] text-black font-black uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-[#E63C2F]/90 transition-all active:scale-[0.98] shadow-xl shadow-[#E63C2F]/20 text-xs"
             >
-              <Plus size={16} /> Record Cash Payment
+              <Plus size={18} />
+              Record Cash
             </button>
             <button
               onClick={handleExportCSV}
               disabled={exporting}
-              className="border-2 border-gray-300 text-gray-800 font-black text-xs uppercase tracking-wider px-5 py-3 hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-white/10 transition-all active:scale-[0.98] text-xs disabled:opacity-50"
             >
-              {exporting ? '📥 Exporting...' : '📥 Export CSV'}
+              <Download size={18} />
+              {exporting ? 'Exporting...' : 'Export CSV'}
             </button>
             <button
               onClick={handleGenerateReport}
               disabled={exporting}
-              className="bg-[var(--primary)] hover:bg-[var(--primary-light)] text-black font-black text-sm uppercase tracking-wider px-6 py-3 transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-white text-black font-black uppercase tracking-widest px-6 py-4 rounded-2xl hover:bg-white/90 transition-all active:scale-[0.98] text-xs disabled:opacity-50 shadow-xl"
             >
-              {exporting ? '📄 Generating...' : '📄 Generate Report'}
+              <FileText size={18} />
+              {exporting ? 'Generating...' : 'Report'}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="p-8">
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Stat Cards - Premium Dark Mode */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {statCards.map((card, index) => {
-            const IconComponent = card.icon;
+            const Icon = card.icon;
             return (
-              <div key={index} className="bg-[#2B2621] p-6 relative overflow-hidden">
-                <IconComponent size={32} className="text-[var(--primary)] opacity-40 mb-3" />
-                <div className="text-4xl font-black text-[var(--primary)] mb-2">{card.value}</div>
-                <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">{card.label}</div>
+              <div key={index} className="group relative bg-white/[0.02] border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.04] hover:border-white/10 overflow-hidden">
+                <div className={`absolute top-0 right-0 w-24 h-24 ${card.bg} rounded-full blur-3xl opacity-20 -mr-8 -mt-8 transition-transform group-hover:scale-150`} />
+                <div className={`p-3 rounded-2xl ${card.bg} ${card.color} w-fit mb-4`}>
+                  <Icon size={24} />
+                </div>
+                <div className={`text-3xl font-black mb-1 tabular-nums ${card.color}`}>{card.value}</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-white/30">{card.label}</div>
                 {card.subtext && (
-                  <div className={`text-sm font-bold ${card.subtextColor}`}>{card.subtext}</div>
+                  <div className="text-[10px] font-bold mt-2 px-2 py-0.5 rounded-full bg-white/5 w-fit text-white/40">
+                    {card.subtext}
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Transactions Table */}
-        <div className="bg-white shadow-lg">
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between flex-wrap gap-4">
-            <h2 className="text-xl font-black uppercase tracking-tight">All Transactions</h2>
-            <div className="flex items-center gap-3">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
-              >
-                {typeOptions.map((opt) => <option key={opt}>{opt}</option>)}
-              </select>
-              <select
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
-              >
-                {dateOptions.map((opt) => <option key={opt}>{opt}</option>)}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]"
-              >
-                {statusOptions.map((opt) => <option key={opt}>{opt}</option>)}
-              </select>
+        {/* Filters and Table Area */}
+        <div className="bg-white/[0.02] border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-sm">
+          <div className="p-8 border-b border-white/5 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-2xl bg-[#E63C2F]/10 text-[#E63C2F]">
+                  <Filter size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black uppercase tracking-tight">Ledger History</h2>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Total {filtered.length} entries found</p>
+                </div>
+              </div>
+              
+              <div className="hidden xl:flex items-center gap-2">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 focus:border-[#E63C2F]/40 outline-none"
+                >
+                  {typeOptions.map((opt) => <option key={opt} className="bg-[#1A1A1A]">{opt}</option>)}
+                </select>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 focus:border-[#E63C2F]/40 outline-none"
+                >
+                  {statusOptions.map((opt) => <option key={opt} className="bg-[#1A1A1A]">{opt}</option>)}
+                </select>
+              </div>
+            </div>
+            
+            <div className="relative group w-full xl:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#E63C2F] transition-colors" size={18} />
+              <input
+                type="text"
+                placeholder="Search member, ID, reference..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm font-medium focus:outline-none focus:border-[#E63C2F]/50 focus:bg-white/[0.08] transition-all placeholder:text-white/20"
+              />
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[#2B2621]">
-                <tr>
-                  {['ID', 'Member', 'Type', 'Amount', 'Payment', 'Date', 'Status', 'Action'].map((col) => (
-                    <th key={col} className="px-6 py-4 text-left text-xs font-black text-[var(--primary)] uppercase tracking-wider">
+          <div className="overflow-x-auto overflow-y-hidden custom-scrollbar">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-white/[0.01]">
+                  {['Transaction ID', 'Member', 'Category', 'Amount', 'Payment', 'Date', 'Status', 'Actions'].map((col) => (
+                    <th
+                      key={col}
+                      className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-white/30 border-b border-white/5"
+                    >
                       {col}
                     </th>
                   ))}
                 </tr>
               </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedData.map((txn, idx) => (
-                    <tr key={txn.id || idx} className="hover:bg-gray-50/50 transition-colors">
-                    {/* ID */}
-                    <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900 text-sm">
-                      {txn.id}
-                    </td>
-                    {/* Member */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full ${getAvatarColor(txn.member)} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-black font-black text-sm">{getInitials(txn.member)}</span>
-                        </div>
-                        <span className="font-medium text-gray-900 text-sm">{txn.member}</span>
-                      </div>
-                    </td>
-                    {/* Type */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-full ${getTypeIconBg(txn.type)} flex items-center justify-center text-sm flex-shrink-0`}>
-                          {getTypeIcon(txn.typeIcon)}
-                        </div>
-                        <span className="text-gray-700 text-sm">{txn.type}</span>
-                      </div>
-                    </td>
-                    {/* Amount */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`font-black text-sm ${txn.isRefund ? 'text-red-500' : 'text-gray-900'}`}>
-                        {txn.isRefund ? '-' : ''}LKR {txn.amount.toLocaleString()}
-                      </span>
-                    </td>
-                    {/* Payment */}
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">
-                      {txn.payment}
-                    </td>
-                    {/* Date */}
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-sm">
-                      {txn.date}
-                    </td>
-                    {/* Status */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-xs font-bold uppercase tracking-wider ${statusStyles[txn.status]}`}>
-                        {txn.status}
-                      </span>
-                    </td>
-                    {/* Action */}
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {txn.status === 'PROCESSING' && (
-                          <button
-                            onClick={() => handleSettle(txn.dbId || txn.id)}
-                            className="text-xs font-black uppercase px-3 py-1 bg-green-500 text-white hover:bg-green-600 tracking-wider shadow-sm"
-                          >
-                            Settle
-                          </button>
-                        )}
-                        <button className="text-xs font-bold uppercase px-3 py-1 border border-gray-300 text-gray-700 hover:bg-gray-100 tracking-wider">
-                          View
-                        </button>
+              <tbody className="divide-y divide-white/5">
+                {paginatedData.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-8 py-24 text-center">
+                      <div className="flex flex-col items-center gap-4 opacity-20">
+                        <CreditCard size={48} />
+                        <p className="text-sm font-black uppercase tracking-widest">No transactions discovered</p>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedData.map((txn, idx) => (
+                    <tr key={txn.id || idx} className="group hover:bg-white/[0.02] transition-colors">
+                      <td className="px-8 py-6">
+                        <span className="text-[10px] font-black font-mono text-white/40 group-hover:text-[#E63C2F] transition-colors">
+                          {txn.id}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-2xl ${getAvatarColor(txn.member)} flex items-center justify-center shadow-lg`}>
+                            <span className="text-black font-black text-xs">{getInitials(txn.member)}</span>
+                          </div>
+                          <div className="max-w-[150px]">
+                            <p className="font-bold text-white text-sm truncate" title={txn.member}>{txn.member}</p>
+                            <p className="text-[10px] text-white/20 uppercase font-black tracking-wider">Client</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg ${getTypeIconBg(txn.type)} flex items-center justify-center text-black shadow-inner`}>
+                            {getTypeIcon(txn.typeIcon)}
+                          </div>
+                          <span className="text-white/80 text-xs font-medium uppercase tracking-tight">{txn.type}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className={`text-sm font-black tabular-nums ${txn.isRefund ? 'text-red-500' : 'text-white'}`}>
+                          {txn.isRefund ? '-' : ''}LKR {txn.amount.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{txn.payment}</span>
+                          <div className="w-8 h-0.5 bg-white/10 mt-1 rounded-full overflow-hidden">
+                            <div className="w-1/2 h-full bg-[#E63C2F]/40" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-white/40 text-xs font-medium">
+                        {txn.date}
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.1em] border ${statusStyles[txn.status]}`}>
+                          {txn.status}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedTransaction(txn)}
+                            className="p-2.5 rounded-xl bg-white/5 text-white/40 hover:bg-[#E63C2F]/10 hover:text-[#E63C2F] transition-all"
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-            {filtered.length === 0 && (
-              <div className="text-center p-8 text-gray-500">No transactions found</div>
-            )}
           </div>
 
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <span className="text-sm text-gray-500">
+          <div className="px-8 py-6 bg-white/[0.01] border-t border-white/5 flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/20">
               Showing {Math.min(filtered.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} transactions
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300 disabled:opacity-50"
+                className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition-all"
               >
-                ← Prev
+                ←
               </button>
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i + 1)}
-                  className={`px-3 py-1 text-sm border ${currentPage === i + 1
-                    ? 'font-bold bg-[var(--primary)] text-black border-[var(--primary)]'
-                    : 'text-gray-600 hover:bg-gray-100 border-gray-300'
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              )).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))}
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-8 h-8 rounded-lg text-[10px] font-black transition-all ${currentPage === i + 1
+                      ? 'bg-[#E63C2F] text-black shadow-lg shadow-[#E63C2F]/20'
+                      : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                )).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))}
+              </div>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm text-gray-500 hover:text-gray-800 border border-gray-300 disabled:opacity-50"
+                className="p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition-all"
               >
-                Next →
+                →
               </button>
             </div>
           </div>
