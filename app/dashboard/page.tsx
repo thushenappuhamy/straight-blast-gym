@@ -466,7 +466,7 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   This Week's Workouts
                 </h2>
-                <Link href="/workouts" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/dashboard/workouts" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
                   View Full Plan →
                 </Link>
               </div>
@@ -482,7 +482,7 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   Progress Tracking
                 </h2>
-                <Link href="/analytics" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/dashboard/profile" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
                   Full Report →
                 </Link>
               </div>
@@ -552,10 +552,10 @@ export default function DashboardPage() {
                 Quick Actions
               </h2>
               <div className="grid grid-cols-2 gap-4">
-                <QuickAction icon="chart" label="Check BMI" href="/bmi" />
+                <QuickAction icon="chart" label="Check BMI" href="/bmi-calculator" />
                 <QuickAction icon="pill" label="Buy Supps" href="/shop" />
-                <QuickAction icon="user" label="Book Trainer" href="/trainers" />
-                <QuickAction icon="food" label="Meal Plan" onClick={() => setIsPlanModalOpen(true)} />
+                <QuickAction icon="user" label="Book Trainer" href="/dashboard/trainers" />
+                <QuickAction icon="food" label="Meal Plan" href="/dashboard/meals" />
               </div>
             </div>
 
