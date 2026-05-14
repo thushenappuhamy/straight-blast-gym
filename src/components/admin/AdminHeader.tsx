@@ -21,29 +21,43 @@ export default function AdminHeader({
   searchPlaceholder,
   onSearch,
 }: AdminHeaderProps) {
+  const [dbNotifications, setDbNotifications] = useState<any[]>([]);
   const [lowStockSupplements, setLowStockSupplements] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [hasNotified, setHasNotified] = useState(false);
 
   useEffect(() => {
-    const fetchSupplements = async () => {
+    const fetchAllNotifications = async () => {
       try {
-        const response = await fetch('/api/admin/supplements');
-        const data = await response.json();
-        if (data.success) {
-          const lowStock = data.data.filter((s: any) => (s.stock || 0) <= 10);
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+
+        // Fetch low stock alerts
+        const supplementsRes = await fetch('/api/admin/supplements', { headers });
+        const supplementsData = await supplementsRes.json();
+        if (supplementsData.success) {
+          const lowStock = supplementsData.data.filter((s: any) => (s.stock || 0) <= 10);
           setLowStockSupplements(lowStock);
         }
+
+        // Fetch DB notifications
+        const notificationsRes = await fetch('/api/notifications', { headers });
+        const notificationsData = await notificationsRes.json();
+        if (notificationsData.success) {
+          setDbNotifications(notificationsData.data);
+        }
       } catch (err) {
-        console.error('Failed to fetch supplements for notifications', err);
+        console.error('Failed to fetch admin notifications', err);
       }
     };
-    fetchSupplements();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchSupplements, 5 * 60 * 1000);
+    
+    fetchAllNotifications();
+    const interval = setInterval(fetchAllNotifications, 60000); // Refresh every minute
     return () => clearInterval(interval);
   }, []);
+
+  const allNotificationsCount = lowStockSupplements.length + dbNotifications.length;
 
   useEffect(() => {
     if (lowStockSupplements.length > 0 && !hasNotified) {
@@ -87,7 +101,7 @@ export default function AdminHeader({
               className="p-2.5 rounded-lg border border-white/20 bg-white/5 text-white hover:bg-white/10 transition-colors relative"
             >
               <Bell size={20} />
-              {lowStockSupplements.length > 0 && (
+              {allNotificationsCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#E63C2F] rounded-full animate-pulse" />
               )}
             </button>
@@ -98,31 +112,50 @@ export default function AdminHeader({
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-black text-white uppercase tracking-wider">Notifications</h3>
                     <span className="px-2 py-0.5 rounded-full bg-[#E63C2F]/20 text-[#E63C2F] text-[10px] font-bold uppercase">
-                      {lowStockSupplements.length} alerts
+                      {allNotificationsCount} alerts
                     </span>
                   </div>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {lowStockSupplements.length > 0 ? (
-                    lowStockSupplements.map((item) => (
-                      <div key={item._id} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <div className="flex gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <Package size={20} className="text-amber-500" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold text-white mb-1">{item.name}</p>
-                            <p className="text-xs text-white/50 mb-2">Inventory is running low</p>
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-black uppercase">
-                                {item.stock} left
-                              </span>
-                              <span className="text-[10px] text-[#E63C2F] font-bold uppercase tracking-wider">Restock Required</span>
+                  {allNotificationsCount > 0 ? (
+                    <>
+                      {/* DB Notifications */}
+                      {dbNotifications.map((notif) => (
+                        <div key={notif._id} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onClick={() => notif.link && (window.location.href = notif.link)}>
+                          <div className="flex gap-3">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${notif.type === 'warning' ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                              <Bell size={20} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white mb-1">{notif.title}</p>
+                              <p className="text-xs text-white/50 leading-relaxed">{notif.message}</p>
+                              <p className="text-[9px] text-white/20 uppercase mt-2 font-bold tracking-widest">{new Date(notif.createdAt).toLocaleString()}</p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                      
+                      {/* Low Stock Alerts */}
+                      {lowStockSupplements.map((item) => (
+                        <div key={item._id} className="p-4 border-b border-white/5 hover:bg-white/5 transition-colors">
+                          <div className="flex gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                              <Package size={20} className="text-amber-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white mb-1">{item.name}</p>
+                              <p className="text-xs text-white/50 mb-2">Inventory is running low</p>
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[10px] font-black uppercase">
+                                  {item.stock} left
+                                </span>
+                                <span className="text-[10px] text-[#E63C2F] font-bold uppercase tracking-wider">Restock Required</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
                   ) : (
                     <div className="p-8 text-center">
                       <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
@@ -133,7 +166,7 @@ export default function AdminHeader({
                     </div>
                   )}
                 </div>
-                {lowStockSupplements.length > 0 && (
+                {allNotificationsCount > 0 && (
                   <button
                     onClick={() => {
                       window.location.href = '/admin/supplements';
@@ -141,7 +174,7 @@ export default function AdminHeader({
                     }}
                     className="w-full p-3 text-[10px] font-black text-white/40 hover:text-[#E63C2F] hover:bg-white/5 transition-all uppercase tracking-[0.2em] border-t border-white/10"
                   >
-                    View Inventory Management →
+                    View All Activity →
                   </button>
                 )}
               </div>

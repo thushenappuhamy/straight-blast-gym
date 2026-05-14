@@ -158,6 +158,7 @@ export default function DashboardPage() {
     weight: 68,
     age: 28,
     bmi: 0,
+    plan: "Free",
     membershipStartDate: null as string | null,
     membershipStatus: "inactive"
   });
@@ -191,13 +192,26 @@ export default function DashboardPage() {
 
           setUserInfo({
             name: displayName || data.user?.name || data.user?.email?.split("@")[0] || "User",
-            height: data.user?.profile?.height || 180,
-            weight: data.user?.profile?.weight || 68,
-            age: data.user?.profile?.age || 28,
+            height: data.user?.height || 180,
+            weight: data.user?.weight || 68,
+            age: data.user?.age || 28,
             bmi: data.user?.bmi || 0,
+            plan: data.user?.plan || "Free",
             membershipStartDate: data.user?.membershipStartDate,
             membershipStatus: data.user?.membershipStatus || "inactive"
           });
+        }
+
+        // Fetch notifications from DB
+        const notificationsRes = await fetch("/api/notifications", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const notificationsData = await notificationsRes.json();
+        if (notificationsData.success && notificationsData.data.length > 0) {
+          setNotifications(notificationsData.data);
+        } else {
+          // Keep the existing logic for auto-generated reminders if no DB notifications
+          // But maybe only if there are NO notifications in DB at all
         }
 
         // Fetch BMI data
@@ -389,47 +403,56 @@ export default function DashboardPage() {
             <div className="mb-2 flex items-center gap-3">
               <span className="h-[2px] w-8 bg-primary" />
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
-                Member Dashboard
+                {userInfo.plan.toUpperCase()} MEMBER DASHBOARD
               </span>
             </div>
             <h1 className="text-4xl font-black tracking-tight text-foreground md:text-5xl">
               WELCOME BACK, <span className="text-primary">{userInfo.name.toUpperCase()}</span>
             </h1>
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card shadow-lg transition-all hover:scale-105 active:scale-95"
-            >
-              <Bell size={24} className="text-foreground" />
-              {notifications.length > 0 && (
-                <span className="absolute right-3.5 top-3.5 flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-primary"></span>
-                </span>
-              )}
+
+          <div className="flex items-center gap-4 relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
+                <Bell size={24} className="text-foreground" />
+                {notifications.length > 0 && (
+                  <span className="absolute right-3.5 top-3.5 flex h-3 w-3">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-primary"></span>
+                  </span>
+                )}
+              </button>
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-16 w-80 overflow-hidden rounded-3xl border border-border bg-card shadow-2xl z-50">
+                <div className="absolute right-0 top-20 w-80 overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                   <div className="border-b border-border bg-muted/50 px-6 py-4">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Notifications</span>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{notifications.length} NEW</span>
                     </div>
                   </div>
-                  <div className="max-h-[400px] overflow-y-auto">
+                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                     {notifications.length > 0 ? (
-                      notifications.map((notif) => (
-                        <div key={notif.id} className="border-b border-border px-6 py-5 transition-colors hover:bg-muted/50">
+                      notifications.map((notif, idx) => (
+                        <div key={notif._id || notif.id || idx} className="border-b border-border px-6 py-5 transition-colors hover:bg-muted/50 last:border-0">
                           <div className="mb-2 flex items-center gap-2">
                             {notif.type === 'error' ? <AlertTriangle size={14} className="text-primary" /> : <Bell size={14} className="text-amber-500" />}
                             <span className="text-[10px] font-black uppercase tracking-wider text-foreground">{notif.title}</span>
                           </div>
                           <p className="text-xs leading-relaxed text-muted-foreground">{notif.message}</p>
-                          <Link href="/membership" className="mt-3 inline-block text-[10px] font-black uppercase tracking-wider text-primary hover:underline">
-                            Settle Payment →
-                          </Link>
+                          {(notif.link || notif.title.toLowerCase().includes('membership')) && (
+                            <Link 
+                              href={notif.link || "/dashboard/membership"} 
+                              className="mt-3 inline-block text-[10px] font-black uppercase tracking-wider text-primary hover:underline"
+                              onClick={() => setShowNotifications(false)}
+                            >
+                              {notif.link?.includes('membership') || notif.title.toLowerCase().includes('membership') ? 'Settle Payment' : 'View Details'} →
+                            </Link>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -443,8 +466,9 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
-            </button>
-            <Link href="/profile">
+            </div>
+
+            <Link href="/dashboard/profile">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_10px_30px_rgba(230,60,47,0.3)] transition-all hover:scale-105 active:scale-95">
                 <UserIcon size={24} />
               </div>
