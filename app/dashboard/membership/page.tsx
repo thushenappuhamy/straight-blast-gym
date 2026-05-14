@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Toast from '@/src/components/ui/Toast';
-import { Check, ArrowRight, Star, Shield, Zap, Crown, Info } from 'lucide-react';
+import { Check, ArrowRight, Star, Shield, Zap, Crown, Info, X, CreditCard, Wallet, Banknote } from 'lucide-react';
 import Link from 'next/link';
 
 interface MembershipPlan {
@@ -23,8 +23,9 @@ export default function MembershipPage() {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [updateCounter, setUpdateCounter] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     const fetchMemberships = async () => {
@@ -39,8 +40,6 @@ export default function MembershipPage() {
 
         if (result.success) {
           setPlans(result.data);
-          setLastUpdated(new Date());
-          setUpdateCounter(prev => prev + 1);
           setError(null);
         } else {
           setError('Failed to load membership plans');
@@ -53,9 +52,12 @@ export default function MembershipPage() {
     };
 
     fetchMemberships();
-    const interval = setInterval(fetchMemberships, 10000);
-    return () => clearInterval(interval);
   }, []);
+
+  const handlePlanSelect = (plan: MembershipPlan) => {
+    setSelectedPlan(plan);
+    setShowPaymentModal(true);
+  };
 
   if (loading) {
     return (
@@ -73,6 +75,8 @@ export default function MembershipPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden pb-20 transition-colors duration-300">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       {/* Background Elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none opacity-50"></div>
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
@@ -97,7 +101,7 @@ export default function MembershipPage() {
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map((plan, idx) => (
-            <PlanCard key={plan._id} plan={plan} index={idx} />
+            <PlanCard key={plan._id} plan={plan} index={idx} onSelect={handlePlanSelect} />
           ))}
         </div>
 
@@ -119,39 +123,19 @@ export default function MembershipPage() {
           </div>
         </div>
       </div>
+
+      {showPaymentModal && selectedPlan && (
+        <PaymentModal 
+          plan={selectedPlan} 
+          onClose={() => setShowPaymentModal(false)} 
+          setToast={setToast}
+        />
+      )}
     </div>
   );
 }
 
-function PlanCard({ plan, index }: { plan: MembershipPlan; index: number }) {
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const handleSubscribe = async (planName: string, id: string) => {
-    setProcessingId(id);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/memberships/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ plan: planName })
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Subscription failed');
-
-      setToast({ message: `Welcome to the ${planName.toUpperCase()} family!`, type: 'success' });
-      setTimeout(() => window.location.href = '/dashboard/profile', 2000);
-    } catch (err: any) {
-      setToast({ message: err.message, type: 'error' });
-    } finally {
-      setProcessingId(null);
-    }
-  };
-
+function PlanCard({ plan, index, onSelect }: { plan: MembershipPlan; index: number; onSelect: (plan: MembershipPlan) => void }) {
   const isPopular = plan.isFeatured || plan.name.toUpperCase() === 'STANDARD';
   const isPremium = plan.name.toUpperCase() === 'POWERLIFTING' || plan.name.toUpperCase() === 'PREMIUM';
 
@@ -166,13 +150,9 @@ function PlanCard({ plan, index }: { plan: MembershipPlan; index: number }) {
       className={`group relative rounded-[2.5rem] p-1 transition-all duration-500 hover:-translate-y-2 ${isPopular ? 'bg-gradient-to-b from-primary to-primary/20' : 'bg-border hover:bg-primary/30'
         }`}
     >
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       <div className="bg-card rounded-[2.3rem] p-8 h-full flex flex-col relative overflow-hidden shadow-2xl">
-        {/* Card Shine */}
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 skew-x-12 group-hover:left-full transition-all duration-1000 pointer-events-none"></div>
 
-        {/* Badge */}
         {plan.isFeatured && (
           <div className="absolute top-6 right-6 px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/40">
             {plan.badge || 'Recommended'}
@@ -210,21 +190,125 @@ function PlanCard({ plan, index }: { plan: MembershipPlan; index: number }) {
         </div>
 
         <button
-          onClick={() => handleSubscribe(plan.name, plan._id)}
-          disabled={processingId === plan._id}
+          onClick={() => onSelect(plan)}
           className={`group/btn relative w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 overflow-hidden ${isPopular
               ? 'bg-primary text-white hover:bg-slate-900 shadow-lg shadow-primary/20'
               : 'border border-border bg-muted hover:bg-foreground hover:text-background'
-            } disabled:opacity-50`}
+            }`}
         >
-          {processingId === plan._id ? (
-            <span className="animate-pulse">Processing Entry...</span>
-          ) : (
-            <>
-              Get Started <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
-            </>
-          )}
+          Get Started <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+function PaymentModal({ plan, onClose, setToast }: { plan: MembershipPlan; onClose: () => void; setToast: any }) {
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'PayHere'>('Cash');
+  const [processing, setProcessing] = useState(false);
+
+  const handleConfirm = async () => {
+    setProcessing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/memberships/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          plan: plan.name,
+          paymentMethod: paymentMethod,
+          amount: plan.price
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Subscription failed');
+
+      setToast({ 
+        message: paymentMethod === 'Cash' 
+          ? 'Subscription requested! Please settle payment at the gym.' 
+          : `Welcome to the ${plan.name.toUpperCase()} family!`, 
+        type: 'success' 
+      });
+      
+      setTimeout(() => window.location.href = '/dashboard/profile', 2000);
+    } catch (err: any) {
+      setToast({ message: err.message, type: 'error' });
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-card border border-border w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8 border-b border-border flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter text-foreground">Secure Checkout</h2>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Finalizing your legacy</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl bg-muted hover:bg-primary/10 hover:text-primary transition-all">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-8">
+          <div className="bg-muted/30 rounded-2xl p-6 mb-8 border border-border">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Selected Plan</span>
+              <span className="text-xs font-black uppercase tracking-widest text-primary">{plan.name}</span>
+            </div>
+            <div className="flex justify-between items-end">
+              <span className="text-3xl font-black text-foreground">LKR {plan.price.toLocaleString()}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Total Due</span>
+            </div>
+          </div>
+
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground block mb-4">Select Payment Method</label>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            <button 
+              onClick={() => setPaymentMethod('Cash')}
+              className={`flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all ${paymentMethod === 'Cash' ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-muted/20 text-muted-foreground hover:border-primary/50'}`}
+            >
+              <Banknote size={24} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Cash</span>
+            </button>
+            <button 
+              onClick={() => setPaymentMethod('Card')}
+              className={`flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all ${paymentMethod === 'Card' ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-muted/20 text-muted-foreground hover:border-primary/50'}`}
+            >
+              <CreditCard size={24} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Card</span>
+            </button>
+            <button 
+              onClick={() => setPaymentMethod('PayHere')}
+              className={`flex flex-col items-center gap-3 p-6 rounded-2xl border transition-all ${paymentMethod === 'PayHere' ? 'border-primary bg-primary/5 text-primary' : 'border-border bg-muted/20 text-muted-foreground hover:border-primary/50'}`}
+            >
+              <Wallet size={24} />
+              <span className="text-[10px] font-black uppercase tracking-widest">PayHere</span>
+            </button>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl mb-8 border border-primary/10">
+            <Info size={16} className="text-primary mt-0.5 shrink-0" />
+            <p className="text-[10px] font-bold text-muted-foreground leading-relaxed">
+              {paymentMethod === 'Card' 
+                ? 'Secure encrypted transaction. Your plan will be activated immediately upon successful payment.'
+                : 'Your plan will be activated once the admin verifies the payment at the counter or via mobile transfer.'}
+            </p>
+          </div>
+
+          <button 
+            onClick={handleConfirm}
+            disabled={processing}
+            className="w-full py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all disabled:opacity-50"
+          >
+            {processing ? 'Processing Securely...' : `Confirm & Subscribe`}
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -59,9 +59,15 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to process checkout');
       }
 
-      setToast({ message: 'Order placed successfully!', type: 'success' });
+      const isPending = paymentMethod === 'cash' || paymentMethod === 'payhere';
+      setToast({ 
+        message: isPending 
+          ? 'Order requested! Please settle payment at the gym.' 
+          : 'Order placed successfully!', 
+        type: 'success' 
+      });
       clearCart();
-      setTimeout(() => router.push('/shop'), 800);
+      setTimeout(() => router.push('/dashboard/my-orders'), 1500);
     } catch (error: any) {
       setToast({ message: error.message, type: 'error' });
     } finally {
@@ -395,7 +401,7 @@ export default function CheckoutPage() {
                         disabled={isProcessing}
                         className="bg-foreground text-background hover:opacity-90 font-black text-xs uppercase tracking-widest px-8 py-4 transition-all flex-1 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isProcessing ? 'Processing...' : `Place Order (LKR ${total.toLocaleString()})`}
+                        {isProcessing ? 'Processing...' : (paymentMethod === 'cash' || paymentMethod === 'payhere' ? `Request Order (LKR ${total.toLocaleString()})` : `Place Order (LKR ${total.toLocaleString()})`)}
                       </button>
                     </div>
                   </div>
