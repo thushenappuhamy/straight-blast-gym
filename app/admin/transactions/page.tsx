@@ -16,7 +16,8 @@ import {
   Clock, 
   ArrowUpRight,
   Filter,
-  Search
+  Search,
+  Check
 } from 'lucide-react';
 import Toast from '@/src/components/ui/Toast';
 import TransactionDetailModal from '@/src/components/admin/TransactionDetailModal';
@@ -573,6 +574,15 @@ export default function AdminTransactionsPage() {
                       </td>
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-2">
+                          {txn.status === 'PROCESSING' && (
+                            <button
+                              onClick={() => handleSettle(txn.dbId)}
+                              className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-all"
+                              title="Settle Transaction"
+                            >
+                              <Check size={16} />
+                            </button>
+                          )}
                           <button
                             onClick={() => setSelectedTransaction(txn)}
                             className="p-2.5 rounded-xl bg-white/5 text-white/40 hover:bg-[#E63C2F]/10 hover:text-[#E63C2F] transition-all"

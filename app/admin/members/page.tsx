@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader, Edit3, Trash2 } from 'lucide-react';
+import { Loader, Edit3, Trash2, Bell } from 'lucide-react';
 import {
   AdminLayout,
   AdminSidebar,
@@ -90,6 +90,31 @@ export default function MembersPage() {
       setToast({ message: error.message, type: 'error' });
     } finally {
       setConfirmDelete({ isOpen: false, id: null });
+    }
+  };
+
+  const handleNotify = async (memberId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/notifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          recipientId: memberId,
+          title: 'Membership Renewal',
+          message: 'Your membership is about to expire. Please renew your plan to continue enjoying our services.',
+          type: 'warning'
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to send notification');
+
+      setToast({ message: 'Notification sent successfully', type: 'success' });
+    } catch (error: any) {
+      setToast({ message: error.message, type: 'error' });
     }
   };
 
@@ -226,6 +251,13 @@ export default function MembersPage() {
       label: 'Actions',
       render: (_: any, row: any) => (
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleNotify(row._id)}
+            className="p-2 rounded-lg bg-white/5 text-white/60 hover:bg-amber-500/10 hover:text-amber-500 transition-all"
+            title="Notify"
+          >
+            <Bell size={16} />
+          </button>
           <button
             onClick={() => {
               setMemberToEdit(row);
