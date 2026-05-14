@@ -38,7 +38,7 @@ const serviceNavItems = [
 
 const accountNavItems = [
   { icon: "user", label: "My Profile", href: "/dashboard/profile" },
-  { icon: "package", label: "My Orders", href: "/dashboard/orders" },
+  { icon: "package", label: "My Orders", href: "/dashboard/my-orders" },
 ];
 
 function getIcon(iconName: string) {
