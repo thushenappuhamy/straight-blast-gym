@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/src/lib/db';
 import { Transaction } from '@/src/models/Transaction';
 import { User } from '@/src/models/User';
+import { Notification } from '@/src/models/Notification';
 import { verify } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -103,6 +104,32 @@ export async function PATCH(req: NextRequest) {
         membershipStartDate: transaction.date || new Date(),
         membershipStatus: 'active'
       });
+
+      // Notify the member
+      try {
+        await Notification.create({
+          recipientId: transaction.memberId,
+          title: 'Membership Activated! 🚀',
+          message: `Your payment for ${transaction.type} has been verified. Welcome to the SBG family!`,
+          type: 'success',
+          link: '/dashboard/profile'
+        });
+      } catch (err) {
+        console.error('Failed to notify member:', err);
+      }
+    } else if (status === 'COMPLETED' && transaction.type.toLowerCase().includes('supplement')) {
+      // Notify the member for supplement order
+      try {
+        await Notification.create({
+          recipientId: transaction.memberId,
+          title: 'Order Verified! 📦',
+          message: `Your supplement order (${transaction.reference}) has been verified. You can now collect your items!`,
+          type: 'success',
+          link: '/dashboard/my-orders'
+        });
+      } catch (err) {
+        console.error('Failed to notify member about order:', err);
+      }
     }
 
     return NextResponse.json({ success: true, data: transaction });
