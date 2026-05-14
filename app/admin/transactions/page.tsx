@@ -86,48 +86,18 @@ export default function AdminTransactionsPage() {
         let trainerSessions = 0;
         let membershipFees = 0;
 
-        // Process membership transactions from members (Historical/Legacy)
-        if (membersData.data) {
-          membersData.data.forEach((member: any) => {
-            const plan = member.plan?.toUpperCase() || 'BASIC';
-            const planPrices: Record<string, number> = {
-              GOLD: 5000,
-              ELITE: 8000,
-              BASIC: 2500,
-            };
-            const amount = planPrices[plan] || 0;
-            membershipFees += amount;
-
-            const typeMap: Record<string, string> = {
-              GOLD: 'Gold Membership',
-              ELITE: 'Elite Membership',
-              BASIC: 'Basic Membership',
-            };
-
-            allTransactions.push({
-              id: `#TXN-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-              member: member.firstName ? `${member.firstName} ${member.lastName}` : (member.name || 'Unknown'),
-              type: typeMap[plan] || 'Membership',
-              amount,
-              payment: 'PayHere',
-              date: formatDateSafe(member.createdAt),
-              rawDate: member.createdAt,
-              status: member.status === 'ACTIVE' ? 'COMPLETED' : 'PROCESSING',
-              typeIcon: 'membership',
-              isRefund: false,
-            });
-          });
-        }
-
         // Process real transactions from DB
         if (realTxnsData.success && realTxnsData.data) {
           realTxnsData.data.forEach((txn: any) => {
-            if (txn.type.includes('Supplement')) supplementSales += txn.amount;
-            else if (txn.type.includes('Trainer')) trainerSessions += txn.amount;
-            else membershipFees += txn.amount;
+            // Count COMPLETED transactions for stats
+            if (txn.status === 'COMPLETED') {
+              if (txn.type.toLowerCase().includes('supplement')) supplementSales += txn.amount;
+              else if (txn.type.toLowerCase().includes('trainer')) trainerSessions += txn.amount;
+              else membershipFees += txn.amount;
+            }
 
             allTransactions.push({
-              id: `#TXN-${txn._id.slice(-4).toUpperCase()}`,
+              id: `#TXN-${txn.reference?.slice(-4) || txn._id.slice(-4).toUpperCase()}`,
               dbId: txn._id,
               member: txn.memberName,
               type: txn.type,

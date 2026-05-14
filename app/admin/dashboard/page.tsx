@@ -32,17 +32,19 @@ export default function AdminDashboard() {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [membersRes, bookingsRes, supplementsRes, trainersRes] = await Promise.all([
+      const [membersRes, bookingsRes, supplementsRes, trainersRes, txnsRes] = await Promise.all([
         fetch('/api/admin/members', { headers }),
         fetch('/api/admin/bookings', { headers }),
         fetch('/api/supplements', { headers }),
         fetch('/api/admin/trainers', { headers }),
+        fetch('/api/admin/transactions', { headers }),
       ]);
 
       const membersData = await membersRes.json();
       const bookingsData = await bookingsRes.json();
       const supplementsData = await supplementsRes.json();
       const trainersData = await trainersRes.json();
+      const txnsData = await txnsRes.json();
 
       if (membersData.data) {
         // Map members to include a 'name' field for the table
@@ -53,19 +55,20 @@ export default function AdminDashboard() {
         
         setMembers(mappedMembers.slice(0, 5));
         
-        const revenue = membersData.data.reduce((total: number, m: any) => {
-          const planPrice: Record<string, number> = {
-            GOLD: 5000,
-            ELITE: 8000,
-            BASIC: 2500,
-          };
-          const plan = (m.plan || '').toUpperCase();
-          return total + (planPrice[plan] || 0);
-        }, 0);
-        
         setStats(prev => ({
           ...prev,
           totalMembers: membersData.data.length,
+        }));
+      }
+
+      if (txnsData.success && txnsData.data) {
+        const revenue = txnsData.data.reduce((total: number, txn: any) => {
+          // Only count COMPLETED transactions for revenue
+          return txn.status === 'COMPLETED' ? total + (txn.amount || 0) : total;
+        }, 0);
+
+        setStats(prev => ({
+          ...prev,
           monthlyRevenue: revenue,
         }));
       }
