@@ -5,6 +5,7 @@ import { connectDB } from '@/src/lib/db';
 import Supplement from '@/src/models/Supplement';
 import { Transaction } from '@/src/models/Transaction';
 import { User } from '@/src/models/User';
+import { Notification } from '@/src/models/Notification';
 import { verify } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -12,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 export async function POST(req: NextRequest) {
   try {
     console.log('🛒 [CHECKOUT API] POST request received');
-    
+
     await connectDB();
     console.log('✅ [CHECKOUT API] Database connected');
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       try {
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
         const decoded: any = verify(token, JWT_SECRET);
-        userId = decoded.userId;
+        userId = decoded.id; // Corrected from userId to id
         const user = await User.findById(userId);
         if (user) {
           userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User';
@@ -50,18 +51,18 @@ export async function POST(req: NextRequest) {
     const updatePromises = items.map(async (item) => {
       // Find the supplement and ensure it has enough stock
       const supplement = await Supplement.findById(item.id);
-      
+
       if (!supplement) {
         throw new Error(`Product not found: ${item.name}`);
       }
-      
+
       if (supplement.stock < item.quantity) {
         throw new Error(`Insufficient stock for ${item.name}. Available: ${supplement.stock}`);
       }
 
       // Decrement stock safely
       supplement.stock -= item.quantity;
-      
+
       // Auto-update status if stock drops to critical levels
       if (supplement.stock === 0) {
         supplement.status = 'out-of-stock';
@@ -84,22 +85,40 @@ export async function POST(req: NextRequest) {
       const discount = totalAmount * 0.1;
       const finalTotal = totalAmount + deliveryCharge - discount;
 
-      await Transaction.create({
+      const transaction = await Transaction.create({
         memberId: userId,
         memberName: userName,
         type: 'Supplement Order',
         amount: finalTotal,
-        paymentMethod: paymentMethod === 'card' ? 'Card' : paymentMethod === 'cash' ? 'Cash' : 'PayHere',
-        status: paymentMethod === 'card' ? 'COMPLETED' : 'PROCESSING',
+        paymentMethod: paymentMethod.toLowerCase() === 'card' ? 'Card' : paymentMethod.toLowerCase() === 'cash' ? 'Cash' : 'PayHere',
+        status: paymentMethod.toLowerCase() === 'card' ? 'COMPLETED' : 'PROCESSING',
         date: new Date(),
         reference: `ORD-${Math.random().toString(36).substring(7).toUpperCase()}`
       });
+
+      // If payment is pending, notify admins
+      if (transaction.status === 'PROCESSING') {
+        try {
+          const admins = await User.find({ role: 'admin' });
+          const notifications = admins.map(admin => ({
+            recipientId: admin._id,
+            title: 'New Order: Pending Payment',
+            message: `${userName} placed a Supplement Order (LKR ${finalTotal.toLocaleString()}) via ${transaction.paymentMethod}. Please verify payment.`,
+            type: 'info',
+            link: '/admin/transactions'
+          }));
+          await Notification.insertMany(notifications);
+          console.log(`🔔 [CHECKOUT API] Notified ${admins.length} admins about pending order payment`);
+        } catch (notifyError) {
+          console.error('⚠️ [CHECKOUT API] Failed to notify admins:', notifyError);
+        }
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: paymentMethod === 'card' 
-        ? 'Order placed successfully!' 
+      message: paymentMethod === 'card'
+        ? 'Order placed successfully!'
         : 'Order requested! Please contact admin to settle payment.',
     });
   } catch (error: any) {
