@@ -24,7 +24,6 @@ const verifyAdminToken = (token: string) => {
 // GET - Retrieve system roles and statistics (admin only)
 export async function GET(request: NextRequest) {
   try {
-    console.log('👥 [STAFF ROLES] GET request received');
 
     await connectDB();
 
@@ -124,7 +123,6 @@ export async function GET(request: NextRequest) {
       .limit(10)
       .sort({ createdAt: -1 });
 
-    console.log(`✅ [STAFF ROLES] Retrieved ${roles.length} roles`);
 
     return NextResponse.json(
       {
@@ -146,7 +144,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('❌ [STAFF ROLES] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch roles' },
       { status: 500 }

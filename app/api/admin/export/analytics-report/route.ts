@@ -280,7 +280,6 @@ function generateAnalyticsReport(data: any): string {
 // GET - Generate analytics report
 export async function GET(request: NextRequest) {
   try {
-    console.log('📊 [ANALYTICS REPORT] Request received');
 
     await connectDB();
 
@@ -385,7 +384,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('❌ [ANALYTICS REPORT] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to generate report' },
       { status: 500 }

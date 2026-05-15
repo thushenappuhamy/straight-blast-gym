@@ -64,7 +64,6 @@ export async function GET(req: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('❌ [STATS API] Error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

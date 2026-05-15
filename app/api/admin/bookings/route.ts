@@ -29,13 +29,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    console.log('🔐 [BOOKINGS API] Token length:', token.length, 'First 20 chars:', token.substring(0, 20));
 
     let decoded: any;
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -44,7 +42,6 @@ export async function GET(req: NextRequest) {
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.error('❌ [BOOKINGS API] User is not admin, role:', decoded.role);
       return NextResponse.json(
         { success: false, error: 'Only admins can view bookings' },
         { status: 403 }
@@ -59,7 +56,6 @@ export async function GET(req: NextRequest) {
       .populate('trainerId', 'firstName lastName')
       .sort({ dateTime: -1 });
 
-    console.log('✅ [ADMIN BOOKINGS] Fetched:', bookings.length);
 
     const response = NextResponse.json({
       success: true,
@@ -70,7 +66,6 @@ export async function GET(req: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [API] Error fetching bookings:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to fetch bookings' },
       { status: 500 }
@@ -102,7 +97,6 @@ export async function POST(req: NextRequest) {
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -111,7 +105,6 @@ export async function POST(req: NextRequest) {
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.error('❌ [BOOKINGS API] User is not admin, role:', decoded.role);
       return NextResponse.json(
         { success: false, error: 'Only admins can create bookings' },
         { status: 403 }
@@ -152,18 +145,15 @@ export async function POST(req: NextRequest) {
           trainer.assignedClients.push(memberId);
           trainer.totalClients = trainer.assignedClients.length;
           await trainer.save();
-          console.log('📈 [ADMIN BOOKINGS API] Trainer client count incremented');
         }
       }
     } catch (trainerError) {
-      console.error('⚠️ [ADMIN BOOKINGS API] Failed to update trainer stats:', trainerError);
     }
 
     // Populate member and trainer details
     await booking.populate('memberId', 'firstName lastName');
     await booking.populate('trainerId', 'firstName lastName');
 
-    console.log('✅ [ADMIN BOOKINGS] Created:', booking._id);
 
     const response = NextResponse.json({
       success: true,
@@ -174,7 +164,6 @@ export async function POST(req: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [API] Error creating booking:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to create booking' },
       { status: 500 }
