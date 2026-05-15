@@ -69,7 +69,6 @@ export async function POST(req: NextRequest) {
       date: new Date(),
     });
 
-    console.log(`✅ [MEMBERSHIP API] User ${decoded.id} subscribed to ${plan} via ${paymentMethod}. Transaction: ${transaction._id}`);
 
     // If payment is pending, notify admins
     if (txnStatus === 'PROCESSING') {
@@ -83,9 +82,7 @@ export async function POST(req: NextRequest) {
           link: '/admin/transactions'
         }));
         await Notification.insertMany(notifications);
-        console.log(`🔔 [MEMBERSHIP API] Notified ${admins.length} admins about pending payment`);
       } catch (notifyError) {
-        console.error('⚠️ [MEMBERSHIP API] Failed to notify admins:', notifyError);
       }
     }
 
@@ -102,7 +99,6 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('❌ [MEMBERSHIP API] Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

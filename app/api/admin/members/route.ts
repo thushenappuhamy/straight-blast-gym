@@ -11,27 +11,22 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('👥 [ADMIN MEMBERS] Fetching members list...');
 
     await connectDB();
-    console.log('✅ [ADMIN MEMBERS] Database connected');
 
     // Get token from Authorization header or cookies
     let token = null;
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.slice(7);
-      console.log('✅ [ADMIN MEMBERS] Token found in Authorization header');
     } else {
       const cookieStore = await cookies();
       token = cookieStore.get('authToken')?.value;
       if (token) {
-        console.log('✅ [ADMIN MEMBERS] Token found in cookies');
       }
     }
 
     if (!token) {
-      console.error('❌ [ADMIN MEMBERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -39,23 +34,19 @@ export async function GET(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN MEMBERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN MEMBERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN MEMBERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     // Fetch all members (users with role 'user')
     const members = await User.find({ role: 'user' }).select('-password').sort({ createdAt: -1 });
 
-    console.log(`✅ [ADMIN MEMBERS] Retrieved ${members.length} members`);
 
     // Map to member display format
     const formattedMembers = members.map((user: any) => {
@@ -92,7 +83,6 @@ export async function GET(request: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN MEMBERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
@@ -102,17 +92,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('👥 [ADMIN MEMBERS] Adding new member...');
 
     await connectDB();
-    console.log('✅ [ADMIN MEMBERS] Database connected');
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error('❌ [ADMIN MEMBERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -120,16 +107,13 @@ export async function POST(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN MEMBERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN MEMBERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN MEMBERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -184,7 +168,6 @@ export async function POST(request: NextRequest) {
 
     await newMember.save();
 
-    console.log('✅ [ADMIN MEMBERS] Member added:', newMember._id);
 
     const response = NextResponse.json(
       {
@@ -204,7 +187,6 @@ export async function POST(request: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN MEMBERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

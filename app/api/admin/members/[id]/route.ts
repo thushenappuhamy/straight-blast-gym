@@ -25,7 +25,6 @@ async function verifyAdmin(request: NextRequest) {
     if (!user || user.role !== 'admin') return null;
     return user;
   } catch (error: any) {
-    console.error('❌ [ADMIN API AUTH] Verification failed:', error.message);
     return null;
   }
 }
@@ -41,7 +40,6 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     
-    console.log('📝 [PATCH MEMBER] ID:', id, 'Body:', body);
 
     await connectDB();
     const updatedUser = await User.findByIdAndUpdate(
@@ -51,14 +49,11 @@ export async function PATCH(
     ).select('-password');
 
     if (!updatedUser) {
-      console.error('❌ [PATCH MEMBER] User not found for ID:', id);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('✅ [PATCH MEMBER] Success');
     return NextResponse.json({ success: true, data: updatedUser });
   } catch (error: any) {
-    console.error('❌ [PATCH MEMBER] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -11,17 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
 export async function PUT(request: NextRequest) {
   try {
-    console.log("💳 [MEMBERSHIP PLANS] Update request received");
 
     await connectDB();
-    console.log("✅ [MEMBERSHIP PLANS] Database connected");
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error("❌ [MEMBERSHIP PLANS] No token found");
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -32,9 +29,7 @@ export async function PUT(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log("✅ [MEMBERSHIP PLANS] Token verified for user:", decoded.email);
     } catch (error) {
-      console.error("❌ [MEMBERSHIP PLANS] Invalid token");
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -44,7 +39,6 @@ export async function PUT(request: NextRequest) {
     // Check if user is admin
     const user = await User.findById(decoded.id);
     if (!user || user.role !== 'admin') {
-      console.error("❌ [MEMBERSHIP PLANS] User is not admin");
       return NextResponse.json(
         { error: 'Only admins can update membership settings' },
         { status: 403 }
@@ -63,17 +57,12 @@ export async function PUT(request: NextRequest) {
       freeTrial,
     } = body;
 
-    console.log("📝 [MEMBERSHIP PLANS] Updating membership plans:", {
-      basicPrice,
-      goldPrice,
-      elitePrice,
-    });
+
 
     // Get or create settings document
     let settings = await Settings.findOne();
     
     if (!settings) {
-      console.log("📝 [MEMBERSHIP PLANS] Creating new settings document");
       settings = new Settings();
     }
 
@@ -88,7 +77,6 @@ export async function PUT(request: NextRequest) {
     if (freeTrial !== undefined) settings.freeTrial = freeTrial;
 
     await settings.save();
-    console.log("✅ [MEMBERSHIP PLANS] Settings saved");
 
     return NextResponse.json(
       {
@@ -98,7 +86,6 @@ export async function PUT(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('❌ [MEMBERSHIP PLANS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
@@ -108,16 +95,13 @@ export async function PUT(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("💳 [MEMBERSHIP PLANS] Get request received");
 
     await connectDB();
-    console.log("✅ [MEMBERSHIP PLANS] Database connected");
 
     // Get settings
     let settings = await Settings.findOne();
     
     if (!settings) {
-      console.log("📝 [MEMBERSHIP PLANS] No settings found, creating default");
       settings = new Settings();
       await settings.save();
     }
@@ -133,7 +117,6 @@ export async function GET(request: NextRequest) {
       freeTrial: settings.freeTrial,
     };
 
-    console.log("✅ [MEMBERSHIP PLANS] Settings retrieved successfully");
 
     return NextResponse.json(
       {
@@ -142,7 +125,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('❌ [MEMBERSHIP PLANS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

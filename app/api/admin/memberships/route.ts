@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('Error fetching memberships:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch memberships' },
       { status: 500 }
@@ -88,7 +87,6 @@ export async function POST(req: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('Error adding membership:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to add membership' },
       { status: 500 }

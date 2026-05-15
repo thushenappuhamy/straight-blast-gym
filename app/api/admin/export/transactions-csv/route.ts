@@ -44,7 +44,6 @@ function arrayToCSV(data: any[], headers: string[]): string {
 // GET - Export transactions as CSV
 export async function GET(request: NextRequest) {
   try {
-    console.log('📊 [EXPORT CSV] Request received');
 
     await connectDB();
 
@@ -135,7 +134,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('❌ [EXPORT CSV] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to export transactions' },
       { status: 500 }

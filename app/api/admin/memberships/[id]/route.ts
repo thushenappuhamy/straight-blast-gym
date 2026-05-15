@@ -77,7 +77,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [API] Error updating membership:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to update membership' },
       { status: 500 }
@@ -135,7 +134,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('Error deleting membership:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete membership' },
       { status: 500 }

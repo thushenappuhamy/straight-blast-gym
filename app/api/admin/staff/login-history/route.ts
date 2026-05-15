@@ -24,7 +24,6 @@ const verifyAdminToken = (token: string) => {
 // GET - Retrieve login history (admin only)
 export async function GET(request: NextRequest) {
   try {
-    console.log('📊 [LOGIN HISTORY] GET request received');
 
     await connectDB();
 
@@ -79,7 +78,6 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
-    console.log(`✅ [LOGIN HISTORY] Retrieved ${loginHistory.length} records`);
 
     return NextResponse.json(
       {
@@ -94,7 +92,6 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('❌ [LOGIN HISTORY] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch login history' },
       { status: 500 }
@@ -105,7 +102,6 @@ export async function GET(request: NextRequest) {
 // POST - Log a login activity
 export async function POST(request: NextRequest) {
   try {
-    console.log('📝 [LOGIN HISTORY] POST request received');
 
     await connectDB();
 
@@ -128,7 +124,6 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!userId || !email || !role || !ipAddress || !userAgent || !device || !browser || !os) {
-      console.error('❌ [LOGIN HISTORY] Missing required fields');
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -154,7 +149,6 @@ export async function POST(request: NextRequest) {
 
     await newLoginHistory.save();
 
-    console.log(`✅ [LOGIN HISTORY] Login recorded for ${email}`);
 
     return NextResponse.json(
       {
@@ -164,7 +158,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('❌ [LOGIN HISTORY] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to record login history' },
       { status: 500 }

@@ -208,7 +208,6 @@ function generateTransactionReport(data: any): string {
 // GET - Generate transaction report (HTML for PDF conversion)
 export async function GET(request: NextRequest) {
   try {
-    console.log('📄 [TRANSACTION REPORT] Request received');
 
     await connectDB();
 
@@ -296,7 +295,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('❌ [TRANSACTION REPORT] Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to generate report' },
       { status: 500 }

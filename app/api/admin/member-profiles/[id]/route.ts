@@ -15,7 +15,6 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    console.log('👤 [MEMBER PROFILE API] GET request for ID:', id);
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
@@ -40,14 +39,12 @@ export async function GET(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    console.log('✅ [MEMBER PROFILE API] Retrieved profile:', id);
 
     return NextResponse.json({
       success: true,
       data: profile,
     });
   } catch (error) {
-    console.error('❌ [MEMBER PROFILE API] GET Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch member profile: ' + String(error) },
       { status: 500 }
@@ -62,7 +59,6 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    console.log('📝 [MEMBER PROFILE API] PUT request for ID:', id);
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
@@ -89,7 +85,6 @@ export async function PUT(
     const body = await req.json();
     const { firstName, lastName, phone, fingerprintId, isActive } = body;
 
-    console.log('📥 [MEMBER PROFILE API] Update data:', { firstName, lastName, phone });
 
     const profile = await MemberProfile.findByIdAndUpdate(
       id,
@@ -107,14 +102,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    console.log('✅ [MEMBER PROFILE API] Profile updated:', id);
 
     return NextResponse.json({
       success: true,
       data: profile,
     });
   } catch (error) {
-    console.error('❌ [MEMBER PROFILE API] PUT Error:', error);
     return NextResponse.json(
       { error: 'Failed to update member profile: ' + String(error) },
       { status: 500 }
@@ -129,7 +122,6 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    console.log('🔄 [MEMBER PROFILE API] Renewal request for ID:', id);
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
@@ -174,7 +166,6 @@ export async function POST(
 
     await profile.save();
 
-    console.log(`✅ [MEMBER PROFILE API] Membership renewed until: ${newEndDate.toLocaleDateString()}`);
 
     return NextResponse.json(
       {
@@ -185,7 +176,6 @@ export async function POST(
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ [MEMBER PROFILE API] POST Error:', error);
     return NextResponse.json(
       { error: 'Failed to renew membership: ' + String(error) },
       { status: 500 }
@@ -200,7 +190,6 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    console.log('🗑️ [MEMBER PROFILE API] DELETE request for ID:', id);
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
@@ -234,7 +223,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    console.log('✅ [MEMBER PROFILE API] Member deactivated:', id);
 
     return NextResponse.json({
       success: true,
@@ -242,7 +230,6 @@ export async function DELETE(
       data: profile,
     });
   } catch (error) {
-    console.error('❌ [MEMBER PROFILE API] DELETE Error:', error);
     return NextResponse.json(
       { error: 'Failed to deactivate member: ' + String(error) },
       { status: 500 }
