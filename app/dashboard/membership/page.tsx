@@ -26,23 +26,34 @@ export default function MembershipPage() {
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [userCurrentPlan, setUserCurrentPlan] = useState<string | null>(null);
+  const [membershipStatus, setMembershipStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMemberships = async () => {
-      try {
-        const response = await fetch('/api/memberships', {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-        });
-        const result = await response.json();
 
-        if (result.success) {
-          setPlans(result.data);
+    const fetchData = async () => {
+      try {
+        const [plansRes, userRes] = await Promise.all([
+          fetch('/api/memberships', {
+            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
+          }),
+          fetch('/api/auth/me')
+        ]);
+
+        const plansResult = await plansRes.json();
+        if (plansResult.success) {
+          setPlans(plansResult.data);
           setError(null);
         } else {
           setError('Failed to load membership plans');
+        }
+
+        if (userRes.ok) {
+          const userResult = await userRes.json();
+          if (userResult.user) {
+            setUserCurrentPlan(userResult.user.plan);
+            setMembershipStatus(userResult.user.membershipStatus);
+          }
         }
       } catch (err) {
         setError('Failed to load membership plans');
@@ -51,7 +62,7 @@ export default function MembershipPage() {
       }
     };
 
-    fetchMemberships();
+    fetchData();
   }, []);
 
   const handlePlanSelect = (plan: MembershipPlan) => {
@@ -101,7 +112,14 @@ export default function MembershipPage() {
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map((plan, idx) => (
-            <PlanCard key={plan._id} plan={plan} index={idx} onSelect={handlePlanSelect} />
+            <PlanCard 
+              key={plan._id} 
+              plan={plan} 
+              index={idx} 
+              onSelect={handlePlanSelect} 
+              userCurrentPlan={userCurrentPlan}
+              membershipStatus={membershipStatus}
+            />
           ))}
         </div>
 
@@ -129,16 +147,27 @@ export default function MembershipPage() {
           plan={selectedPlan} 
           onClose={() => setShowPaymentModal(false)} 
           setToast={setToast}
+          isRenewal={userCurrentPlan?.toLowerCase() === selectedPlan.name.toLowerCase()}
         />
       )}
     </div>
   );
 }
 
-function PlanCard({ plan, index, onSelect }: { plan: MembershipPlan; index: number; onSelect: (plan: MembershipPlan) => void }) {
+function PlanCard({ 
+  plan, index, onSelect, userCurrentPlan, membershipStatus 
+}: { 
+  plan: MembershipPlan; 
+  index: number; 
+  onSelect: (plan: MembershipPlan) => void;
+  userCurrentPlan: string | null;
+  membershipStatus: string | null;
+}) {
   const isPopular = plan.isFeatured || plan.name.toUpperCase() === 'STANDARD';
   const isPremium = plan.name.toUpperCase() === 'POWERLIFTING' || plan.name.toUpperCase() === 'PREMIUM';
 
+  const isCurrentPlan = userCurrentPlan?.toLowerCase() === plan.name.toLowerCase();
+  
   const getIcon = () => {
     if (isPremium) return <Crown className="text-primary" size={28} />;
     if (isPopular) return <Zap className="text-primary" size={28} />;
@@ -153,7 +182,13 @@ function PlanCard({ plan, index, onSelect }: { plan: MembershipPlan; index: numb
       <div className="bg-card rounded-[2.3rem] p-8 h-full flex flex-col relative overflow-hidden shadow-2xl">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 skew-x-12 group-hover:left-full transition-all duration-1000 pointer-events-none"></div>
 
-        {plan.isFeatured && (
+        {isCurrentPlan && (
+          <div className="absolute top-6 right-6 px-4 py-1.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/40">
+            Current Plan
+          </div>
+        )}
+
+        {!isCurrentPlan && plan.isFeatured && (
           <div className="absolute top-6 right-6 px-4 py-1.5 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/40">
             {plan.badge || 'Recommended'}
           </div>
@@ -196,19 +231,38 @@ function PlanCard({ plan, index, onSelect }: { plan: MembershipPlan; index: numb
               : 'border border-border bg-muted hover:bg-foreground hover:text-background'
             }`}
         >
-          Get Started <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+          {isCurrentPlan ? 'Renew Plan' : 'Get Started'} <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
         </button>
       </div>
     </div>
   );
 }
 
-function PaymentModal({ plan, onClose, setToast }: { plan: MembershipPlan; onClose: () => void; setToast: any }) {
+function PaymentModal({ 
+  plan, onClose, setToast, isRenewal 
+}: { 
+  plan: MembershipPlan; 
+  onClose: () => void; 
+  setToast: any;
+  isRenewal: boolean;
+}) {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Card' | 'PayHere'>('Cash');
   const [processing, setProcessing] = useState(false);
+  const [cardType, setCardType] = useState<'Credit' | 'Debit'>('Credit');
+  const [cardBrand, setCardBrand] = useState<'Visa' | 'Mastercard'>('Visa');
+  const [processStep, setProcessStep] = useState(0);
 
   const handleConfirm = async () => {
     setProcessing(true);
+    
+    // Simulate 4-digit processing steps
+    if (paymentMethod === 'Card') {
+      for (let i = 1; i <= 4; i++) {
+        setProcessStep(i);
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/memberships/subscribe', {
@@ -246,8 +300,12 @@ function PaymentModal({ plan, onClose, setToast }: { plan: MembershipPlan; onClo
       <div className="bg-card border border-border w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8 border-b border-border flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-black uppercase tracking-tighter text-foreground">Secure Checkout</h2>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Finalizing your legacy</p>
+            <h2 className="text-2xl font-black uppercase tracking-tighter text-foreground">
+              {isRenewal ? 'Plan Renewal' : 'Secure Checkout'}
+            </h2>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+              {isRenewal ? 'Continuing your legacy' : 'Finalizing your legacy'}
+            </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-muted hover:bg-primary/10 hover:text-primary transition-all">
             <X size={20} />
@@ -292,6 +350,64 @@ function PaymentModal({ plan, onClose, setToast }: { plan: MembershipPlan; onClo
             </button>
           </div>
 
+          {paymentMethod === 'Card' && (
+            <div className="space-y-6 mb-8 p-6 bg-muted/20 border border-border rounded-2xl animate-in slide-in-from-top duration-300">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">Card Type</label>
+                  <select 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-primary"
+                    value={cardType}
+                    onChange={(e) => setCardType(e.target.value as any)}
+                  >
+                    <option value="Credit">Credit Card</option>
+                    <option value="Debit">Debit Card</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">Network</label>
+                  <div className="flex gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => setCardBrand('Visa')}
+                      className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${cardBrand === 'Visa' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                    >Visa</button>
+                    <button 
+                      type="button"
+                      onClick={() => setCardBrand('Mastercard')}
+                      className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${cardBrand === 'Mastercard' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                    >Master</button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block mb-2">Card Number</label>
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="**** **** **** 1234"
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-primary"
+                    readOnly
+                    value="4242 4242 4242 4242"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
+                    {cardBrand === 'Visa' ? <span className="text-blue-600 font-bold italic">VISA</span> : <span className="text-orange-500 font-bold italic">MASTER</span>}
+                  </div>
+                </div>
+              </div>
+
+              {processing && (
+                <div className="pt-4 flex items-center justify-center gap-3">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                    {processStep < 4 ? `Verifying Step ${processStep}/4...` : 'Security Code Accepted'}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl mb-8 border border-primary/10">
             <Info size={16} className="text-primary mt-0.5 shrink-0" />
             <p className="text-[10px] font-bold text-muted-foreground leading-relaxed">
@@ -306,7 +422,10 @@ function PaymentModal({ plan, onClose, setToast }: { plan: MembershipPlan; onClo
             disabled={processing}
             className="w-full py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all disabled:opacity-50"
           >
-            {processing ? 'Processing Securely...' : `Confirm & Subscribe`}
+            {processing 
+              ? (paymentMethod === 'Card' ? (processStep < 4 ? 'Processing Card...' : 'Finalizing Renewal...') : 'Processing Securely...') 
+              : (isRenewal ? 'Confirm & Renew' : 'Confirm & Subscribe')}
+
           </button>
         </div>
       </div>

@@ -21,6 +21,9 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [cardType, setCardType] = useState('Credit');
+  const [cardBrand, setCardBrand] = useState('Visa');
+  const [processStep, setProcessStep] = useState(0);
 
   const subtotal = cartTotal;
   const delivery = subtotal > 0 ? 350 : 0;
@@ -29,6 +32,15 @@ export default function CheckoutPage() {
 
   const handleCheckout = async () => {
     setIsProcessing(true);
+    
+    // Simulate card processing
+    if (paymentMethod === 'card') {
+      for (let i = 1; i <= 4; i++) {
+        setProcessStep(i);
+        await new Promise(r => setTimeout(r, 600));
+      }
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/shop/checkout', {
@@ -303,6 +315,54 @@ export default function CheckoutPage() {
                         <div className={`w-6 h-6 rounded-full border-4 ${paymentMethod === 'card' ? 'border-primary bg-card' : 'border-border bg-card'}`}></div>
                       </div>
 
+                      {/* Card Details Sub-form */}
+                      {paymentMethod === 'card' && (
+                        <div className="mt-4 p-6 bg-muted/20 border border-border rounded-2xl space-y-6 animate-in slide-in-from-top duration-300">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Card Type</label>
+                              <select 
+                                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-xs font-bold focus:outline-none focus:border-primary"
+                                value={cardType}
+                                onChange={(e) => setCardType(e.target.value)}
+                              >
+                                <option value="Credit">Credit Card</option>
+                                <option value="Debit">Debit Card</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Network</label>
+                              <div className="flex gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => setCardBrand('Visa')}
+                                  className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${cardBrand === 'Visa' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                                >Visa</button>
+                                <button 
+                                  type="button"
+                                  onClick={() => setCardBrand('Mastercard')}
+                                  className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${cardBrand === 'Mastercard' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground'}`}
+                                >Master</button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Card Number</label>
+                            <div className="relative">
+                              <input 
+                                type="text" 
+                                className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-xs font-black"
+                                value="4242 4242 4242 4242"
+                                readOnly
+                              />
+                              <div className="absolute right-4 top-1/2 -translate-y-1/2 font-black italic text-xs">
+                                {cardBrand === 'Visa' ? <span className="text-blue-600">VISA</span> : <span className="text-orange-500">MASTER</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Cash */}
                       <div
                         onClick={() => setPaymentMethod('cash')}
@@ -401,7 +461,9 @@ export default function CheckoutPage() {
                         disabled={isProcessing}
                         className="bg-foreground text-background hover:opacity-90 font-black text-xs uppercase tracking-widest px-8 py-4 transition-all flex-1 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isProcessing ? 'Processing...' : (paymentMethod === 'cash' || paymentMethod === 'payhere' ? `Request Order (LKR ${total.toLocaleString()})` : `Place Order (LKR ${total.toLocaleString()})`)}
+                        {isProcessing 
+                          ? (paymentMethod === 'card' ? (processStep < 4 ? `Verifying Step ${processStep}/4...` : 'Finalizing Order...') : 'Processing...') 
+                          : (paymentMethod === 'cash' || paymentMethod === 'payhere' ? `Request Order (LKR ${total.toLocaleString()})` : `Place Order (LKR ${total.toLocaleString()})`)}
                       </button>
                     </div>
                   </div>

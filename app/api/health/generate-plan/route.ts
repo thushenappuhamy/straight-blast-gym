@@ -68,6 +68,7 @@ function determineFitnessLevel(q: any): 'Beginner' | 'Intermediate' | 'Advanced'
 }
 
 function getTrainingDays(q: any): number {
+  if (Array.isArray(q.selectedDays) && q.selectedDays.length > 0) return q.selectedDays.length;
   const raw = q.daysPerWeek ?? q.exerciseDaysPerWeek;
   if (typeof raw === 'number' && Number.isFinite(raw)) return Math.max(1, Math.min(7, Math.round(raw)));
   const n = normalizeText(raw);
@@ -242,7 +243,8 @@ function buildExercise({
 // ─── BUILD WORKOUT DAY ─────────────────────────────────────────────────────────
 function buildWorkoutDay(
   dayType: string, environment: 'home' | 'gym' | 'mixed',
-  level: string, dayIndex: number, seed: number
+  level: string, dayIndex: number, seed: number,
+  customDayName?: string
 ) {
   type BlueprintItem = { target: string; category: ExerciseCategory };
 
@@ -336,14 +338,14 @@ function buildWorkoutDay(
     buildExercise({ environment, target: item.target, category: item.category, level, dayIndex, exerciseIndex: exIdx, seed })
   );
   const durationMap: Record<string, string> = { Beginner: '45-60 min', Intermediate: '60-75 min', Advanced: '75-90 min' };
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const titleMap: Record<string, string> = {
     'full-body': 'Full Body Workout', push: 'Push Workout', pull: 'Pull Workout', legs: 'Leg Workout',
     upper: 'Upper Workout', lower: 'Lower Workout', chest: 'Chest Day', back: 'Back Day',
     shoulders: 'Shoulders Day', arms: 'Arms Day',
   };
   return {
-    day: dayNames[dayIndex] || `Day ${dayIndex + 1}`,
+    day: customDayName || dayNames[dayIndex] || `Day ${dayIndex + 1}`,
     title: titleMap[dayType] || `${dayType} Workout`,
     duration: durationMap[level] || '60 min',
     focus: blueprint.map(b => b.target).filter((v, i, a) => a.indexOf(v) === i),
@@ -605,7 +607,8 @@ function buildMealPlan(q: any, level: string, goal: string, seed: number) {
   const perMealFats = mealSlots.map((_, i) => Math.max(5, Math.round(macros.fats * (mealWeights[i] || 1 / mealsPerDay))));
 
   const weeklyPlan = Array.from({ length: 7 }, (_, dayIndex) => {
-    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
     const meals = mealSlots.map((slot, mi) => ({
       type: slot,        // for transformer
       mealType: slot,    // for DB schema
@@ -677,9 +680,10 @@ function buildMealPlan(q: any, level: string, goal: string, seed: number) {
 
 function buildWorkoutPlan(q: any, level: string, goal: string, seed: number) {
   const environment = determineWorkoutEnvironment(q);
-  const daysPerWeek = getTrainingDays(q);
+  const selectedDays = Array.isArray(q.selectedDays) && q.selectedDays.length > 0 ? q.selectedDays : null;
+  const daysPerWeek = selectedDays ? selectedDays.length : getTrainingDays(q);
   const split = getWorkoutSplit(level, daysPerWeek);
-  const workoutDays = split.map((cfg, i) => buildWorkoutDay(cfg.type, environment, level, i, seed));
+  const workoutDays = split.map((cfg, i) => buildWorkoutDay(cfg.type, environment, level, i, seed, selectedDays?.[i]));
   const focusLabel = level === 'Beginner' ? 'Full Body'
     : daysPerWeek >= 6 ? 'Push / Pull / Legs'
       : daysPerWeek === 5 && level === 'Advanced' ? 'Bro Split (Chest / Back / Shoulders / Arms / Legs)'
@@ -847,17 +851,19 @@ async function generatePlansWithGroq(q: any, requestId: string): Promise<Generat
   if (q.proteinSources?.length) prefFoods.push(`Protein: ${q.proteinSources.join(', ')}`);
   if (q.carbSources?.length) prefFoods.push(`Carbs: ${q.carbSources.join(', ')}`);
   const prefFoodsText = prefFoods.length ? `Preferred Foods: ${prefFoods.join('; ')}` : '';
+  const selectedDaysText = Array.isArray(q.selectedDays) && q.selectedDays.length > 0 ? q.selectedDays.join(', ') : '';
 
   const prompt = `You are a strict rule-based fitness engine. Output ONLY valid JSON, no extra text.
 
 USER: Level=${level}, Goal=${goal}, Days/week=${daysPerWeek}, Environment=${determineWorkoutEnvironment(q)}, Diet=${dietType}, Meals/day=${mealsPerDay}
 TDEE=${tdee}, TargetCalories=${calories}, Protein=${macros.protein}g, Carbs=${macros.carbs}g, Fats=${macros.fats}g
 ${prefFoodsText ? `USER PREFERRED FOODS: ${prefFoodsText}` : ''}
+${selectedDaysText ? `USER SELECTED TRAINING DAYS: ${selectedDaysText}` : ''}
 
 RULES:
 1. Workout split: ${splitRule}
 2. Exercises: ${exerciseRule}, sets ${level === 'Beginner' ? '3' : '4'} per exercise. CRITICAL: For 'name' and 'exercise' fields, provide the SPECIFIC exercise name (e.g. "Barbell Bench Press", "Squat"). DO NOT output just the body part!
-3. Output exactly ${daysPerWeek} training days
+3. Output exactly ${daysPerWeek} training days. ${selectedDaysText ? `The 'day' field for each workout MUST be one of: ${selectedDaysText}, in order.` : ''}
 4. Different exercises each day for same muscle group
 5. Meal plan: Create exactly 1 day of meals (${mealsPerDay} meals/day). Output exactly 1 day in the JSON under mealPlan.weeks[0].days.
 ${prefFoodsText ? `6. CRITICAL: The user has requested specific foods. You MUST construct the meal plan using ONLY these preferred foods where possible. Do not add unnecessary variety.` : '6. Keep the meals simple and repeat the same 1 day for the week.'}

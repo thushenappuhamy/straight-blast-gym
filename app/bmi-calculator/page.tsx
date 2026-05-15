@@ -84,6 +84,7 @@ function QuestionnaireModal({
     wakeUpTime: '',
     mealsPerDay: 0,
     exerciseHoursPerDay: '',
+    selectedDays: [] as string[],
   });
 
   const [loading, setLoading] = useState(false);
@@ -477,6 +478,15 @@ function QuestionnaireModal({
                       items={['1-2 days', '3 days', '4+ days', '6+ days']}
                       value={formData.daysPerWeek}
                       onChange={(value) => handleInputChange('daysPerWeek', value)}
+                    />
+                  </Section>
+
+                  <Section title="Specific Training Days" subtitle="Which days would you like to train?">
+                    <OptionList
+                      items={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                      value={formData.selectedDays}
+                      multiple
+                      onToggle={(value) => handleCheckboxToggle('selectedDays', value)}
                     />
                   </Section>
 

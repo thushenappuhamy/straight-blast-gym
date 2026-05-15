@@ -263,35 +263,50 @@ export default function DashboardPage() {
         const extractedWorkouts: any[] = [];
         if (plansData?.data?.workoutPlan?.weeks?.[0]?.days) {
           const days = plansData.data.workoutPlan.weeks[0].days;
-          const dayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
           const currentDayOfWeek = currentDate.getDay();
+          const dayMap: Record<string, number> = {
+            'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4, 'friday': 5, 'saturday': 6,
+            'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6
+          };
+
+
 
           const indices: number[] = [];
-          days.forEach((day: any, index: number) => {
+          days.forEach((day: any) => {
             const isRestDay = !day.title || day.title.toLowerCase().includes('rest');
-            if (!isRestDay) {
-              indices.push(index);
-            }
+            if (!isRestDay && day.day) {
+              const dIdx = dayMap[day.day.toLowerCase()];
+              if (dIdx !== undefined) {
+                indices.push(dIdx);
+                
+                // Determine status based on current day of week
+                let status: "done" | "today" | "upcoming" = "upcoming";
+                if (dIdx < currentDayOfWeek) {
+                  status = "done";
+                } else if (dIdx === currentDayOfWeek) {
+                  status = "today";
+                }
 
-            if (index < 4) {
-              // Determine status based on current day of week
-              let status: "done" | "today" | "upcoming" = "upcoming";
-              if (index < currentDayOfWeek) {
-                status = "done";
-              } else if (index === currentDayOfWeek) {
-                status = "today";
+                extractedWorkouts.push({
+                  dayLabel: day.day.substring(0, 3).toUpperCase(),
+                  title: day.title || "Workout",
+                  exercises: `${day.exercises?.length || 0} exercises`,
+                  duration: day.duration || "60 min",
+                  status: status
+                });
               }
-
-              extractedWorkouts.push({
-                dayLabel: dayLabels[index] || `DAY ${index + 1}`,
-                title: day.title || "Workout",
-                exercises: `${day.exercises?.length || 0} exercises`,
-                duration: day.duration || "60 min",
-                status: status
-              });
             }
           });
+
+          // Sort extracted workouts by day of the week
+          extractedWorkouts.sort((a, b) => {
+            const aIdx = dayMap[a.dayLabel.toLowerCase()];
+            const bIdx = dayMap[b.dayLabel.toLowerCase()];
+            return (aIdx ?? 0) - (bIdx ?? 0);
+          });
+
           setWorkoutDayIndices(indices);
+
         }
 
         if (extractedWorkouts.length > 0) {
