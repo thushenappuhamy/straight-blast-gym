@@ -84,7 +84,6 @@ export default function StaffManagementPage() {
       setTrainers(data.data.users.trainers);
       setError('');
     } catch (err: any) {
-      console.error('Error fetching roles:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -119,7 +118,6 @@ export default function StaffManagementPage() {
       setTotalRecords(data.pagination.total);
       setError('');
     } catch (err: any) {
-      console.error('Error fetching login history:', err);
       setError(err.message);
     } finally {
       setLoading(false);

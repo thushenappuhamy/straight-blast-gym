@@ -12,19 +12,15 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // GET - Fetch attendance records (with filtering)
 export async function GET(req: NextRequest) {
   try {
-    console.log('📋 [ATTENDANCE API] GET request received');
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      console.log('❌ [ATTENDANCE API] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
       const decoded: any = verify(token, JWT_SECRET);
-      console.log('✅ [ATTENDANCE API] Token verified');
     } catch (err) {
-      console.error('❌ [ATTENDANCE API] Token verification failed:', err);
       return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
     }
 
@@ -59,7 +55,6 @@ export async function GET(req: NextRequest) {
 
     const total = await Attendance.countDocuments(query);
 
-    console.log(`✅ [ATTENDANCE API] Retrieved ${records.length} attendance records`);
 
     return NextResponse.json(
       {
@@ -71,7 +66,6 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ [ATTENDANCE API] GET Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch attendance records: ' + String(error) },
       { status: 500 }
@@ -82,26 +76,21 @@ export async function GET(req: NextRequest) {
 // POST - Mark attendance (check-in)
 export async function POST(req: NextRequest) {
   try {
-    console.log('📝 [ATTENDANCE API] POST request received');
 
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      console.log('❌ [ATTENDANCE API] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     let decoded: any;
     try {
       decoded = verify(token, JWT_SECRET);
-      console.log('✅ [ATTENDANCE API] Token verified');
     } catch (err) {
-      console.error('❌ [ATTENDANCE API] Token verification failed:', err);
       return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 });
     }
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.log('❌ [ATTENDANCE API] User is not admin');
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
     }
 
@@ -110,7 +99,6 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { fingerprintId, memberId, attendanceType = 'fingerprint', notes } = body;
 
-    console.log('📥 [ATTENDANCE API] Request body:', { fingerprintId, memberId, attendanceType });
 
     // Validate input
     if (!fingerprintId && !memberId) {
@@ -125,20 +113,17 @@ export async function POST(req: NextRequest) {
     if (fingerprintId) {
       memberProfile = await MemberProfile.findOne({ fingerprintId });
       if (!memberProfile) {
-        console.log('❌ [ATTENDANCE API] Fingerprint not found:', fingerprintId);
         return NextResponse.json({ error: 'Member not found for this fingerprint' }, { status: 404 });
       }
     } else if (memberId) {
       memberProfile = await MemberProfile.findById(memberId);
       if (!memberProfile) {
-        console.log('❌ [ATTENDANCE API] Member not found:', memberId);
         return NextResponse.json({ error: 'Member not found' }, { status: 404 });
       }
     }
 
     // Check if member is active
     if (!memberProfile.isActive) {
-      console.log('⚠️ [ATTENDANCE API] Member is inactive:', memberProfile._id);
       return NextResponse.json(
         { error: 'Member is inactive. Please renew membership.' },
         { status: 403 }
@@ -148,7 +133,6 @@ export async function POST(req: NextRequest) {
     // Check if membership is still valid
     const now = new Date();
     if (memberProfile.membershipEndDate < now) {
-      console.log('⚠️ [ATTENDANCE API] Membership expired for:', memberProfile._id);
       // Deactivate member
       memberProfile.isActive = false;
       await memberProfile.save();
@@ -175,7 +159,6 @@ export async function POST(req: NextRequest) {
       existingCheckIn.duration = duration;
       await existingCheckIn.save();
 
-      console.log(`✅ [ATTENDANCE API] Check-out recorded for member: ${memberProfile._id}`);
 
       return NextResponse.json(
         {
@@ -200,7 +183,6 @@ export async function POST(req: NextRequest) {
 
     await attendance.save();
 
-    console.log(`✅ [ATTENDANCE API] Check-in recorded for member: ${memberProfile._id}`);
 
     return NextResponse.json(
       {
@@ -211,7 +193,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('❌ [ATTENDANCE API] POST Error:', error);
     return NextResponse.json(
       { error: 'Failed to record attendance: ' + String(error) },
       { status: 500 }

@@ -44,7 +44,6 @@ export default function AdminMembershipsPage() {
   // Fetch memberships
   const fetchMemberships = async () => {
     try {
-      console.log('📊 [ADMIN MEMBERSHIPS] Fetching...');
       const token = localStorage.getItem('token');
       const response = await fetch('/api/admin/memberships', {
         headers: {
@@ -58,11 +57,9 @@ export default function AdminMembershipsPage() {
         throw new Error(data.error || 'Failed to fetch memberships');
       }
 
-      console.log('✅ [ADMIN MEMBERSHIPS] Loaded:', data.data);
       setMemberships(data.data || []);
       setError('');
     } catch (err: any) {
-      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -140,14 +137,12 @@ export default function AdminMembershipsPage() {
         throw new Error(data.error || 'Failed to create membership');
       }
 
-      console.log('✅ [ADMIN MEMBERSHIPS] Created:', data.data);
       setToast({ message: 'Membership created successfully!', type: 'success' });
       setShowAddModal(false);
       resetForm();
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
-      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
@@ -185,18 +180,15 @@ export default function AdminMembershipsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('❌ [UPDATE MEMBERSHIP] Response error:', { status: response.status, data });
         throw new Error(data.error || 'Failed to update membership');
       }
 
-      console.log('✅ [ADMIN MEMBERSHIPS] Updated:', data.data);
       setToast({ message: 'Membership updated successfully!', type: 'success' });
       setShowEditModal(false);
       resetForm();
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
-      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
@@ -219,12 +211,10 @@ export default function AdminMembershipsPage() {
         throw new Error(data.error || 'Failed to delete membership');
       }
 
-      console.log('✅ [ADMIN MEMBERSHIPS] Deleted');
       setToast({ message: 'Membership deleted successfully!', type: 'success' });
       // Refetch from server to ensure sync with user pages
       await fetchMemberships();
     } catch (err: any) {
-      console.error('❌ [ADMIN MEMBERSHIPS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };

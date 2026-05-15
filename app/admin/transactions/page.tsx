@@ -123,7 +123,6 @@ export default function AdminTransactionsPage() {
           membershipFees,
         });
       } catch (error) {
-        console.error('Error fetching transactions:', error);
       } finally {
         setLoading(false);
       }

@@ -67,7 +67,6 @@ function GymInfoPanel() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log('🏋️ [GYM INFO] Submitting form:', form);
       const response = await fetch('/api/admin/settings/gym-info', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +74,6 @@ function GymInfoPanel() {
       });
 
       const data = await response.json();
-      console.log('📬 [GYM INFO] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update gym info');
@@ -83,7 +81,6 @@ function GymInfoPanel() {
 
       setNotification({ message: 'Gym info updated successfully!', type: 'success' });
     } catch (error: any) {
-      console.error('❌ [GYM INFO] Error:', error);
       setNotification({ message: error.message || 'Failed to update gym info', type: 'error' });
     } finally {
       setLoading(false);
@@ -247,7 +244,6 @@ function MembershipPlansPanel() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log('💳 [MEMBERSHIP PLANS] Submitting form:', form);
       const response = await fetch('/api/admin/settings/membership-plans', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -264,7 +260,6 @@ function MembershipPlansPanel() {
       });
 
       const data = await response.json();
-      console.log('📬 [MEMBERSHIP PLANS] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update membership plans');
@@ -272,7 +267,6 @@ function MembershipPlansPanel() {
 
       setNotification({ message: 'Membership plans updated successfully!', type: 'success' });
     } catch (error: any) {
-      console.error('❌ [MEMBERSHIP PLANS] Error:', error);
       setNotification({ message: error.message || 'Failed to update membership plans', type: 'error' });
     } finally {
       setLoading(false);
@@ -429,7 +423,6 @@ function PaymentPanel() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log('💳 [PAYMENT] Submitting form:', { liveMode, emailReceipts });
       const response = await fetch('/api/admin/settings/payment', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -443,7 +436,6 @@ function PaymentPanel() {
       });
 
       const data = await response.json();
-      console.log('📬 [PAYMENT] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update payment settings');
@@ -451,7 +443,6 @@ function PaymentPanel() {
 
       setNotification({ message: 'Payment settings updated successfully!', type: 'success' });
     } catch (error: any) {
-      console.error('❌ [PAYMENT] Error:', error);
       setNotification({ message: error.message || 'Failed to update payment settings', type: 'error' });
     } finally {
       setLoading(false);
@@ -564,7 +555,6 @@ function NotificationsPanel() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log('🔔 [NOTIFICATIONS] Submitting form:', { ...prefs, adminEmail: notifEmail });
       const response = await fetch('/api/admin/settings/notifications', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -575,7 +565,6 @@ function NotificationsPanel() {
       });
 
       const data = await response.json();
-      console.log('📬 [NOTIFICATIONS] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update notification settings');
@@ -583,7 +572,6 @@ function NotificationsPanel() {
 
       setNotification({ message: 'Notification settings updated successfully!', type: 'success' });
     } catch (error: any) {
-      console.error('❌ [NOTIFICATIONS] Error:', error);
       setNotification({ message: error.message || 'Failed to update notification settings', type: 'error' });
     } finally {
       setLoading(false);
@@ -683,7 +671,6 @@ function AdminAccountPanel() {
 
     setLoading(true);
     try {
-      console.log('👤 [ADMIN ACCOUNT] Submitting form');
       const response = await fetch('/api/auth/update-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -698,7 +685,6 @@ function AdminAccountPanel() {
       });
 
       const data = await response.json();
-      console.log('📬 [ADMIN ACCOUNT] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update account');
@@ -713,7 +699,6 @@ function AdminAccountPanel() {
         confirmPassword: '',
       }));
     } catch (error: any) {
-      console.error('❌ [ADMIN ACCOUNT] Error:', error);
       setNotification({ message: error.message || 'Failed to update account', type: 'error' });
     } finally {
       setLoading(false);

@@ -33,7 +33,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -42,7 +41,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.error('❌ [BOOKINGS API] User is not admin, role:', decoded.role);
       return NextResponse.json(
         { success: false, error: 'Only admins can update bookings' },
         { status: 403 }
@@ -85,7 +83,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       );
     }
 
-    console.log('✅ [ADMIN BOOKINGS] Updated:', id);
 
     const response = NextResponse.json({
       success: true,
@@ -96,7 +93,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [API] Error updating booking:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to update booking' },
       { status: 500 }
@@ -129,7 +125,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -138,7 +133,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.error('❌ [BOOKINGS API] User is not admin, role:', decoded.role);
       return NextResponse.json(
         { success: false, error: 'Only admins can delete bookings' },
         { status: 403 }
@@ -164,7 +158,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       );
     }
 
-    console.log('✅ [ADMIN BOOKINGS] Deleted:', id);
 
     const response = NextResponse.json({
       success: true,
@@ -175,7 +168,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [API] Error deleting booking:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to delete booking' },
       { status: 500 }

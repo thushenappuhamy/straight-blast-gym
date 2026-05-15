@@ -13,7 +13,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function GET(req: NextRequest) {
   try {
-    console.log('📊 [ANALYTICS API] Processing request...');
 
     // Get token from Authorization header or cookies
     let token = null;
@@ -23,7 +22,6 @@ export async function GET(req: NextRequest) {
     }
 
     if (!token) {
-      console.error('❌ [ANALYTICS API] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -32,13 +30,11 @@ export async function GET(req: NextRequest) {
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (error) {
-      console.error('❌ [ANALYTICS API] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     if (decoded.role !== 'admin') {
-      console.error('❌ [ANALYTICS API] User is not admin');
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -99,7 +95,6 @@ export async function GET(req: NextRequest) {
         ? 0
         : parseFloat((trainers.reduce((sum, t) => sum + t.ratingAverage, 0) / trainers.length).toFixed(1));
 
-    console.log('📊 [ANALYTICS] Trainers count:', trainers.length, 'Avg rating:', avgTrainerRatingCalc);
 
     // 5. Member Growth by Month (2026)
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
@@ -220,13 +215,7 @@ export async function GET(req: NextRequest) {
       percentage: totalGoalMembers === 0 ? 0 : Math.round((goal.count / totalGoalMembers) * 100),
     }));
 
-    console.log('✅ [ANALYTICS API] Calculated all metrics');
-    console.log('📊 Summary:', {
-      memberGrowth: memberGrowth.slice(0, 3),
-      revenueBreakdown: Object.keys(breakdownMap).map(k => `${k}: ${breakdownMap[k].percentage}%`),
-      topSupplements: supplementData.length,
-      totalMembers,
-    });
+
 
     const response = NextResponse.json({
       success: true,
@@ -255,10 +244,6 @@ export async function GET(req: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ANALYTICS API] Error calculating analytics:');
-    console.error('Error message:', error?.message);
-    console.error('Error stack:', error?.stack);
-    console.error('Full error:', error);
     
     return NextResponse.json(
       { 

@@ -58,7 +58,6 @@ export default function MembersPage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching members:', error);
     } finally {
       setLoading(false);
     }

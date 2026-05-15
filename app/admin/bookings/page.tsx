@@ -89,17 +89,14 @@ export default function AdminBookingsPage() {
   // Fetch bookings
   const fetchBookings = async () => {
     try {
-      console.log('📅 [ADMIN BOOKINGS] Fetching...');
       const token = localStorage.getItem('token');
 
       if (!token) {
-        console.error('❌ [ADMIN BOOKINGS] No token found in localStorage');
         setError('Authentication required. Please log in again.');
         setLoading(false);
         return;
       }
 
-      console.log('🔑 [ADMIN BOOKINGS] Token found, length:', token.length);
 
       const response = await fetch('/api/admin/bookings', {
         headers: {
@@ -107,7 +104,6 @@ export default function AdminBookingsPage() {
         },
       });
 
-      console.log('📥 [ADMIN BOOKINGS] Response status:', response.status);
 
       if (!response.ok) {
         let errorMsg = 'Failed to fetch bookings';
@@ -121,11 +117,9 @@ export default function AdminBookingsPage() {
       }
 
       const data = await response.json();
-      console.log('✅ [ADMIN BOOKINGS] Loaded:', data.data?.length || 0, 'bookings');
       setBookings(data.data || []);
       setError('');
     } catch (err: any) {
-      console.error('❌ [ADMIN BOOKINGS] Error:', err);
       setError(err.message || 'Failed to fetch bookings');
     } finally {
       setLoading(false);
@@ -146,20 +140,17 @@ export default function AdminBookingsPage() {
       const membersData = await membersRes.json();
 
       if (!trainersRes.ok) {
-        console.error('❌ Failed to fetch trainers:', trainersData.error);
         setTrainers([]);
       } else {
         setTrainers(trainersData.data || []);
       }
 
       if (!membersRes.ok) {
-        console.error('❌ Failed to fetch members:', membersData.error);
         setMembers([]);
       } else {
         setMembers(membersData.data || []);
       }
     } catch (err) {
-      console.error('❌ Error fetching select data:', err);
       setTrainers([]);
       setMembers([]);
     }
@@ -176,7 +167,6 @@ export default function AdminBookingsPage() {
         setStats(data.data);
       }
     } catch (err) {
-      console.error('❌ [STATS FETCH] Error:', err);
     }
   };
 
@@ -268,13 +258,11 @@ export default function AdminBookingsPage() {
         throw new Error(data.error || 'Failed to create booking');
       }
 
-      console.log('✅ [ADMIN BOOKINGS] Created:', data.data);
       setBookings([data.data, ...bookings]);
       setToast({ message: 'Booking created successfully!', type: 'success' });
       setShowAddModal(false);
       resetForm();
     } catch (err: any) {
-      console.error('❌ [ADMIN BOOKINGS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
@@ -306,17 +294,14 @@ export default function AdminBookingsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error('❌ [UPDATE BOOKING] Response error:', { status: response.status, data });
         throw new Error(data.error || 'Failed to update booking');
       }
 
-      console.log('✅ [ADMIN BOOKINGS] Updated:', data.data);
       setBookings(bookings.map((b) => (b._id === editingBooking._id ? data.data : b)));
       setToast({ message: 'Booking updated successfully!', type: 'success' });
       setShowEditModal(false);
       resetForm();
     } catch (err: any) {
-      console.error('❌ [ADMIN BOOKINGS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };
@@ -337,12 +322,10 @@ export default function AdminBookingsPage() {
         throw new Error(data.error || 'Failed to delete booking');
       }
 
-      console.log('✅ [ADMIN BOOKINGS] Deleted');
       setBookings(bookings.filter((b) => b._id !== id));
       setToast({ message: 'Booking deleted successfully!', type: 'success' });
       setConfirmModal(null);
     } catch (err: any) {
-      console.error('❌ [ADMIN BOOKINGS] Error:', err);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     }
   };

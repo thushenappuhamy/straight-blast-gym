@@ -127,7 +127,6 @@ export default function SupplementsPage() {
   useEffect(() => {
     const fetchSupplements = async () => {
       try {
-        console.log('💊 [SUPPLEMENTS] Fetching...');
         const response = await fetch('/api/admin/supplements');
         const data = await response.json();
 
@@ -135,10 +134,8 @@ export default function SupplementsPage() {
           throw new Error(data.error || 'Failed to fetch supplements');
         }
 
-        console.log('✅ [SUPPLEMENTS] Loaded:', data.data);
         setSupplements(data.data || []);
       } catch (err: any) {
-        console.error('❌ [SUPPLEMENTS] Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -191,18 +188,10 @@ export default function SupplementsPage() {
       }
 
       const token = localStorage.getItem('token');
-      console.log('🔐 [SUPPLEMENTS] Token:', token ? 'Found' : 'Not found');
 
       if (!token) {
         throw new Error('No authentication token found. Please login again.');
       }
-
-      console.log('📝 [SUPPLEMENTS] Form data:', {
-        name: formData.name,
-        category: formData.category,
-        price: formData.price,
-        stock: formData.stock,
-      });
 
       const payload = {
         ...formData,
@@ -217,7 +206,6 @@ export default function SupplementsPage() {
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
       };
 
-      console.log('📤 [SUPPLEMENTS] Sending payload:', payload);
 
       const response = await fetch('/api/admin/supplements', {
         method: 'POST',
@@ -230,13 +218,11 @@ export default function SupplementsPage() {
 
       const data = await response.json();
 
-      console.log('📥 [SUPPLEMENTS] Response:', { status: response.status, data });
 
       if (!response.ok) {
         throw new Error(data.error || `Failed to add supplement (Status: ${response.status})`);
       }
 
-      console.log('✅ [SUPPLEMENTS] Added:', data.data);
       setToast({ message: 'Supplement added successfully!', type: 'success' });
 
       // Refresh list
@@ -274,7 +260,6 @@ export default function SupplementsPage() {
       setImagePreview('');
       setShowAddModal(false);
     } catch (err: any) {
-      console.error('❌ [SUPPLEMENTS] Error:', err);
       setToast({ message: `Error: ${err.message || 'Failed to add supplement'}`, type: 'error' });
     } finally {
       setFormLoading(false);
@@ -349,7 +334,6 @@ export default function SupplementsPage() {
         throw new Error(data.error || 'Failed to update supplement');
       }
 
-      console.log('✅ [SUPPLEMENTS] Updated:', data.data);
       setToast({ message: 'Supplement updated successfully!', type: 'success' });
 
       // Refresh list
@@ -386,7 +370,6 @@ export default function SupplementsPage() {
       setEditingId(null);
       setShowEditModal(false);
     } catch (err: any) {
-      console.error('❌ [SUPPLEMENTS] Error:', err);
       setToast({ message: `Error: ${err.message || 'Failed to update supplement'}`, type: 'error' });
     } finally {
       setFormLoading(false);
@@ -416,7 +399,6 @@ export default function SupplementsPage() {
         throw new Error(data.error || 'Failed to delete supplement');
       }
 
-      console.log('✅ [SUPPLEMENTS] Deleted');
       setToast({ message: 'Supplement deleted successfully!', type: 'success' });
 
       // Refresh list
@@ -424,7 +406,6 @@ export default function SupplementsPage() {
       const refreshData = await refreshResponse.json();
       setSupplements(refreshData.data || []);
     } catch (err: any) {
-      console.error('❌ [SUPPLEMENTS] Error:', err);
       setToast({ message: `Error: ${err.message || 'Failed to delete supplement'}`, type: 'error' });
     }
   };
