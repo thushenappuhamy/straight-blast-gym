@@ -21,7 +21,6 @@ export default function SupplementsPage() {
   useEffect(() => {
     const fetchSupplements = async () => {
       try {
-        console.log('💊 [USER SUPPLEMENTS] Fetching...');
         const response = await fetch('/api/supplements');
         const data = await response.json();
 
@@ -29,11 +28,9 @@ export default function SupplementsPage() {
           throw new Error(data.error || 'Failed to fetch supplements');
         }
 
-        console.log('✅ [USER SUPPLEMENTS] Loaded:', data.data);
         setSupplements(data.data || []);
         setError('');
       } catch (err: any) {
-        console.error('❌ [USER SUPPLEMENTS] Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);

@@ -114,7 +114,6 @@ export default function AddBookingModal({ onClose, onSuccess, members, trainers 
     setError('');
 
     try {
-      console.log('📅 [ADD BOOKING] Creating booking...');
 
       const token = localStorage.getItem('token');
       if (!token) {
@@ -169,12 +168,10 @@ export default function AddBookingModal({ onClose, onSuccess, members, trainers 
         throw new Error(data.error || 'Failed to create booking');
       }
 
-      console.log('✅ [ADD BOOKING] Booking created:', data.data);
       setToast({ message: 'Booking created successfully!', type: 'success' });
       onSuccess();
       onClose();
     } catch (err: any) {
-      console.error('❌ [ADD BOOKING] Error:', err);
       setError(err.message || 'Failed to create booking');
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     } finally {

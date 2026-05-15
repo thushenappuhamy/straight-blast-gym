@@ -27,13 +27,11 @@ export default function WorkoutsPage() {
           setUserStatus(data.user?.membershipStatus?.toLowerCase() || 'pending');
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
       }
     };
 
     const fetchPlan = async () => {
       try {
-        console.log('📊 [WORKOUTS] Fetching workout plan...');
         const response = await fetch('/api/health/generate-plan');
 
         let data;
@@ -41,12 +39,10 @@ export default function WorkoutsPage() {
           data = await response.json();
         } catch (parseError) {
           const text = await response.text();
-          console.error('❌ [WORKOUTS] Failed to parse JSON. Response:', text.substring(0, 200));
           throw new Error(`API Error ${response.status}: Invalid JSON response`);
         }
 
         if (response.ok && data.data?.workoutPlan) {
-          console.log('✅ [WORKOUTS] Plan loaded:', data.data.workoutPlan);
           const history = Array.isArray(data.data.workoutHistory) && data.data.workoutHistory.length > 0
             ? data.data.workoutHistory
             : [data.data.workoutPlan];
@@ -65,7 +61,6 @@ export default function WorkoutsPage() {
           setError('No workout plan found. Complete the plan questionnaire first.');
         }
       } catch (err: any) {
-        console.error('❌ [WORKOUTS] Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);

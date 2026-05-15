@@ -74,7 +74,6 @@ export default function AddMemberWizard({ isOpen, onClose, onSuccess }: AddMembe
         setTrainers(data.data);
       }
     } catch (err) {
-      console.error('Error fetching trainers:', err);
     }
   };
 

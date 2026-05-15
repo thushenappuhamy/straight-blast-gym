@@ -195,7 +195,6 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
         shiftEndTime: convert12To24(timeDisplay.endHour, timeDisplay.endMinute, timeDisplay.endPeriod),
       };
 
-      console.log('👨‍🏫 [ADDING TRAINER]', method === 'POST' ? 'Creating new trainer' : 'Updating trainer', submitData);
 
       const response = await fetch(url, {
         method,
@@ -209,13 +208,15 @@ export default function AddTrainerModal({ onClose, onSuccess, trainer }: AddTrai
         throw new Error(data.error || 'Failed to save trainer');
       }
 
-      console.log('✅ [TRAINER SAVED]', data.data);
-      setToast({ message: `Trainer ${method === 'POST' ? 'added' : 'updated'} successfully!`, type: 'success' });
+      const successMsg = method === 'POST' 
+        ? `Trainer added successfully! Total trainers: ${data.total}`
+        : 'Trainer updated successfully!';
+      
+      setToast({ message: successMsg, type: 'success' });
       onSuccess();
       onClose();
       setStep(1);
     } catch (err: any) {
-      console.error('❌ [TRAINER ERROR]', err);
       setError(err.message);
       setToast({ message: `Error: ${err.message}`, type: 'error' });
     } finally {

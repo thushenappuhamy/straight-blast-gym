@@ -36,9 +36,7 @@ export async function updateAllTrainersStatus() {
       }
     }
     
-    console.log('✅ [TRAINER STATUS] Updated all trainers status');
   } catch (error) {
-    console.error('❌ [TRAINER STATUS] Error updating trainers:', error);
   }
 }
 

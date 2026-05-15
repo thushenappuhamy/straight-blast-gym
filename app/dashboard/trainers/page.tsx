@@ -89,7 +89,6 @@ export default function TrainersPage() {
   useEffect(() => {
     const fetchTrainers = async () => {
       try {
-        console.log('👨‍🏫 [USER TRAINERS] Fetching...');
         const response = await fetch('/api/trainers', {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -116,14 +115,12 @@ export default function TrainersPage() {
               status: trainer.status || 'active',
               isInactive: trainer.status === 'inactive',
             }));
-          console.log('✅ [USER TRAINERS] Loaded:', transformedTrainers.length);
           setTrainers(transformedTrainers);
           setError(null);
         } else {
           setError('Failed to load trainers');
         }
       } catch (err) {
-        console.error('❌ [USER TRAINERS] Error:', err);
         setError('An error occurred while loading trainers');
       } finally {
         setLoading(false);

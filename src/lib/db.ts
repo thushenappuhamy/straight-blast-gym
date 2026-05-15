@@ -19,7 +19,6 @@ export async function connectDB() {
         bufferCommands: false,
       })
       .then((mongoose) => {
-        console.log('✅ Connected to MongoDB');
         return mongoose;
       });
   }
