@@ -39,6 +39,7 @@ const serviceNavItems = [
 
 const accountNavItems = [
   { icon: "user", label: "My Profile", href: "/dashboard/profile" },
+  { icon: "chart", label: "My Bookings", href: "/dashboard/bookings" },
   { icon: "package", label: "My Orders", href: "/dashboard/my-orders" },
 ];
 

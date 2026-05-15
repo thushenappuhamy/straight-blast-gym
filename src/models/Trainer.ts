@@ -12,6 +12,7 @@ export interface ITrainer extends Document {
   bio: string;
   totalClients: number;
   ratingAverage: number;
+  ratingCount: number;
   sessionsThisMonth: number;
   costPerSession: number; // in LKR
   status: 'active' | 'inactive' | 'on-leave';
@@ -103,6 +104,11 @@ const TrainerSchema = new mongoose.Schema<ITrainer>(
       default: 0,
       min: 0,
       max: 5,
+    },
+    ratingCount: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     sessionsThisMonth: {
       type: Number,
