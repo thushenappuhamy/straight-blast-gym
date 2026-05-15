@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!email || !password) {
-      console.error("❌ [LOGIN] Missing email or password");
       return NextResponse.json(
         { error: 'Please provide email and password' },
         { status: 400 }
@@ -35,7 +34,6 @@ export async function POST(request: NextRequest) {
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
-      console.error("❌ [LOGIN] User not found");
       
       // Record failed login attempt (user not found)
       try {
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      console.error("❌ [LOGIN] Invalid password");
       
       // Record failed login attempt (invalid password)
       try {
@@ -158,9 +155,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error: any) {
-    console.error('❌ [LOGIN] Error:', error);
-    console.error('❌ [LOGIN] Error message:', error.message);
-    console.error('❌ [LOGIN] Error stack:', error.stack);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

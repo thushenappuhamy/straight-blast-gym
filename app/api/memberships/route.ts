@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     // Fetch only active memberships, sorted by price
     const memberships = await Membership.find({ isActive: true }).sort({ price: 1 });
 
-    console.log('✅ [API MEMBERSHIPS] Fetched:', memberships.length, 'plans');
 
     // Return with no-cache headers to ensure fresh data
     const response = NextResponse.json({
@@ -26,7 +25,6 @@ export async function GET(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('❌ [API MEMBERSHIPS] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch memberships' },
       { status: 500 }

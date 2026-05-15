@@ -48,7 +48,6 @@ export default function AdminHeader({
           setDbNotifications(notificationsData.data);
         }
       } catch (err) {
-        console.error('Failed to fetch admin notifications', err);
       }
     };
     

@@ -12,11 +12,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     // Get id from the promise params
     const { id } = await params;
-    console.log('📝 [SUPPLEMENTS API] PUT request received for ID:', id);
     
     const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      console.log('❌ [SUPPLEMENTS API] No token found');
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -26,9 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     let decoded: any;
     try {
       decoded = verify(token, JWT_SECRET);
-      console.log('✅ [SUPPLEMENTS API] Token verified, role:', decoded.role);
     } catch (tokenErr) {
-      console.error('❌ [SUPPLEMENTS API] Token verification failed:', tokenErr);
       return NextResponse.json(
         { success: false, error: 'Unauthorized - Invalid token' },
         { status: 401 }
@@ -37,20 +33,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // Check if user is admin
     if (decoded.role !== 'admin') {
-      console.log('❌ [SUPPLEMENTS API] User is not admin');
       return NextResponse.json(
         { success: false, error: 'Only admins can update supplements' },
         { status: 403 }
       );
     }
 
-    console.log('📡 [SUPPLEMENTS API] Connecting to database...');
     await connectDB();
-    console.log('✅ [SUPPLEMENTS API] Database connected');
 
     // Validate MongoDB ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.log('❌ [SUPPLEMENTS API] Invalid supplement ID:', id);
       return NextResponse.json(
         { success: false, error: 'Invalid supplement ID' },
         { status: 400 }
@@ -87,7 +79,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     // Calculate status based on stock
     const status = stock > 10 ? 'active' : stock > 0 ? 'low-stock' : 'out-of-stock';
 
-    console.log('💾 [SUPPLEMENTS API] Updating supplement...');
     const supplement = await Supplement.findByIdAndUpdate(
       id,
       {
@@ -120,14 +111,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     );
 
     if (!supplement) {
-      console.log('❌ [SUPPLEMENTS API] Supplement not found:', id);
       return NextResponse.json(
         { success: false, error: 'Supplement not found' },
         { status: 404 }
       );
     }
 
-    console.log('✅ [SUPPLEMENTS API] Supplement updated:', id);
     const response = NextResponse.json({
       success: true,
       data: supplement,
@@ -137,7 +126,6 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('❌ [SUPPLEMENTS API] Error updating supplement:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update supplement: ' + String(error) },
       { status: 500 }
@@ -195,7 +183,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     response.headers.set('Expires', '0');
     return response;
   } catch (error) {
-    console.error('Error deleting supplement:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete supplement' },
       { status: 500 }

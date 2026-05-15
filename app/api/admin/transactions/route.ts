@@ -115,7 +115,6 @@ export async function PATCH(req: NextRequest) {
           link: '/dashboard/profile'
         });
       } catch (err) {
-        console.error('Failed to notify member:', err);
       }
     } else if (status === 'COMPLETED' && transaction.type.toLowerCase().includes('supplement')) {
       // Notify the member for supplement order
@@ -128,7 +127,6 @@ export async function PATCH(req: NextRequest) {
           link: '/dashboard/my-orders'
         });
       } catch (err) {
-        console.error('Failed to notify member about order:', err);
       }
     }
 

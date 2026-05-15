@@ -10,17 +10,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📋 [QUESTIONNAIRE] Request received');
 
     await connectDB();
-    console.log('✅ [QUESTIONNAIRE] Database connected');
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error('❌ [QUESTIONNAIRE] No token found');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -31,9 +28,7 @@ export async function POST(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [QUESTIONNAIRE] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [QUESTIONNAIRE] Invalid token');
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -41,7 +36,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('📝 [QUESTIONNAIRE] Data received:', body);
 
     // Create questionnaire record
     const questionnaire = new PlanQuestionnaire({
@@ -50,7 +44,6 @@ export async function POST(request: NextRequest) {
     });
 
     await questionnaire.save();
-    console.log('✅ [QUESTIONNAIRE] Questionnaire saved');
 
     return NextResponse.json(
       {
@@ -60,7 +53,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('❌ [QUESTIONNAIRE] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

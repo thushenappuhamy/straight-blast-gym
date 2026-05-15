@@ -11,27 +11,22 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('👨‍🏫 [ADMIN TRAINERS] Fetching trainers list...');
 
     await connectDB();
-    console.log('✅ [ADMIN TRAINERS] Database connected');
 
     // Get token from Authorization header or cookies
     let token = null;
     const authHeader = request.headers.get('authorization');
     if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.slice(7);
-      console.log('✅ [ADMIN TRAINERS] Token found in Authorization header');
     } else {
       const cookieStore = await cookies();
       token = cookieStore.get('authToken')?.value;
       if (token) {
-        console.log('✅ [ADMIN TRAINERS] Token found in cookies');
       }
     }
 
     if (!token) {
-      console.error('❌ [ADMIN TRAINERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -39,23 +34,19 @@ export async function GET(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN TRAINERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN TRAINERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN TRAINERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
     // Fetch all trainers sorted by featured first, then by rating
     const trainers = await Trainer.find().sort({ isFeatured: -1, ratingAverage: -1 });
 
-    console.log(`✅ [ADMIN TRAINERS] Retrieved ${trainers.length} trainers`);
 
     // Map to trainer display format
     const formattedTrainers = trainers.map((trainer: any) => {
@@ -121,7 +112,6 @@ export async function GET(request: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN TRAINERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
@@ -131,17 +121,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('👨‍🏫 [ADMIN TRAINERS] Adding new trainer...');
 
     await connectDB();
-    console.log('✅ [ADMIN TRAINERS] Database connected');
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error('❌ [ADMIN TRAINERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -149,16 +136,13 @@ export async function POST(request: NextRequest) {
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN TRAINERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN TRAINERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN TRAINERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -211,12 +195,14 @@ export async function POST(request: NextRequest) {
 
     await newTrainer.save();
 
-    console.log('✅ [ADMIN TRAINERS] Trainer added:', newTrainer._id);
+
+    const totalTrainers = await Trainer.countDocuments();
 
     const response = NextResponse.json(
       {
         message: 'Trainer added successfully',
         data: newTrainer,
+        total: totalTrainers,
       },
       { status: 201 }
     );
@@ -225,7 +211,6 @@ export async function POST(request: NextRequest) {
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN TRAINERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

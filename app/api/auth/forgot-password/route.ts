@@ -86,7 +86,6 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Forgot password error:', error);
     if (String(error?.message || '').includes('Invalid login')) {
       return NextResponse.json(
         { error: 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS.' },

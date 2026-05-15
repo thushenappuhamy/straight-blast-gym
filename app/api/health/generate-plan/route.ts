@@ -21,7 +21,6 @@ const groq = new OpenAI({
 type GeneratedPlans = { workoutPlan: any; mealPlan: any };
 
 function logAiEvent(event: string, payload: Record<string, unknown>) {
-  console.log(`🤖 [PLAN GENERATION] ${event}`, payload);
 }
 
 function extractJsonBlock(text: string) {
@@ -925,14 +924,11 @@ export async function POST(request: NextRequest) {
     const q = await request.json();
     const level = determineFitnessLevel(q);
     const goal = determineFitnessGoal(q);
-    console.log(`🤖 [PLAN] Level=${level}, Goal=${goal}, Days=${getTrainingDays(q)}, Calories=${getDailyCalories(q, goal)}`);
 
     const deterministicPlans = buildDeterministicPlans(q);
     const useAI = process.env.ENABLE_AI_PLAN_GENERATION === 'true' && !!GROQ_API_KEY;
     const aiPlans = useAI ? await generatePlansWithGroq(q, requestId) : null;
 
-    if (aiPlans) console.log('✅ [PLAN] Using AI-generated plan');
-    else console.log('✅ [PLAN] Using deterministic plan');
 
     const raw = aiPlans || deterministicPlans;
     const plans = normalizePlans(raw) || normalizePlans(deterministicPlans) || deterministicPlans;
@@ -943,7 +939,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Plans generated successfully', data: { workoutPlan: savedWorkoutPlan, mealPlan: savedMealPlan } }, { status: 200 });
   } catch (error: any) {
-    console.error('❌ [PLAN] Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate plans' }, { status: 500 });
   }
 }

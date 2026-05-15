@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -46,7 +45,6 @@ export async function GET(req: NextRequest) {
       .populate('trainerId', 'firstName lastName')
       .sort({ dateTime: -1 });
 
-    console.log('✅ [PUBLIC BOOKINGS] Fetched for user:', decoded.id);
 
     // Return with no-cache headers to ensure fresh data
     const response = NextResponse.json({
@@ -61,7 +59,6 @@ export async function GET(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('❌ [API] Error fetching user bookings:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to fetch bookings' },
       { status: 500 }
@@ -93,7 +90,6 @@ export async function POST(req: NextRequest) {
     try {
       decoded = verify(token, JWT_SECRET);
     } catch (verifyError: any) {
-      console.error('❌ [BOOKINGS API] JWT verification failed:', verifyError.message);
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
         { status: 401 }
@@ -135,21 +131,17 @@ export async function POST(req: NextRequest) {
           trainer.assignedClients.push(decoded.id);
           trainer.totalClients = trainer.assignedClients.length;
           await trainer.save();
-          console.log('📈 [BOOKINGS API] Trainer client count incremented');
         }
       }
     } catch (trainerError) {
-      console.error('⚠️ [BOOKINGS API] Failed to update trainer stats:', trainerError);
     }
 
-    console.log('✅ [PUBLIC BOOKINGS] Created booking for user:', decoded.id);
 
     return NextResponse.json({
       success: true,
       data: booking,
     });
   } catch (error) {
-    console.error('❌ [API] Error creating booking:', error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : 'Failed to create booking' },
       { status: 500 }

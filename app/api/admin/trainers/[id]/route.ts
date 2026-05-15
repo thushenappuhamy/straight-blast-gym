@@ -12,17 +12,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-env';
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    console.log('👨‍🏫 [ADMIN TRAINERS] Updating trainer:', id);
 
     await connectDB();
-    console.log('✅ [ADMIN TRAINERS] Database connected');
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error('❌ [ADMIN TRAINERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -30,16 +27,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN TRAINERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN TRAINERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN TRAINERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -78,7 +72,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     // Save updated trainer
     await trainer.save();
 
-    console.log('✅ [ADMIN TRAINERS] Trainer updated:', trainer._id);
 
     const response = NextResponse.json(
       {
@@ -92,7 +85,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN TRAINERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to update trainer' },
       { status: 500 }
@@ -103,17 +95,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    console.log('👨‍🏫 [ADMIN TRAINERS] Deleting trainer:', id);
 
     await connectDB();
-    console.log('✅ [ADMIN TRAINERS] Database connected');
 
     // Get token from cookies
     const cookieStore = await cookies();
     const token = cookieStore.get('authToken')?.value;
 
     if (!token) {
-      console.error('❌ [ADMIN TRAINERS] No token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -121,16 +110,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     let decoded: any;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
-      console.log('✅ [ADMIN TRAINERS] Token verified for user:', decoded.email);
     } catch (error) {
-      console.error('❌ [ADMIN TRAINERS] Invalid token');
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.id);
     if (!admin || admin.role !== 'admin') {
-      console.error('❌ [ADMIN TRAINERS] User is not an admin');
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
@@ -140,7 +126,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: 'Trainer not found' }, { status: 404 });
     }
 
-    console.log('✅ [ADMIN TRAINERS] Trainer deleted:', id);
 
     const response = NextResponse.json(
       { message: 'Trainer deleted successfully' },
@@ -151,7 +136,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     response.headers.set('Expires', '0');
     return response;
   } catch (error: any) {
-    console.error('❌ [ADMIN TRAINERS] Error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to delete trainer' },
       { status: 500 }
