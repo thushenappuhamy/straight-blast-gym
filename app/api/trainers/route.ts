@@ -14,7 +14,6 @@ export async function GET(req: NextRequest) {
       .sort({ isFeatured: -1, ratingAverage: -1 })
       .lean();
 
-    console.log('✅ [API TRAINERS] Fetched:', trainers.length, 'trainers (active and inactive)');
 
     // Return with no-cache headers to ensure fresh data
     const response = NextResponse.json({
@@ -29,7 +28,6 @@ export async function GET(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('❌ [API TRAINERS] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch trainers' },
       { status: 500 }

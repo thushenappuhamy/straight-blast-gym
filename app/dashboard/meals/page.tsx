@@ -26,13 +26,11 @@ export default function MealPlansPage() {
           setUserStatus(data.user?.membershipStatus?.toLowerCase() || 'pending');
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
       }
     };
 
     const fetchPlan = async () => {
       try {
-        console.log('📊 [MEALS] Fetching meal plan...');
         const response = await fetch('/api/health/generate-plan');
         
         let data;
@@ -40,12 +38,10 @@ export default function MealPlansPage() {
           data = await response.json();
         } catch (parseError) {
           const text = await response.text();
-          console.error('❌ [MEALS] Failed to parse JSON. Response:', text.substring(0, 200));
           throw new Error(`API Error ${response.status}: Invalid JSON response`);
         }
 
         if (response.ok && data.data?.mealPlan) {
-          console.log('✅ [MEALS] Plan loaded:', data.data.mealPlan);
           const history = Array.isArray(data.data.mealHistory) && data.data.mealHistory.length > 0
             ? data.data.mealHistory.map(transformMealPlan)
             : [transformMealPlan(data.data.mealPlan)];
@@ -57,7 +53,6 @@ export default function MealPlansPage() {
           setError('No meal plan found. Complete the plan questionnaire first.');
         }
       } catch (err: any) {
-        console.error('❌ [MEALS] Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);

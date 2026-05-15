@@ -86,10 +86,10 @@ function WorkoutCard({ dayLabel, title, exercises, duration, status }: WorkoutCa
       </div>
       <div className={`flex items-center gap-1 text-xs font-black uppercase tracking-[0.25em] ${statusStyles}`}>
         {status === "done" && (
-          <><Check size={14} /> Done</>
+          <Check size={14} />
         )}
         {status === "today" && (
-          <><Flame size={14} /> Today</>
+          <Flame size={14} />
         )}
         {status === "upcoming" && "Upcoming"}
       </div>
@@ -326,7 +326,6 @@ export default function DashboardPage() {
         setDashboardHighlights(calculatedHighlights);
 
       } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
       } finally {
         setLoading(false);
       }

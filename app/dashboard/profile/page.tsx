@@ -53,7 +53,6 @@ export default function ProfilePage() {
         setTransactions(transJson.data);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }

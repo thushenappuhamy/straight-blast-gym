@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     // Fetch only active supplements, sorted by newest first
     const supplements = await Supplement.find({ status: 'active' }).sort({ createdAt: -1 });
 
-    console.log('✅ [API SUPPLEMENTS] Fetched:', supplements.length, 'items');
 
     // Return with no-cache headers to ensure fresh data
     const response = NextResponse.json({
@@ -26,7 +25,6 @@ export async function GET(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('❌ [API SUPPLEMENTS] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch supplements' },
       { status: 500 }

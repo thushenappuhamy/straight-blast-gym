@@ -208,7 +208,6 @@ function QuestionnaireModal({
 
     setLoading(true);
     try {
-      console.log('📋 [QUESTIONNAIRE] Submitting questionnaire...');
 
       // Convert string boolean fields to actual booleans
       const submissionData = {
@@ -218,7 +217,6 @@ function QuestionnaireModal({
         medicalConditions: formData.medicalConditions === 'Yes',
       };
 
-      console.log('✨ [DATA CONVERSION] Converted form data:', submissionData);
 
       // Step 1: Save questionnaire
       const questionnaireResponse = await fetch('/api/health/questionnaire', {
@@ -228,14 +226,12 @@ function QuestionnaireModal({
       });
 
       const questionnaireData = await questionnaireResponse.json();
-      console.log('📬 [QUESTIONNAIRE] Questionnaire saved:', questionnaireData);
 
       if (!questionnaireResponse.ok) {
         throw new Error(questionnaireData.error || 'Failed to save questionnaire');
       }
 
       // Step 2: Generate plans with AI
-      console.log('🤖 [PLAN GENERATION] Generating AI plans...');
       const planResponse = await fetch('/api/health/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -243,7 +239,6 @@ function QuestionnaireModal({
       });
 
       const planData = await planResponse.json();
-      console.log('✅ [PLAN GENERATION] Plans generated:', planData);
 
       if (!planResponse.ok) {
         console.warn('⚠️ Plans generation had issues but questionnaire was saved');
@@ -255,7 +250,6 @@ function QuestionnaireModal({
         router.push('/dashboard/workouts');
       }, 2000);
     } catch (error: any) {
-      console.error('❌ [QUESTIONNAIRE] Error:', error);
       setError(error.message || 'Failed to submit questionnaire');
     } finally {
       setLoading(false);
@@ -597,7 +591,6 @@ export default function BMICalculatorPage() {
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        console.log('📊 [BMI] Loading user data...');
 
         // Fetch BMI data
         const bmiResponse = await fetch('/api/health/bmi');
@@ -608,7 +601,6 @@ export default function BMICalculatorPage() {
         const userData = await userResponse.json();
 
         if (bmiResponse.ok && bmiData.data) {
-          console.log('✅ [BMI] User data loaded:', bmiData.data);
           // Store height and weight in metric first
           setHeight(bmiData.data.height || 175);
           setWeight(bmiData.data.weight || 75);
@@ -621,7 +613,6 @@ export default function BMICalculatorPage() {
         }
 
         if (userResponse.ok && userData.user) {
-          console.log('✅ [BMI] User profile loaded:', userData.user);
           const fullName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim();
           setUserName(fullName);
           setUserPlan(userData.user.plan?.toLowerCase() || 'basic');
@@ -630,7 +621,6 @@ export default function BMICalculatorPage() {
 
         setUserDataLoaded(true);
       } catch (error) {
-        console.error('❌ [BMI] Error loading user data:', error);
       }
     };
 
@@ -643,7 +633,6 @@ export default function BMICalculatorPage() {
   const calculateBMI = async () => {
     setLoading(true);
     try {
-      console.log('🔢 [BMI] Calculating BMI...', { height, weight, age, gender });
 
       // Convert to metric if imperial
       let heightCm = height;
@@ -667,7 +656,6 @@ export default function BMICalculatorPage() {
       });
 
       const data = await response.json();
-      console.log('📬 [BMI] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to calculate BMI');
@@ -714,7 +702,6 @@ export default function BMICalculatorPage() {
 
       setNotification({ message: 'BMI calculated successfully!', type: 'success' });
     } catch (error: any) {
-      console.error('❌ [BMI] Error:', error);
       setNotification({ message: error.message || 'Failed to calculate BMI', type: 'error' });
     } finally {
       setLoading(false);
@@ -729,7 +716,6 @@ export default function BMICalculatorPage() {
 
     setSubmittingQuestionnaire(true);
     try {
-      console.log('📋 [QUESTIONNAIRE] Submitting...', questionnaireData);
 
       const response = await fetch('/api/health/plan-questionnaire', {
         method: 'POST',
@@ -744,7 +730,6 @@ export default function BMICalculatorPage() {
       });
 
       const data = await response.json();
-      console.log('📬 [QUESTIONNAIRE] Response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to submit questionnaire');
@@ -755,7 +740,6 @@ export default function BMICalculatorPage() {
       // Reset form
       setUserName('');
     } catch (error: any) {
-      console.error('❌ [QUESTIONNAIRE] Error:', error);
       setNotification({ message: error.message || 'Failed to submit questionnaire', type: 'error' });
     } finally {
       setSubmittingQuestionnaire(false);

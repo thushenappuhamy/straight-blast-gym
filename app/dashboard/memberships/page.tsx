@@ -43,7 +43,6 @@ export default function MembershipsPage() {
   useEffect(() => {
     const fetchMemberships = async () => {
       try {
-        console.log('💳 [MEMBERSHIPS] Fetching...');
         const response = await fetch('/api/memberships');
         const data = await response.json();
 
@@ -51,11 +50,9 @@ export default function MembershipsPage() {
           throw new Error(data.error || 'Failed to fetch memberships');
         }
 
-        console.log('✅ [MEMBERSHIPS] Loaded:', data.data);
         setMemberships(data.data || []);
         setError('');
       } catch (err: any) {
-        console.error('❌ [MEMBERSHIPS] Error:', err);
         setError(err.message);
       } finally {
         setLoading(false);

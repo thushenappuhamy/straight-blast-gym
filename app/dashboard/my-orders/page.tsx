@@ -28,7 +28,6 @@ export default function MyOrdersPage() {
         setOrders(supplementOrders);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
     }

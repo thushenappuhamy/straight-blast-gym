@@ -36,7 +36,6 @@ export default function LiveDashboardCharts() {
           setMrrData(Array.isArray(json.mrrData) ? json.mrrData : []);
         }
       } catch (error) {
-        console.error('Failed to load live dashboard charts', error);
       } finally {
         setLoading(false);
       }

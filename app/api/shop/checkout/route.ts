@@ -12,10 +12,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function POST(req: NextRequest) {
   try {
-    console.log('🛒 [CHECKOUT API] POST request received');
 
     await connectDB();
-    console.log('✅ [CHECKOUT API] Database connected');
 
     const authHeader = req.headers.get('authorization');
     let userId = null;
@@ -31,7 +29,6 @@ export async function POST(req: NextRequest) {
           userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name || 'User';
         }
       } catch (err) {
-        console.error('Auth verification failed', err);
       }
     }
 
@@ -45,7 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`📦 [CHECKOUT API] Processing order with ${items.length} unique items`);
 
     // Process each item to decrease stock
     const updatePromises = items.map(async (item) => {
@@ -76,7 +72,6 @@ export async function POST(req: NextRequest) {
 
     // Wait for all stock updates to complete
     await Promise.all(updatePromises);
-    console.log('✅ [CHECKOUT API] Stock successfully reduced for all items');
 
     // Create a transaction record
     if (userId) {
@@ -108,9 +103,7 @@ export async function POST(req: NextRequest) {
             link: '/admin/transactions'
           }));
           await Notification.insertMany(notifications);
-          console.log(`🔔 [CHECKOUT API] Notified ${admins.length} admins about pending order payment`);
         } catch (notifyError) {
-          console.error('⚠️ [CHECKOUT API] Failed to notify admins:', notifyError);
         }
       }
     }
@@ -122,7 +115,6 @@ export async function POST(req: NextRequest) {
         : 'Order requested! Please contact admin to settle payment.',
     });
   } catch (error: any) {
-    console.error('❌ [CHECKOUT API] Error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Failed to process checkout' },
       { status: 500 }
