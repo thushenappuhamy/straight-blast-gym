@@ -6,6 +6,7 @@ import { User } from '@/models/User';
 import { Trainer } from '@/models/Trainer';
 import Booking from '@/src/models/Booking';
 import Supplement from '@/src/models/Supplement';
+import { Transaction } from '@/src/models/Transaction';
 import { verify } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -144,6 +145,45 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    // 6b. Financial Revenue Breakdown (Memberships vs Supplements)
+    const financialRevenue = await Transaction.aggregate([
+      { $match: { status: 'COMPLETED' } },
+      {
+        $group: {
+          _id: {
+            $cond: [
+              { $regexMatch: { input: "$type", regex: /Membership/i } },
+              "Membership",
+              { $cond: [
+                { $regexMatch: { input: "$type", regex: /Supplement/i } },
+                "Supplement",
+                "Other"
+              ]}
+            ]
+          },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const financialBreakdown: Record<string, { total: number; count: number; percentage: number }> = {
+      Membership: { total: 0, count: 0, percentage: 0 },
+      Supplement: { total: 0, count: 0, percentage: 0 },
+    };
+
+    const totalFinancialRevenue = financialRevenue.reduce((sum, item) => sum + item.total, 0);
+
+    financialRevenue.forEach((item) => {
+      if (financialBreakdown[item._id]) {
+        financialBreakdown[item._id] = {
+          total: item.total,
+          count: item.count,
+          percentage: totalFinancialRevenue === 0 ? 0 : Math.round((item.total / totalFinancialRevenue) * 100),
+        };
+      }
+    });
+
     // 7. Top Selling Supplements
     const topSupplements = await Supplement.find()
       .select('name salesThisMonth')
@@ -201,6 +241,7 @@ export async function GET(req: NextRequest) {
         revenueBreakdown: breakdownMap,
         topSupplements: supplementData,
         memberGoals: goalsData,
+        financialBreakdown,
         summary: {
           totalMembers,
           activeMembers: activeMembers.length,
