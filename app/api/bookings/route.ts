@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/src/lib/db';
 import Booking from '@/src/models/Booking';
+import { Trainer } from '@/src/models/Trainer';
 import { verify } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch user's bookings
     const bookings = await Booking.find({ memberId: decoded.id })
-      .populate('trainerId', 'name')
+      .populate('trainerId', 'firstName lastName')
       .sort({ dateTime: -1 });
 
     console.log('✅ [PUBLIC BOOKINGS] Fetched for user:', decoded.id);
@@ -123,6 +124,23 @@ export async function POST(req: NextRequest) {
     });
 
     await booking.save();
+
+    // Update trainer stats
+    try {
+      const trainer = await Trainer.findById(trainerId);
+      if (trainer) {
+        // Use set to ensure unique member IDs
+        const clientIds = trainer.assignedClients.map((id: any) => id.toString());
+        if (!clientIds.includes(decoded.id)) {
+          trainer.assignedClients.push(decoded.id);
+          trainer.totalClients = trainer.assignedClients.length;
+          await trainer.save();
+          console.log('📈 [BOOKINGS API] Trainer client count incremented');
+        }
+      }
+    } catch (trainerError) {
+      console.error('⚠️ [BOOKINGS API] Failed to update trainer stats:', trainerError);
+    }
 
     console.log('✅ [PUBLIC BOOKINGS] Created booking for user:', decoded.id);
 
