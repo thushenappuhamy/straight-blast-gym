@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import { MealPlanContainer } from '@/src/components/meal';
 import { transformMealPlan } from '@/src/lib/mealTransformer';
+import { Lock, Crown, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function MealPlansPage() {
   const [mealPlan, setMealPlan] = useState<any>(null);
@@ -11,8 +13,23 @@ export default function MealPlansPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [regenerating, setRegenerating] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [userStatus, setUserStatus] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserPlan(data.user?.plan?.toLowerCase() || 'basic');
+          setUserStatus(data.user?.membershipStatus?.toLowerCase() || 'pending');
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
     const fetchPlan = async () => {
       try {
         console.log('📊 [MEALS] Fetching meal plan...');
@@ -47,6 +64,7 @@ export default function MealPlansPage() {
       }
     };
 
+    fetchUser();
     fetchPlan();
   }, []);
 
@@ -217,10 +235,52 @@ export default function MealPlansPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground p-8 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl font-bold text-foreground mb-4">Loading your personalized meal plan...</p>
-          <div className="animate-spin text-3xl">⚙️</div>
+          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-6"></div>
+          <p className="text-xl font-black uppercase tracking-widest text-muted-foreground animate-pulse">Analyzing Clearance...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (userPlan === 'basic' || userStatus !== 'active') {
+    const isPending = userStatus === 'pending';
+
+    return (
+      <div className="min-h-screen bg-background text-foreground p-8 flex items-center justify-center">
+        <div className="max-w-2xl w-full bg-card border border-border p-12 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          
+          <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3 shadow-inner">
+            <Lock className="text-primary -rotate-3" size={40} />
+          </div>
+          
+          <h1 className="text-4xl font-black uppercase tracking-tighter mb-6 text-foreground leading-none">
+            {isPending ? 'Activation' : 'Premium Access'} <span className="text-primary">{isPending ? 'Pending' : 'Required'}</span>
+          </h1>
+          
+          <p className="text-muted-foreground text-lg mb-10 font-medium leading-relaxed">
+            {isPending 
+              ? 'Your membership is currently pending verification. Once an admin activates your account, your AI meal plans will be unlocked.'
+              : 'Personalized AI Meal Plans are an exclusive benefit for STANDARD and PREMIUM members.'
+            }
+          </p>
+          
+          <Link 
+            href={isPending ? "/dashboard/profile" : "/dashboard/membership"} 
+            className="group relative inline-flex items-center gap-3 bg-primary text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl shadow-xl shadow-primary/20 hover:bg-slate-900 transition-all text-sm"
+          >
+            {isPending ? 'View Profile Status' : 'Upgrade Membership'}
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+          
+          <div className="mt-8 pt-8 border-t border-border/50">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Crown size={14} className="text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Elevate Your Nutrition Game</span>
+            </div>
+          </div>
         </div>
       </div>
     );

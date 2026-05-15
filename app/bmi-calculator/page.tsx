@@ -590,6 +590,8 @@ export default function BMICalculatorPage() {
   });
   const [submittingQuestionnaire, setSubmittingQuestionnaire] = useState(false);
   const [showQuestionnaireModal, setShowQuestionnaireModal] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [userStatus, setUserStatus] = useState<string | null>(null);
 
   // Load user's existing BMI data on mount
   useEffect(() => {
@@ -622,6 +624,8 @@ export default function BMICalculatorPage() {
           console.log('✅ [BMI] User profile loaded:', userData.user);
           const fullName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim();
           setUserName(fullName);
+          setUserPlan(userData.user.plan?.toLowerCase() || 'basic');
+          setUserStatus(userData.user.membershipStatus?.toLowerCase() || 'pending');
         }
 
         setUserDataLoaded(true);
@@ -1040,7 +1044,19 @@ export default function BMICalculatorPage() {
 
                 {/* Generate Plan Button */}
                 <button
-                  onClick={() => setShowQuestionnaireModal(true)}
+                  onClick={() => {
+                    if (userPlan === 'basic' || userStatus !== 'active') {
+                      const isPending = userStatus === 'pending';
+                      setNotification({ 
+                        message: isPending 
+                          ? 'YOUR ACCOUNT IS PENDING ACTIVATION. AI PLANS WILL BE AVAILABLE ONCE VERIFIED.'
+                          : 'PLAN GENERATION IS A PREMIUM FEATURE. PLEASE UPGRADE TO STANDARD OR PREMIUM TO ACCESS.', 
+                        type: 'error' 
+                      });
+                      return;
+                    }
+                    setShowQuestionnaireModal(true);
+                  }}
                   className="w-full bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest py-4 mt-8 transition-all rounded-lg shadow-lg shadow-primary/20">
                   Generate My Plan →
                 </button>

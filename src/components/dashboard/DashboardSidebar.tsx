@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -60,6 +61,32 @@ export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps
   const pathname = usePathname();
   const router = useRouter();
   const isDark = theme === "dark";
+  const [userPlan, setUserPlan] = useState<string | null>(null);
+  const [userStatus, setUserStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUserPlan(data.user?.plan?.toLowerCase() || 'basic');
+          setUserStatus(data.user?.membershipStatus?.toLowerCase() || 'pending');
+        }
+      } catch (error) {
+        console.error('Error fetching user for sidebar:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const filteredNavItems = mainNavItems.filter(item => {
+    // Hide Workouts and Meal Plans for basic members OR if membership is not active
+    if (userPlan === 'basic' || userStatus !== 'active') {
+      return item.label !== "My Workouts" && item.label !== "Meal Plans";
+    }
+    return true;
+  });
 
   const handleLogout = async () => {
     try {
@@ -124,7 +151,7 @@ export function DashboardSidebar({ theme, onThemeChange }: DashboardSidebarProps
         <div className="mb-6">
           <span className={`px-3 text-[10px] font-black uppercase tracking-[0.4em] ${sectionLabelClasses}`}>Main</span>
           <ul className="mt-3 space-y-1">
-            {mainNavItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

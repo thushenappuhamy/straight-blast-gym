@@ -505,12 +505,24 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-black uppercase tracking-tight text-foreground">
                   This Week's Workouts
                 </h2>
-                <Link href="/dashboard/workouts" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-                  View Full Plan →
-                </Link>
+                {userInfo.plan?.toLowerCase() !== 'basic' && userInfo.membershipStatus === 'active' && (
+                  <Link href="/dashboard/workouts" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
+                    View Full Plan →
+                  </Link>
+                )}
               </div>
               <div className="space-y-4">
-                {workouts.map((workout, i) => (
+                {userInfo.plan?.toLowerCase() === 'basic' || userInfo.membershipStatus !== 'active' ? (
+                  <div className="text-center py-10 bg-muted/20 border border-border rounded-[2rem]">
+                    <Dumbbell size={32} className="text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      {userInfo.membershipStatus === 'pending' ? 'Activation Pending' : 'Premium Membership Required'}
+                    </p>
+                    <Link href={userInfo.membershipStatus === 'pending' ? "/dashboard/profile" : "/dashboard/membership"} className="mt-4 inline-block text-[10px] font-black uppercase tracking-wider text-primary hover:underline">
+                      {userInfo.membershipStatus === 'pending' ? 'View Status →' : 'Upgrade Now →'}
+                    </Link>
+                  </div>
+                ) : workouts.map((workout, i) => (
                   <WorkoutCard key={i} {...workout} />
                 ))}
               </div>
@@ -594,7 +606,7 @@ export default function DashboardPage() {
                 <QuickAction icon="chart" label="Check BMI" href="/bmi-calculator" />
                 <QuickAction icon="pill" label="Buy Supps" href="/shop" />
                 <QuickAction icon="user" label="Book Trainer" href="/dashboard/trainers" />
-                <QuickAction icon="food" label="Meal Plan" href="/dashboard/meals" />
+                {userInfo.plan?.toLowerCase() !== 'basic' && userInfo.membershipStatus === 'active' && <QuickAction icon="food" label="Meal Plan" href="/dashboard/meals" />}
               </div>
             </div>
 
