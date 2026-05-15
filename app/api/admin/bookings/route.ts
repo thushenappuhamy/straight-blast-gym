@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/src/lib/db';
 import Booking from '@/src/models/Booking';
+import { Trainer } from '@/src/models/Trainer';
 import { verify } from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
     // Fetch bookings with member and trainer details
     const bookings = await Booking.find()
       .populate('memberId', 'firstName lastName')
-      .populate('trainerId', 'name')
+      .populate('trainerId', 'firstName lastName')
       .sort({ dateTime: -1 });
 
     console.log('✅ [ADMIN BOOKINGS] Fetched:', bookings.length);
@@ -142,9 +143,25 @@ export async function POST(req: NextRequest) {
 
     await booking.save();
 
+    // Update trainer stats
+    try {
+      const trainer = await Trainer.findById(trainerId);
+      if (trainer) {
+        const clientIds = trainer.assignedClients.map((id: any) => id.toString());
+        if (!clientIds.includes(memberId.toString())) {
+          trainer.assignedClients.push(memberId);
+          trainer.totalClients = trainer.assignedClients.length;
+          await trainer.save();
+          console.log('📈 [ADMIN BOOKINGS API] Trainer client count incremented');
+        }
+      }
+    } catch (trainerError) {
+      console.error('⚠️ [ADMIN BOOKINGS API] Failed to update trainer stats:', trainerError);
+    }
+
     // Populate member and trainer details
     await booking.populate('memberId', 'firstName lastName');
-    await booking.populate('trainerId', 'name');
+    await booking.populate('trainerId', 'firstName lastName');
 
     console.log('✅ [ADMIN BOOKINGS] Created:', booking._id);
 

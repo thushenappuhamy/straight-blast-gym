@@ -68,6 +68,13 @@ export default function AdminBookingsPage() {
   const [trainers, setTrainers] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; id: string } | null>(null);
+  const [stats, setStats] = useState({
+    thisMonth: 0,
+    today: 0,
+    completedToday: 0,
+    upcoming: 0,
+    cancellations: 0
+  });
 
   const [formData, setFormData] = useState({
     memberId: '',
@@ -158,14 +165,33 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/bookings/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (err) {
+      console.error('❌ [STATS FETCH] Error:', err);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
     fetchSelectData();
+    fetchStats();
   }, []);
 
   // Poll for updates every 5 seconds
   useEffect(() => {
-    const interval = setInterval(fetchBookings, 5000);
+    const interval = setInterval(() => {
+      fetchBookings();
+      fetchStats();
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -193,6 +219,7 @@ export default function AdminBookingsPage() {
   const handleAddBookingSuccess = () => {
     setShowAddModal(false);
     fetchBookings();
+    fetchStats();
   };
 
   const handleEditClick = (booking: Booking) => {
@@ -320,35 +347,20 @@ export default function AdminBookingsPage() {
     }
   };
 
-  const getStats = () => {
-    const today = new Date();
-    const thisMonth = today.getMonth();
-    const thisYear = today.getFullYear();
-
-    const todayBookings = bookings.filter(b => {
-      const bookingDate = new Date(b.dateTime);
-      return bookingDate.toDateString() === today.toDateString();
-    });
-
-    const monthBookings = bookings.filter(b => {
-      const bookingDate = new Date(b.dateTime);
-      return bookingDate.getMonth() === thisMonth && bookingDate.getFullYear() === thisYear;
-    });
-
+  const getStatsArray = () => {
     return [
-      { icon: Calendar, value: monthBookings.length.toString(), label: 'This Month', subtext: null, color: 'text-[#E63C2F]', bg: 'bg-[#E63C2F]/5' },
-      { icon: CheckCircle2, value: todayBookings.length.toString(), label: "Today's Sessions", subtext: todayBookings.filter(b => b.status === 'COMPLETED').length + ' completed', color: 'text-green-500', bg: 'bg-green-500/5' },
-      { icon: Clock, value: bookings.filter(b => b.status === 'UPCOMING').length.toString(), label: 'Upcoming', subtext: null, color: 'text-blue-500', bg: 'bg-blue-500/5' },
-      { icon: XCircle, value: bookings.filter(b => b.status === 'CANCELLED').length.toString(), label: 'Cancellations', subtext: 'Total Action Needed', color: 'text-red-500', bg: 'bg-red-500/5' },
+      { icon: Calendar, value: stats.thisMonth.toString(), label: 'This Month', subtext: null, color: 'text-[#E63C2F]', bg: 'bg-[#E63C2F]/5' },
+      { icon: CheckCircle2, value: stats.today.toString(), label: "Today's Sessions", subtext: stats.completedToday + ' completed', color: 'text-green-500', bg: 'bg-green-500/5' },
+      { icon: Clock, value: stats.upcoming.toString(), label: 'Upcoming', subtext: null, color: 'text-blue-500', bg: 'bg-blue-500/5' },
+      { icon: XCircle, value: stats.cancellations.toString(), label: 'Cancellations', subtext: 'Total Action Needed', color: 'text-red-500', bg: 'bg-red-500/5' },
     ];
   };
 
-  const statCards = getStats();
+  const statCards = getStatsArray();
 
   const filtered = bookings.filter((b) => {
-    if (!b.memberId || !b.trainerId) return false;
-    const memberName = `${b.memberId.firstName || ''} ${b.memberId.lastName || ''}`.toLowerCase();
-    const trainerName = (b.trainerId.name || '').toLowerCase();
+    const memberName = b.memberId ? `${b.memberId.firstName || ''} ${b.memberId.lastName || ''}`.toLowerCase() : 'unknown member';
+    const trainerName = b.trainerId ? (b.trainerId.name || '').toLowerCase() : 'unknown trainer';
     const matchSearch = memberName.includes(search.toLowerCase()) || trainerName.includes(search.toLowerCase());
     return matchSearch;
   }).sort((a, b) => new Date(b.createdAt || b.dateTime).getTime() - new Date(a.createdAt || a.dateTime).getTime());
@@ -471,14 +483,14 @@ export default function AdminBookingsPage() {
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#E63C2F] to-[#E63C2F]/60 flex items-center justify-center shadow-lg shadow-[#E63C2F]/20">
-                            <span className="text-black font-black text-sm">{booking.memberId.firstName[0]}</span>
+                            <span className="text-black font-black text-sm">{booking.memberId ? booking.memberId.firstName[0] : '?'}</span>
                           </div>
                           <div className="max-w-[150px]">
                             <p 
                               className="font-bold text-white text-sm truncate" 
-                              title={`${booking.memberId.firstName} ${booking.memberId.lastName}`}
+                              title={booking.memberId ? `${booking.memberId.firstName} ${booking.memberId.lastName}` : 'Unknown Member'}
                             >
-                              {booking.memberId.firstName} {booking.memberId.lastName}
+                              {booking.memberId ? `${booking.memberId.firstName} ${booking.memberId.lastName}` : 'Unknown Member'}
                             </p>
                             <p className="text-[10px] text-white/30 uppercase font-black tracking-wider">Member</p>
                           </div>
@@ -486,8 +498,8 @@ export default function AdminBookingsPage() {
                       </td>
                       <td className="px-8 py-6">
                         <div className="max-w-[120px]">
-                          <p className="text-white/80 text-sm font-medium truncate" title={booking.trainerId.name}>
-                            {booking.trainerId.name}
+                          <p className="text-white/80 text-sm font-medium truncate" title={booking.trainerId ? booking.trainerId.name : 'Unknown Trainer'}>
+                            {booking.trainerId ? booking.trainerId.name : 'Unknown Trainer'}
                           </p>
                           <p className="text-[10px] text-white/20 uppercase font-black tracking-wider">Trainer</p>
                         </div>

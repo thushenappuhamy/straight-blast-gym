@@ -76,7 +76,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       { new: true }
     )
       .populate('memberId', 'firstName lastName')
-      .populate('trainerId', 'name');
+      .populate('trainerId', 'firstName lastName');
 
     if (!booking) {
       return NextResponse.json(
